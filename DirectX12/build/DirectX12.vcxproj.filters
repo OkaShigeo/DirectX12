@@ -49,6 +49,9 @@
     <Filter Include="ShaderCompiler">
       <UniqueIdentifier>{4a0d468d-ebeb-4184-8f71-2b44d33e727a}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Dx12RootSignature">
+      <UniqueIdentifier>{a334b6c1-e613-4993-a54e-5e4bf2d1a353}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\code\main.cpp">
@@ -89,6 +92,9 @@
     </ClCompile>
     <ClCompile Include="..\code\source\ShaderCompiler.cpp">
       <Filter>ShaderCompiler</Filter>
+    </ClCompile>
+    <ClCompile Include="..\code\source\Dx12RootSignature.cpp">
+      <Filter>Dx12RootSignature</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -133,6 +139,9 @@
     </ClInclude>
     <ClInclude Include="..\code\include\ShaderCompiler.h">
       <Filter>ShaderCompiler</Filter>
+    </ClInclude>
+    <ClInclude Include="..\code\include\Dx12RootSignature.h">
+      <Filter>Dx12RootSignature</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

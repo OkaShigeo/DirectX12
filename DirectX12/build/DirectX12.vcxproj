@@ -23,7 +23,7 @@
     <Keyword>Win32Proj</Keyword>
     <ProjectGuid>{7e57c4c2-b60c-4f59-bc4c-62f22092967d}</ProjectGuid>
     <RootNamespace>DirectX12</RootNamespace>
-    <WindowsTargetPlatformVersion>10.0.17763.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -42,7 +42,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v141</PlatformToolset>
+    <PlatformToolset>v142</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
@@ -148,6 +148,7 @@
     <ClCompile Include="..\code\source\Dx12Heap.cpp" />
     <ClCompile Include="..\code\source\Dx12RenderTarget.cpp" />
     <ClCompile Include="..\code\source\Dx12Resource.cpp" />
+    <ClCompile Include="..\code\source\Dx12RootSignature.cpp" />
     <ClCompile Include="..\code\source\Dx12Runtime.cpp" />
     <ClCompile Include="..\code\source\Dx12SwapChain.cpp" />
     <ClCompile Include="..\code\source\ShaderCompiler.cpp" />
@@ -162,6 +163,7 @@
     <ClInclude Include="..\code\include\Dx12Heap.h" />
     <ClInclude Include="..\code\include\Dx12RenderTarget.h" />
     <ClInclude Include="..\code\include\Dx12Resource.h" />
+    <ClInclude Include="..\code\include\Dx12RootSignature.h" />
     <ClInclude Include="..\code\include\Dx12Runtime.h" />
     <ClInclude Include="..\code\include\Dx12SwapChain.h" />
     <ClInclude Include="..\code\include\DxBaseObject.h" />
