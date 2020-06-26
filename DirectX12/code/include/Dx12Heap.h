@@ -12,7 +12,7 @@ public:
 
 public:
 	/* CPUアドレスの取得 */
-	D3D12_CPU_DESCRIPTOR_HANDLE GetCpuAddress(const std::uint32_t& index = 0);
+	D3D12_CPU_DESCRIPTOR_HANDLE GetCpuAddress(const std::uint32_t& index = 0) const;
 
 private:
 	/* ヒープの生成 */

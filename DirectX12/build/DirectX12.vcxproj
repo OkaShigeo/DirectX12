@@ -150,6 +150,7 @@
     <ClCompile Include="..\code\source\Dx12Resource.cpp" />
     <ClCompile Include="..\code\source\Dx12Runtime.cpp" />
     <ClCompile Include="..\code\source\Dx12SwapChain.cpp" />
+    <ClCompile Include="..\code\source\ShaderCompiler.cpp" />
     <ClCompile Include="..\code\source\Window.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -164,6 +165,7 @@
     <ClInclude Include="..\code\include\Dx12Runtime.h" />
     <ClInclude Include="..\code\include\Dx12SwapChain.h" />
     <ClInclude Include="..\code\include\DxBaseObject.h" />
+    <ClInclude Include="..\code\include\ShaderCompiler.h" />
     <ClInclude Include="..\code\include\Vector.h" />
     <ClInclude Include="..\code\include\Window.h" />
   </ItemGroup>

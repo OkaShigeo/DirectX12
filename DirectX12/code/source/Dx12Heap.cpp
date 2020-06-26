@@ -31,7 +31,7 @@ std::uint32_t Dx12Heap::CreateHeap(const D3D12_DESCRIPTOR_HEAP_TYPE& type, const
 	return hr;
 }
 
-D3D12_CPU_DESCRIPTOR_HANDLE Dx12Heap::GetCpuAddress(const std::uint32_t& index)
+D3D12_CPU_DESCRIPTOR_HANDLE Dx12Heap::GetCpuAddress(const std::uint32_t& index) const
 {
 	auto handle = obj->GetCPUDescriptorHandleForHeapStart();
 	handle.ptr += Dx12Runtime::GetDevice()->GetDescriptorHandleIncrementSize(obj->GetDesc().Type) * index;

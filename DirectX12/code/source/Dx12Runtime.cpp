@@ -83,9 +83,7 @@ void Dx12Runtime::RTV(const Dx12Heap* heap, const Dx12Resource* rsc, const std::
 	desc.Texture2D     = {};
 	desc.ViewDimension = D3D12_RTV_DIMENSION::D3D12_RTV_DIMENSION_TEXTURE2D;
 
-	auto handle = heap->Get()->GetCPUDescriptorHandleForHeapStart();
-	handle.ptr += device->Get()->GetDescriptorHandleIncrementSize(heap->Get()->GetDesc().Type) * index;
-	device->Get()->CreateRenderTargetView(rsc->Get(), &desc, handle);
+	device->Get()->CreateRenderTargetView(rsc->Get(), &desc, heap->GetCpuAddress(index));
 }
 
 void Dx12Runtime::RTV(ID3D12DescriptorHeap* heap, ID3D12Resource1* rsc, const std::uint32_t& index)
