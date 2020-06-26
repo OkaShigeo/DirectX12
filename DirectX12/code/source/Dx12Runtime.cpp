@@ -119,7 +119,7 @@ st::Vec2 Dx12Runtime::GetWindowSize(void)
 	return window->GetWindowSize();
 }
 
-ID3D12Device6* Dx12Runtime::GetDevice(void)
+ID3D12Device5* Dx12Runtime::GetDevice(void)
 {
 	return device->Get();
 }

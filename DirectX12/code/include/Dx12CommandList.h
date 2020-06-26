@@ -5,7 +5,7 @@
 class Dx12CommandAllocator;
 
 class Dx12CommandList :
-	public DxBaseObject<ID3D12GraphicsCommandList5>
+	public DxBaseObject<ID3D12GraphicsCommandList4>
 {
 public:
 	/* コンストラクタ */

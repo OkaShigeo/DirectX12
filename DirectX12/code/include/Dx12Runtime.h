@@ -2,7 +2,7 @@
 #include "Vector.h"
 #include <vector>
 
-struct ID3D12Device6;
+struct ID3D12Device5;
 struct ID3D12DescriptorHeap;
 struct ID3D12Resource1;
 class Window;
@@ -38,7 +38,7 @@ public:
 	/* ウィンドウサイズの取得 */
 	static st::Vec2 GetWindowSize(void);
 	/* デバイスの取得 */
-	static ID3D12Device6* GetDevice(void);
+	static ID3D12Device5* GetDevice(void);
 	/* レンダーターゲットのリソースの取得 */
 	static ID3D12Resource1* GetRenderTarget(void);
 

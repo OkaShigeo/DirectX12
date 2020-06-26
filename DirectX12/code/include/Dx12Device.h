@@ -1,10 +1,10 @@
 #pragma once
 #include "DxBaseObject.h"
 
-struct ID3D12Device6;
+struct ID3D12Device5;
 
 class Dx12Device :
-	public DxBaseObject<ID3D12Device6>
+	public DxBaseObject<ID3D12Device5>
 {
 public:
 	/* コンストラクタ */
