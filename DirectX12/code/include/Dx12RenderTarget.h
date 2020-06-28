@@ -1,10 +1,10 @@
 #pragma once
+#include "Dx12Heap.h"
+#include "Dx12Resource.h"
 #include <vector>
-#include <memory>
 
 struct ID3D12Resource1;
 class Dx12SwapChain;
-class Dx12Heap;
 
 class Dx12RenderTarget
 {
@@ -24,12 +24,14 @@ private:
 	/* レンダーターゲットの生成 */
 	std::uint32_t CreateRenderTarget(void);
 
+public:
+	/* ヒープ */
+	Dx12Heap heap;
+	/* リソース */
+	std::vector<Dx12Resource>rsc;
+
 private:
 	/* スワップチェイン */
 	const Dx12SwapChain* swap;
-	/* ヒープ */
-	std::unique_ptr<Dx12Heap>heap;
-	/* リソース */
-	std::vector<ID3D12Resource1*>rsc;
 };
 

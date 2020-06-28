@@ -52,6 +52,9 @@
     <Filter Include="Dx12RootSignature">
       <UniqueIdentifier>{a334b6c1-e613-4993-a54e-5e4bf2d1a353}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Dx12Pipeline">
+      <UniqueIdentifier>{a90a4675-dc7d-4f85-b7e7-16ab4f6c446f}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\code\main.cpp">
@@ -95,6 +98,9 @@
     </ClCompile>
     <ClCompile Include="..\code\source\Dx12RootSignature.cpp">
       <Filter>Dx12RootSignature</Filter>
+    </ClCompile>
+    <ClCompile Include="..\code\source\Dx12Pipeline.cpp">
+      <Filter>Dx12Pipeline</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -143,5 +149,19 @@
     <ClInclude Include="..\code\include\Dx12RootSignature.h">
       <Filter>Dx12RootSignature</Filter>
     </ClInclude>
+    <ClInclude Include="..\code\include\Dx12Pipeline.h">
+      <Filter>Dx12Pipeline</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <FxCompile Include="..\code\shader\ComputeShader.hlsl">
+      <Filter>リソース ファイル</Filter>
+    </FxCompile>
+    <FxCompile Include="..\code\shader\VertexShader.hlsl">
+      <Filter>リソース ファイル</Filter>
+    </FxCompile>
+    <FxCompile Include="..\code\shader\PixelShader.hlsl">
+      <Filter>リソース ファイル</Filter>
+    </FxCompile>
   </ItemGroup>
 </Project>

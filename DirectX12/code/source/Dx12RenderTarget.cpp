@@ -9,7 +9,7 @@ Dx12RenderTarget::Dx12RenderTarget(const Dx12SwapChain* swap) :
 {
 	DXGI_SWAP_CHAIN_DESC1 desc{};
 	auto hr = swap->Get()->GetDesc1(&desc);
-	heap = std::make_unique<Dx12Heap>(D3D12_DESCRIPTOR_HEAP_TYPE::D3D12_DESCRIPTOR_HEAP_TYPE_RTV, desc.BufferCount);
+	heap.CreateHeap(D3D12_DESCRIPTOR_HEAP_TYPE::D3D12_DESCRIPTOR_HEAP_TYPE_RTV, desc.BufferCount);
 	rsc.resize(desc.BufferCount);
 
 	CreateRenderTarget();
@@ -17,12 +17,6 @@ Dx12RenderTarget::Dx12RenderTarget(const Dx12SwapChain* swap) :
 
 Dx12RenderTarget::~Dx12RenderTarget()
 {
-	for (auto& i : rsc) {
-		if (i != nullptr) {
-			i->Release();
-			i = nullptr;
-		}
-	}
 }
 
 std::uint32_t Dx12RenderTarget::CreateRenderTarget(void)
@@ -34,7 +28,7 @@ std::uint32_t Dx12RenderTarget::CreateRenderTarget(void)
 			return hr;
 		}
 
-		Dx12Runtime::RTV(heap->Get(), rsc[i], i);
+		Dx12Runtime::RTV(heap.Get(), rsc[i].Get(), i);
 	}
 
 	return S_OK;
@@ -42,10 +36,10 @@ std::uint32_t Dx12RenderTarget::CreateRenderTarget(void)
 
 ID3D12Resource1* Dx12RenderTarget::Get(void) const
 {
-	return rsc[swap->GetBackBufferIndex()];
+	return rsc[swap->GetBackBufferIndex()].Get();
 }
 
 std::uint64_t Dx12RenderTarget::GetCpuAddress(void) const
 {
-	return heap->GetCpuAddress(swap->GetBackBufferIndex()).ptr;
+	return heap.GetCpuAddress(swap->GetBackBufferIndex()).ptr;
 }

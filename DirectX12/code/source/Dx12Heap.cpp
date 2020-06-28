@@ -1,9 +1,8 @@
 #include "..\include\Dx12Heap.h"
 #include "..\include\Dx12Runtime.h"
 
-Dx12Heap::Dx12Heap(const D3D12_DESCRIPTOR_HEAP_TYPE& type, const std::uint64_t& view_num)
+Dx12Heap::Dx12Heap()
 {
-	CreateHeap(type, view_num);
 }
 
 Dx12Heap::~Dx12Heap()
@@ -36,5 +35,13 @@ D3D12_CPU_DESCRIPTOR_HANDLE Dx12Heap::GetCpuAddress(const std::uint32_t& index) 
 	auto handle = obj->GetCPUDescriptorHandleForHeapStart();
 	handle.ptr += Dx12Runtime::GetDevice()->GetDescriptorHandleIncrementSize(obj->GetDesc().Type) * index;
 	
+	return handle;
+}
+
+D3D12_GPU_DESCRIPTOR_HANDLE Dx12Heap::GetGpuAddress(const std::uint32_t& index) const
+{
+	auto handle = obj->GetGPUDescriptorHandleForHeapStart();
+	handle.ptr += Dx12Runtime::GetDevice()->GetDescriptorHandleIncrementSize(obj->GetDesc().Type) * index;
+
 	return handle;
 }

@@ -9,11 +9,10 @@ class Dx12RootSignature :
 {
 public:
 	/* コンストラクタ */
-	Dx12RootSignature(const ShaderCompiler* shader);
+	Dx12RootSignature();
 	/* デストラクタ */
 	~Dx12RootSignature();
 
-private:
 	/* ルートシグネチャの生成 */
 	std::uint32_t CreateRootSignature(ID3DBlob* shader);
 	/* ルートシグネチャの生成 */

@@ -3,9 +3,8 @@
 #include "..\include\Dx12Runtime.h"
 #include <wrl.h>
 
-Dx12RootSignature::Dx12RootSignature(const ShaderCompiler* shader)
+Dx12RootSignature::Dx12RootSignature()
 {
-	CreateRootSignature(shader->Get());
 }
 
 Dx12RootSignature::~Dx12RootSignature()

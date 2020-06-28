@@ -29,6 +29,24 @@ public:
 	static void RTV(const Dx12Heap* heap, const Dx12Resource* rsc, const std::uint32_t& index = 0);
 	/* RTVの生成 */
 	static void RTV(ID3D12DescriptorHeap* heap, ID3D12Resource1* rsc, const std::uint32_t& index = 0);
+	/* CBVの生成 */
+	static void CBV(const Dx12Heap* heap, const Dx12Resource* rsc, const std::uint32_t& index = 0);
+	/* CBVの生成 */
+	static void CBV(ID3D12DescriptorHeap* heap, ID3D12Resource1* rsc, const std::uint32_t& index = 0);
+	/* SRVの生成 */
+	static void SRV(const Dx12Heap* heap, const Dx12Resource* rsc, const std::uint32_t& index = 0);
+	/* SRVの生成 */
+	static void SRV(ID3D12DescriptorHeap* heap, ID3D12Resource1* rsc, const std::uint32_t& index = 0);
+	/* UAVの生成(バッファ) */
+	static void UAV(const Dx12Heap* heap, const Dx12Resource* rsc,
+		const std::uint64_t& stride, const std::uint64_t& num, const std::uint32_t& index = 0);
+	/* UAVの生成(バッファ) */
+	static void UAV(ID3D12DescriptorHeap* heap, ID3D12Resource1* rsc,
+		const std::uint64_t& stride, const std::uint64_t& num, const std::uint32_t& index = 0);
+	/* UAVの生成(テクスチャ) */
+	static void UAV(const Dx12Heap* heap, const Dx12Resource* rsc, const std::uint32_t& index = 0);
+	/* UAVの生成(テクスチャ) */
+	static void UAV(ID3D12DescriptorHeap* heap, ID3D12Resource1* rsc, const std::uint32_t& index = 0);
 	/* レンダーターゲットのクリア */
 	static void ClearRenderTarget(const Dx12CommandList* list, const float color[4]);
 	/* コマンドの実行 */

@@ -6,6 +6,7 @@
 
 ShaderCompiler::ShaderCompiler(const std::wstring & file_path, const std::wstring & entry_func, const std::wstring & shader_model)
 {
+	Compile(file_path, entry_func, shader_model);
 }
 
 ShaderCompiler::~ShaderCompiler()
