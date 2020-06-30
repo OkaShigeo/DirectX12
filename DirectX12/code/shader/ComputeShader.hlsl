@@ -13,6 +13,14 @@ cbuffer Info : register(b0)
     float3 eye_pos;
 }
 
+struct Ray
+{
+	/* 位置 */
+    float3 pos;
+	/* 向き */
+    float3 direction;
+};
+
 struct ComputeThreadID
 {
 	uint3 group_thread_ID : SV_GroupThreadID;
@@ -21,12 +29,35 @@ struct ComputeThreadID
 	uint group_index      : SV_GroupIndex;
 };
 
+/* 背景色の算出 */
+float3 BackColor(in Ray ray)
+{
+    float t = 0.5f * ray.direction.y + 1.0f;
+    return (1.0f - t) + (t * float3(0.5f, 0.7f, 1.0f));
+}
+
 [RootSignature(RS)]
 [numthreads(1, 1, 1)]
 void main(ComputeThreadID semantics)
 {
+	/* 視点座標 */
+    const float3 origin = float3(0.0f, 0.0f, 1.0f);
+	/* 最大深度 */
+    const float depth = 1.0f;
+	
+	/* テクスチャサイズの取得 */ 
     uint2 size = 0;
     tex.GetDimensions(size.x, size.y);
+	/* アスペクト比の算出 */
+    float aspect = float(size.x) / float(size.y);
+	/* ビューポート */
+    float2 viewport = aspect * 2.0f;
+	/* 左上座標 */
+    float3 left_pos = origin - float3(viewport, depth);
+	/* UV値の算出 */
+    float2 uv = float2(semantics.dispatch_ID.xy) / float2(size);
 	
-	tex[semantics.dispatch_ID.xy] = float4(1.0f, 1.0f, 1.0f, 1.0f);
+    Ray ray = { origin, left_pos + float3(viewport * uv, 0.0f) - origin };
+	
+    tex[semantics.dispatch_ID.xy] = float4(BackColor(ray), 1.0f);
 }

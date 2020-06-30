@@ -22,10 +22,12 @@ namespace {
 		st::Vec2f uv;
 	};
 	const std::vector<VertexInfo>vertex = {
-		{ st::Vec3f(-0.5f,  0.5f, 0.0f), st::Vec2f(0.0f, 0.0f) },
-		{ st::Vec3f( 0.5f,  0.5f, 0.0f), st::Vec2f(1.0f, 0.0f) },
-		{ st::Vec3f(-0.5f, -0.5f, 0.0f), st::Vec2f(0.0f, 1.0f) },
-		{ st::Vec3f( 0.5f, -0.5f, 0.0f), st::Vec2f(1.0f, 1.0f) },
+		/* ¶‚©‚ç‰E */
+		/* ã‚©‚ç‰º */
+		{ st::Vec3f(-0.5f, -0.5f, 0.0f), st::Vec2f(0.0f, 0.0f) },
+		{ st::Vec3f( 0.5f, -0.5f, 0.0f), st::Vec2f(1.0f, 0.0f) },
+		{ st::Vec3f(-0.5f,  0.5f, 0.0f), st::Vec2f(0.0f, 1.0f) },
+		{ st::Vec3f( 0.5f,  0.5f, 0.0f), st::Vec2f(1.0f, 1.0f) },
 	};
 	/* “ü—Í‘®« */
 	const std::vector<D3D12_INPUT_ELEMENT_DESC>input = {

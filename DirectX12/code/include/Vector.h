@@ -94,9 +94,6 @@ namespace st {
 		T operator[](const std::uint32_t& index) const {
 			return value[index];
 		}
-		T& operator[](const std::uint32_t& index) const {
-			return value[index];
-		}
 		void operator=(const Vector3& vec) {
 			x = vec.x;
 			y = vec.y;
