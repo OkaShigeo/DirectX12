@@ -7,10 +7,12 @@
 
 RWTexture2D<float4>tex : register(u0);
 
-cbuffer Info : register(b0)
+cbuffer RaytracingParam : register(b0)
 {
 	/* カメラ位置 */
     float3 eye_pos;
+	/* レイの最大距離 */
+    float distance;
 }
 
 struct Ray
@@ -32,32 +34,29 @@ struct ComputeThreadID
 /* 背景色の算出 */
 float3 BackColor(in Ray ray)
 {
+	/* 0～1の範囲に */
     float t = 0.5f * ray.direction.y + 1.0f;
-    return (1.0f - t) + (t * float3(0.5f, 0.7f, 1.0f));
+	/* 線形補完 */
+    return (1.0f - t) * float3(1.0f, 1.0f, 1.0f) + (t * float3(0.5f, 0.7f, 1.0f));
 }
 
 [RootSignature(RS)]
 [numthreads(1, 1, 1)]
 void main(ComputeThreadID semantics)
 {
-	/* 視点座標 */
-    const float3 origin = float3(0.0f, 0.0f, 1.0f);
-	/* 最大深度 */
-    const float depth = 1.0f;
-	
 	/* テクスチャサイズの取得 */ 
     uint2 size = 0;
     tex.GetDimensions(size.x, size.y);
 	/* アスペクト比の算出 */
-    float aspect = float(size.x) / float(size.y);
-	/* ビューポート */
-    float2 viewport = aspect * 2.0f;
-	/* 左上座標 */
-    float3 left_pos = origin - float3(viewport, depth);
+    const float aspect = float(size.x) / float(size.y);
 	/* UV値の算出 */
-    float2 uv = float2(semantics.dispatch_ID.xy) / float2(size);
+    const float2 uv = float2(semantics.dispatch_ID.xy) / float2(size);
+	/* ビューポート */
+    const float2 viewport = aspect * 2.0f;
+	/* 左上座標 */
+    float3 left_pos = eye_pos - float3(viewport, distance);
 	
-    Ray ray = { origin, left_pos + float3(viewport * uv, 0.0f) - origin };
+    Ray ray = { eye_pos, left_pos + float3(viewport * uv, 0.0f) - eye_pos };
 	
     tex[semantics.dispatch_ID.xy] = float4(BackColor(ray), 1.0f);
 }

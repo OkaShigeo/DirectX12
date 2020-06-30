@@ -63,6 +63,13 @@ namespace {
 	};
 	/* テクスチャサイズ */
 	const st::Vec2 texture_size(256);
+	/* レイトレーシングパラメータ */
+	struct RaytracingParam {
+		/* 視線位置 */
+		st::Vec3f eye_pos;
+		/* レイの最大距離 */
+		float distance;
+	};
 }
 
 int main()
@@ -134,9 +141,15 @@ int main()
 			texture_size.x, texture_size.y, D3D12_RESOURCE_STATES::D3D12_RESOURCE_STATE_COPY_SOURCE);
 		Dx12Runtime::UAV(compute->heap.Get(), compute->rsc[index].Get(), index);
 		++index;
-		compute->rsc[index].CreateResource(Dx12Resource::GetDefaultProp(), D3D12_RESOURCE_FLAGS::D3D12_RESOURCE_FLAG_NONE,
-			256, D3D12_RESOURCE_STATES::D3D12_RESOURCE_STATE_COPY_SOURCE);
+		compute->rsc[index].CreateResource(Dx12Resource::GetUploadProp(), D3D12_RESOURCE_FLAGS::D3D12_RESOURCE_FLAG_NONE,
+			(sizeof(RaytracingParam) + 0xff) & ~0xff, D3D12_RESOURCE_STATES::D3D12_RESOURCE_STATE_GENERIC_READ);
 		Dx12Runtime::CBV(compute->heap.Get(), compute->rsc[index].Get(), index);
+		RaytracingParam param{};
+		param.eye_pos.z = 1.0f;
+		param.distance  = 1.0f;
+		compute->rsc[index].Map(&buffer, sizeof(RaytracingParam));
+		std::memcpy(buffer, &param, sizeof(param));
+		compute->rsc[index].Unmap();
 	}
 	Texture* texture = new Texture();
 	{
