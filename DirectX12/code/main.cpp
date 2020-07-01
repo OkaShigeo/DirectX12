@@ -62,7 +62,7 @@ namespace {
 		Dx12Resource rsc;
 	};
 	/* テクスチャサイズ */
-	const st::Vec2 texture_size(256);
+	const st::Vec2 texture_size = window_size;
 	/* レイトレーシングパラメータ */
 	struct RaytracingParam {
 		/* 視線位置 */

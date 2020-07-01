@@ -15,12 +15,22 @@ cbuffer RaytracingParam : register(b0)
     float distance;
 }
 
+/* レイの情報 */
 struct Ray
 {
 	/* 位置 */
     float3 pos;
 	/* 向き */
     float3 direction;
+};
+
+/* 球体の情報 */
+struct Sphere
+{
+	/* 中心座標 */
+    float3 pos;
+	/* 半径 */
+    float radius;
 };
 
 struct ComputeThreadID
@@ -40,6 +50,22 @@ float3 BackColor(in Ray ray)
     return (1.0f - t) * float3(1.0f, 1.0f, 1.0f) + (t * float3(0.5f, 0.7f, 1.0f));
 }
 
+/* 球体との当たり判定 */
+bool CheckHitSphere(in Ray ray, in Sphere sphere)
+{
+    float a = dot(ray.direction, ray.direction);
+    float b = 2.0f * dot(ray.direction, (ray.pos - sphere.pos));
+	/* 球体の方程式 */
+    float c = dot((ray.pos - sphere.pos), (ray.pos - sphere.pos)) - pow(sphere.radius, 2.0f);
+	
+    if (b * b - 4.0f * a * c > 0.0f)
+    {
+        return true;
+    }
+
+    return false;
+}
+
 [RootSignature(RS)]
 [numthreads(1, 1, 1)]
 void main(ComputeThreadID semantics)
@@ -52,11 +78,18 @@ void main(ComputeThreadID semantics)
 	/* UV値の算出 */
     const float2 uv = float2(semantics.dispatch_ID.xy) / float2(size);
 	/* ビューポート */
-    const float2 viewport = aspect * 2.0f;
+    const float2 viewport = float2(aspect * 2.0f, 2.0f);
 	/* 左上座標 */
-    float3 left_pos = eye_pos - float3(viewport, distance);
+    float3 left_pos = eye_pos - float3(viewport / 2.0f, distance);
 	
     Ray ray = { eye_pos, left_pos + float3(viewport * uv, 0.0f) - eye_pos };
-	
-    tex[semantics.dispatch_ID.xy] = float4(BackColor(ray), 1.0f);
+    Sphere sp = { float3(0.0f, 0.0f, 0.0f), 0.5f };
+    if (CheckHitSphere(ray, sp) == true)
+    {
+        tex[semantics.dispatch_ID.xy] = float4(1.0f, 0.0f, 0.0f, 1.0f);
+    }
+    else
+    {
+        tex[semantics.dispatch_ID.xy] = float4(BackColor(ray), 1.0f);
+    }
 }
