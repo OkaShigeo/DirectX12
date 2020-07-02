@@ -12,7 +12,7 @@ namespace {
 	const st::Vec2 window_size(640, 480);
 	/* クリアカラー */
 	const float clear_color[] = {
-		1.0f, 0.0f, 0.0f, 1.0f
+		1.0f, 1.0f, 1.0f, 1.0f
 	};
 	/* 頂点情報 */
 	struct VertexInfo {

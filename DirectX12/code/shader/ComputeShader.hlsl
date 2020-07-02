@@ -22,6 +22,12 @@ struct Ray
     float3 pos;
 	/* 向き */
     float3 direction;
+    
+    /* 直線の方程式 */
+    float3 At(in float time)
+    {
+        return pos + (time * direction);
+    }
 };
 
 /* 球体の情報 */
@@ -29,8 +35,39 @@ struct Sphere
 {
 	/* 中心座標 */
     float3 pos;
+    /* 法線 */
+    float3 normal;
 	/* 半径 */
     float radius;
+    
+    /* 球体の方程式 */
+    float At(in float3 vec)
+    {
+        return dot((vec - pos), (vec - pos)) - pow(radius, 2.0f);
+    }
+    /* ヒット判定 */
+    bool IsHit(in Ray ray, out float time)
+    {
+        /* 同じベクトル同士の内積はベクトルの長さの二乗に等しい */
+        float a = pow(length(ray.direction), 2.0f);
+        float b = dot((ray.pos - pos), ray.direction);
+        /* 二次方程式 */
+        float discriminant = b * b - a * At(ray.pos);
+        /* ヒットあり */
+        if (discriminant > 0.0f)
+        {
+            /* ヒットしたタイミングを算出 */
+            time = (-b - sqrt(discriminant)) / a;
+            /* 法線を算出 */
+            normal = (ray.At(time) - pos) / radius;
+        
+            return true;
+        }
+
+        time = (-b + sqrt(discriminant)) / a;
+        
+        return false;
+    }
 };
 
 struct ComputeThreadID
@@ -51,18 +88,24 @@ float3 BackColor(in Ray ray)
 }
 
 /* 球体との当たり判定 */
-bool CheckHitSphere(in Ray ray, in Sphere sphere)
+bool CheckHitSphere(in Ray ray, in Sphere sphere, out float time)
 {
     float a = dot(ray.direction, ray.direction);
     float b = 2.0f * dot(ray.direction, (ray.pos - sphere.pos));
 	/* 球体の方程式 */
     float c = dot((ray.pos - sphere.pos), (ray.pos - sphere.pos)) - pow(sphere.radius, 2.0f);
 	
-    if (b * b - 4.0f * a * c > 0.0f)
+    /* 二次方程式 */  
+    float discriminant = b * b - (4.0f * a * c);
+    /* ヒットあり */
+    if (discriminant > 0.0f)
     {
+        /* ヒットした時間を算出 */
+        time = (-b - sqrt(discriminant)) / (2.0f * a);
+        
         return true;
     }
-
+    
     return false;
 }
 
@@ -83,10 +126,13 @@ void main(ComputeThreadID semantics)
     float3 left_pos = eye_pos - float3(viewport / 2.0f, distance);
 	
     Ray ray = { eye_pos, left_pos + float3(viewport * uv, 0.0f) - eye_pos };
-    Sphere sp = { float3(0.0f, 0.0f, 0.0f), 0.5f };
-    if (CheckHitSphere(ray, sp) == true)
+    Sphere sp = { float3(0.0f, 0.0f, 0.0f), float3(0.0f, 0.0f, 0.0f), 0.5f };
+    
+    float hit_distance = 0.0f;
+    if (sp.IsHit(ray, hit_distance) == true)
     {
-        tex[semantics.dispatch_ID.xy] = float4(1.0f, 0.0f, 0.0f, 1.0f);
+        float3 normal = 0.5f * ((ray.pos + (hit_distance * ray.direction)) - float3(0.0f, 0.0f, -1.0f) + 1.0f);
+        tex[semantics.dispatch_ID.xy] = float4(sp.normal, 1.0f);
     }
     else
     {
