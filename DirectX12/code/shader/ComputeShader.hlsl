@@ -48,19 +48,22 @@ struct Sphere
     /* ヒット判定 */
     bool IsHit(in Ray ray, out float time)
     {
+        /* 法線を算出 */
+        normal = (ray.At(time) - pos) / radius;
+        
         /* 同じベクトル同士の内積はベクトルの長さの二乗に等しい */
         float a = pow(length(ray.direction), 2.0f);
         float b = dot((ray.pos - pos), ray.direction);
         /* 二次方程式 */
         float discriminant = b * b - a * At(ray.pos);
+        
         /* ヒットあり */
         if (discriminant > 0.0f)
         {
             /* ヒットしたタイミングを算出 */
             time = (-b - sqrt(discriminant)) / a;
-            /* 法線を算出 */
-            normal = (ray.At(time) - pos) / radius;
-        
+           
+
             return true;
         }
 
