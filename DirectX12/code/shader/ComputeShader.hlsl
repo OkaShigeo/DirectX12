@@ -46,11 +46,8 @@ struct Sphere
         return dot((vec - pos), (vec - pos)) - pow(radius, 2.0f);
     }
     /* ヒット判定 */
-    bool IsHit(in Ray ray, out float time)
+    bool IsHit(in Ray ray, out float time, in float min = 0.0f, in float max = 10.0f)
     {
-        /* 法線を算出 */
-        normal = (ray.At(time) - pos) / radius;
-        
         /* 同じベクトル同士の内積はベクトルの長さの二乗に等しい */
         float a = pow(length(ray.direction), 2.0f);
         float b = dot((ray.pos - pos), ray.direction);
@@ -62,13 +59,26 @@ struct Sphere
         {
             /* ヒットしたタイミングを算出 */
             time = (-b - sqrt(discriminant)) / a;
-           
-
+            if (!(min < time && time < max))
+            {
+                time = (-b + sqrt(discriminant)) / a;
+                if (!(min < time && time < max))
+                {
+                    return false;
+                }
+            }
+            
+            /* 法線を算出 */
+            normal = (ray.At(time) - pos) / radius;
+            /* レイは内側から飛んできている */
+            if (dot(ray.direction, normal) > 0.0f)
+            {
+                normal = float3(-normal.x, -normal.y, -normal.z);
+            }
+            
             return true;
         }
 
-        time = (-b + sqrt(discriminant)) / a;
-        
         return false;
     }
 };
@@ -81,6 +91,12 @@ struct ComputeThreadID
 	uint group_index      : SV_GroupIndex;
 };
 
+/* 角度からラジアン変換 */
+float ChangeRadian(in float degree)
+{
+    return degree * acos(-1.0f) / 180.0f;
+}
+
 /* 背景色の算出 */
 float3 BackColor(in Ray ray)
 {
@@ -88,28 +104,6 @@ float3 BackColor(in Ray ray)
     float t = 0.5f * ray.direction.y + 1.0f;
 	/* 線形補完 */
     return (1.0f - t) * float3(1.0f, 1.0f, 1.0f) + (t * float3(0.5f, 0.7f, 1.0f));
-}
-
-/* 球体との当たり判定 */
-bool CheckHitSphere(in Ray ray, in Sphere sphere, out float time)
-{
-    float a = dot(ray.direction, ray.direction);
-    float b = 2.0f * dot(ray.direction, (ray.pos - sphere.pos));
-	/* 球体の方程式 */
-    float c = dot((ray.pos - sphere.pos), (ray.pos - sphere.pos)) - pow(sphere.radius, 2.0f);
-	
-    /* 二次方程式 */  
-    float discriminant = b * b - (4.0f * a * c);
-    /* ヒットあり */
-    if (discriminant > 0.0f)
-    {
-        /* ヒットした時間を算出 */
-        time = (-b - sqrt(discriminant)) / (2.0f * a);
-        
-        return true;
-    }
-    
-    return false;
 }
 
 [RootSignature(RS)]
@@ -129,16 +123,24 @@ void main(ComputeThreadID semantics)
     float3 left_pos = eye_pos - float3(viewport / 2.0f, distance);
 	
     Ray ray = { eye_pos, left_pos + float3(viewport * uv, 0.0f) - eye_pos };
-    Sphere sp = { float3(0.0f, 0.0f, 0.0f), float3(0.0f, 0.0f, 0.0f), 0.5f };
+    const uint obj_cnt = 2;
+    Sphere sp[obj_cnt] =
+    {
+        { float3(0.0f, 0.0f, 0.0f),     float3(0.0f, 0.0f, 0.0f), 0.5f },
+        { float3(0.0f, -100.5f, 0.0f), float3(0.0f, 0.0f, 0.0f), 100.0f },
+    };
     
     float hit_distance = 0.0f;
-    if (sp.IsHit(ray, hit_distance) == true)
+    for (uint i = 0; i < obj_cnt; ++i)
     {
-        float3 normal = 0.5f * ((ray.pos + (hit_distance * ray.direction)) - float3(0.0f, 0.0f, -1.0f) + 1.0f);
-        tex[semantics.dispatch_ID.xy] = float4(sp.normal, 1.0f);
-    }
-    else
-    {
+        if (sp[i].IsHit(ray, hit_distance) == true)
+        {
+            float3 normal = 0.5f * (sp[i].normal + 1.0f);
+            tex[semantics.dispatch_ID.xy] = float4(normal, 1.0f);
+            
+            break;
+        }
+        
         tex[semantics.dispatch_ID.xy] = float4(BackColor(ray), 1.0f);
     }
 }
