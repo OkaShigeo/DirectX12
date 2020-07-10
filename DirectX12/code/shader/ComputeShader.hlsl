@@ -46,7 +46,7 @@ struct Sphere
         return dot((vec - pos), (vec - pos)) - pow(radius, 2.0f);
     }
     /* ヒット判定 */
-    bool IsHit(in Ray ray, out float time, in float min = 0.0f, in float max = 10.0f)
+    bool IsHit(in Ray ray, out float time, in float min = 0.0f, in float max = float(0xffffffff))
     {
         /* 同じベクトル同士の内積はベクトルの長さの二乗に等しい */
         float a = pow(length(ray.direction), 2.0f);
@@ -83,18 +83,40 @@ struct Sphere
     }
 };
 
+/* エントリーポイントの引数 */
 struct ComputeThreadID
 {
-	uint3 group_thread_ID : SV_GroupThreadID;
-	uint3 group_ID        : SV_GroupID;
-	uint3 dispatch_ID     : SV_DispatchThreadID;
-	uint group_index      : SV_GroupIndex;
+    uint3 group_thread_ID : SV_GroupThreadID;
+    uint3 group_ID        : SV_GroupID;
+    uint3 dispatch_ID     : SV_DispatchThreadID;
+    uint group_index      : SV_GroupIndex;
 };
 
 /* 角度からラジアン変換 */
 float ChangeRadian(in float degree)
 {
     return degree * acos(-1.0f) / 180.0f;
+}
+
+/* ランダム値の取得 */
+float Randam(in float2 uv, in int seed = 0)
+{
+    return frac(sin(dot(sin(uv), float2(12.9898f, 78.233)) + seed) * 43758.5453);
+}
+
+/* 範囲内に収める */
+float Clamp(in float value, in float min = 0.0f, in float max = 1.0f)
+{
+    if(value < min)
+    {
+        return min;
+    }
+    else if(value > max)
+    {
+        return max;
+    }
+    
+    return value;
 }
 
 /* 背景色の算出 */
@@ -106,8 +128,16 @@ float3 BackColor(in Ray ray)
     return (1.0f - t) * float3(1.0f, 1.0f, 1.0f) + (t * float3(0.5f, 0.7f, 1.0f));
 }
 
+/* グループスレッド数 */
+#define THREAD_X 256
+#define THREAD_Y 1
+#define THREAD_Z 1
+
+/* グループスレッドごとの計算結果  */
+groupshared float3 result[THREAD_X * THREAD_Y * THREAD_Z];
+
 [RootSignature(RS)]
-[numthreads(1, 1, 1)]
+[numthreads(THREAD_X, THREAD_Y, THREAD_Z)]
 void main(ComputeThreadID semantics)
 {
 	/* テクスチャサイズの取得 */ 
@@ -115,32 +145,64 @@ void main(ComputeThreadID semantics)
     tex.GetDimensions(size.x, size.y);
 	/* アスペクト比の算出 */
     const float aspect = float(size.x) / float(size.y);
-	/* UV値の算出 */
-    const float2 uv = float2(semantics.dispatch_ID.xy) / float2(size);
 	/* ビューポート */
     const float2 viewport = float2(aspect * 2.0f, 2.0f);
-	/* 左上座標 */
+     /* 左上座標 */
     float3 left_pos = eye_pos - float3(viewport / 2.0f, distance);
-	
-    Ray ray = { eye_pos, left_pos + float3(viewport * uv, 0.0f) - eye_pos };
-    const uint obj_cnt = 2;
-    Sphere sp[obj_cnt] =
+    /* 球体の数 */
+    const uint sp_num = 2;
+    /* 球体 */
+    Sphere sp[sp_num] =
     {
-        { float3(0.0f, 0.0f, 0.0f),     float3(0.0f, 0.0f, 0.0f), 0.5f },
+        { float3(0.0f, 0.0f, 0.0f), float3(0.0f, 0.0f, 0.0f), 0.5f },
         { float3(0.0f, -100.5f, 0.0f), float3(0.0f, 0.0f, 0.0f), 100.0f },
     };
     
-    float hit_distance = 0.0f;
-    for (uint i = 0; i < obj_cnt; ++i)
-    {
-        if (sp[i].IsHit(ray, hit_distance) == true)
-        {
-            float3 normal = 0.5f * (sp[i].normal + 1.0f);
-            tex[semantics.dispatch_ID.xy] = float4(normal, 1.0f);
-            
-            break;
-        }
+    /* UV値の算出 */
+    const float2 uv = (float2(semantics.group_ID.xy) + Randam(semantics.group_ID.xy, semantics.group_thread_ID.x)) / float2(size);
+	/* レイ */
+    Ray ray = { eye_pos, left_pos + float3(viewport * uv, 0.0f) - eye_pos };
         
-        tex[semantics.dispatch_ID.xy] = float4(BackColor(ray), 1.0f);
+    /* ヒットタイム */
+    float hit_time = float(0xffffffff);
+    /* ヒットカラー */
+    result[semantics.group_thread_ID.x] = BackColor(ray);
+    
+    /* ヒット最小距離 */
+    const float min = 0.0f;
+    /* ヒット最大距離 */
+    float max = float(0xffffffff);
+    /* ヒット判定フラグ */
+    bool hit_flag = false;
+    /* ヒット位置の法線 */
+    float3 hit_normal = 0.0f;
+    for (uint sp_index = 0; sp_index < sp_num; ++sp_index)
+    {
+        if (sp[sp_index].IsHit(ray, hit_time, min, max) == true)
+        {
+            hit_flag = true;
+            hit_normal = sp[sp_index].normal;
+            max = hit_time;
+            result[semantics.group_thread_ID.x] = 0.5f * (sp[sp_index].normal + 1.0f);
+        }
+    }
+    
+    /* グループスレッドの同期 */
+    GroupMemoryBarrierWithGroupSync();
+    
+    for (int th_index = THREAD_X / 2; th_index > 0; th_index /= 2)
+    {
+        if (semantics.group_thread_ID.x < th_index)
+        {
+            result[semantics.group_thread_ID.x] += result[semantics.group_thread_ID.x + th_index];
+        }
+            
+        /* グループスレッドの同期 */
+        GroupMemoryBarrierWithGroupSync();
+    }
+    
+    if(semantics.group_thread_ID.x == 0)
+    {
+        tex[semantics.group_ID.xy] = float4(result[semantics.group_thread_ID.x] / THREAD_X, 1.0f);
     }
 }
