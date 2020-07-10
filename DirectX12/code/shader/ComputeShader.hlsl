@@ -168,24 +168,61 @@ void main(ComputeThreadID semantics)
     /* ヒットカラー */
     result[semantics.group_thread_ID.x] = BackColor(ray);
     
-    /* ヒット最小距離 */
-    const float min = 0.0f;
-    /* ヒット最大距離 */
-    float max = float(0xffffffff);
-    /* ヒット判定フラグ */
-    bool hit_flag = false;
-    /* ヒット位置の法線 */
-    float3 hit_normal = 0.0f;
-    for (uint sp_index = 0; sp_index < sp_num; ++sp_index)
+    float3 tmp = 1.0f;
+    for (uint ref_index = 0; ref_index < 50; ++ref_index)
     {
-        if (sp[sp_index].IsHit(ray, hit_time, min, max) == true)
+        /* ヒット最小距離 */
+        const float min = 0.0f;
+        /* ヒット最大距離 */
+        float max = float(0xffffffff);
+        /* ヒット判定フラグ */
+        bool hit_flag = false;
+        /* ヒット位置の法線 */
+        float3 hit_normal = 0.0f;
+        for (uint sp_index = 0; sp_index < sp_num; ++sp_index)
         {
-            hit_flag = true;
-            hit_normal = sp[sp_index].normal;
-            max = hit_time;
-            result[semantics.group_thread_ID.x] = 0.5f * (sp[sp_index].normal + 1.0f);
+            if (sp[sp_index].IsHit(ray, hit_time, min, max) == true)
+            {
+                hit_flag   = true;
+                hit_normal = sp[sp_index].normal;
+                max        = hit_time;
+                result[semantics.group_thread_ID.x] = 0.5f * (sp[sp_index].normal + 1.0f);
+            }
+        }
+        
+        if(hit_flag == true)
+        {
+            ray.pos = ray.At(hit_time);
+            ray.direction = hit_normal + float3(Randam(uv, ref_index), Randam(uv, ref_index), Randam(uv, ref_index));
+            tmp *= 0.5f;
+        }
+        else
+        {
+            tmp *= BackColor(ray);
+            break;
         }
     }
+    
+    result[semantics.group_thread_ID.x] = tmp;
+    
+    ///* ヒット最小距離 */
+    //const float min = 0.0f;
+    ///* ヒット最大距離 */
+    //float max = float(0xffffffff);
+    ///* ヒット判定フラグ */
+    //bool hit_flag = false;
+    ///* ヒット位置の法線 */
+    //float3 hit_normal = 0.0f;
+    //for (uint sp_index = 0; sp_index < sp_num; ++sp_index)
+    //{
+    //    if (sp[sp_index].IsHit(ray, hit_time, min, max) == true)
+    //    {
+    //        hit_flag = true;
+    //        hit_normal = sp[sp_index].normal;
+    //        max = hit_time;
+    //        result[semantics.group_thread_ID.x] = 0.5f * (sp[sp_index].normal + 1.0f);
+    //    }
+    //}
     
     /* グループスレッドの同期 */
     GroupMemoryBarrierWithGroupSync();
