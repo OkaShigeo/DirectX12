@@ -134,7 +134,7 @@ float3 BackColor(in Ray ray)
 #define THREAD_Z 1
 
 /* グループスレッドごとの計算結果  */
-groupshared float3 result[THREAD_X * THREAD_Y * THREAD_Z];
+groupshared float3 result[THREAD_X];
 
 [RootSignature(RS)]
 [numthreads(THREAD_X, THREAD_Y, THREAD_Z)]
