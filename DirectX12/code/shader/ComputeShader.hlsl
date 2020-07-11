@@ -46,7 +46,7 @@ struct Sphere
         return dot((vec - pos), (vec - pos)) - pow(radius, 2.0f);
     }
     /* ヒット判定 */
-    bool IsHit(in Ray ray, out float time, in float min = 0.0f, in float max = float(0xffffffff))
+    bool IsHit(in Ray ray, out float time, in float min = 0.001f, in float max = float(0xffffffff))
     {
         /* 同じベクトル同士の内積はベクトルの長さの二乗に等しい */
         float a = pow(length(ray.direction), 2.0f);
@@ -128,6 +128,28 @@ float3 BackColor(in Ray ray)
     return (1.0f - t) * float3(1.0f, 1.0f, 1.0f) + (t * float3(0.5f, 0.7f, 1.0f));
 }
 
+/* ランバート反射 */
+float3 LambertReflection(in float3 direction, in float3 normal, in float3 brightness = 1.0f, in float reflect = 1.0f)
+{
+    return brightness * max(0.0f, dot(direction, normal)) * reflect;
+}
+
+/* オーレン・ネイヤー反射 */
+float3 OrenNayerReflection(in Ray ray, in float3 normal, in float3 reflect_vector, in float3 brightness = 1.0f, in float albedo = 1.0f, in float roughness = 0.0f)
+{
+    float s = dot(reflect_vector, ray.direction) - (dot(normal, reflect_vector) * dot(normal, ray.direction));
+    float t = 1.0f;
+    if(s > 0.0f)
+    {
+        t = max(dot(normal, reflect_vector), dot(normal, ray.direction));
+    }
+    
+    float A = 1.0f / acos(-1.0f) * (1.0f - (0.5f * (pow(roughness, 2.0f) / (pow(roughness, 2.0f) + 0.33f))) + (0.17 * albedo * (pow(roughness, 2.0f) / (pow(roughness, 2.0f) + 0.13f))));
+    float B = 1.0f / acos(-1.0f) * (0.45f * (pow(roughness, 2.0f) / (pow(roughness, 2.0f) + 0.09f)));
+    return albedo * dot(normal, reflect_vector) * (A + (B * (s / t))) * brightness;
+
+}
+
 /* グループスレッド数 */
 #define THREAD_X 256
 #define THREAD_Y 1
@@ -171,8 +193,11 @@ void main(ComputeThreadID semantics)
     float3 tmp = 1.0f;
     for (uint ref_index = 0; ref_index < 50; ++ref_index)
     {
-        /* ヒット最小距離 */
-        const float min = 0.0f;
+        /* 
+        * ヒット最小距離 
+        * シャドウアクネの除去
+        */
+        const float min = 0.001f;
         /* ヒット最大距離 */
         float max = float(0xffffffff);
         /* ヒット判定フラグ */
@@ -192,9 +217,24 @@ void main(ComputeThreadID semantics)
         
         if(hit_flag == true)
         {
+            //ray.pos = ray.At(hit_time);
+            //float theta = sin(Randam(uv, ref_index) * 2.0f * acos(-1.0f));
+            
+            //ray.direction = Randam(uv, ref_index);
+            ///* 法線方向に近い向きにする */
+            ////float r = sqrt(1.0f - pow(Randam(uv, ref_index), 2.0f));
+            ////ray.direction.x = r * cos(theta);
+            ////ray.direction.y = r * sin(theta);
+            ////ray.direction.z = theta;
+            
+            //tmp *= 0.5f * LambertReflection(ray.direction, hit_normal, float3(1.0f, 1.0f, 1.0f), 0.8f);
+            
+            Ray r = ray;
             ray.pos = ray.At(hit_time);
-            ray.direction = hit_normal + float3(Randam(uv, ref_index), Randam(uv, ref_index), Randam(uv, ref_index));
-            tmp *= 0.5f;
+            ray.direction = Randam(uv, ref_index);
+            
+            tmp *= OrenNayerReflection(r, hit_normal, ray.direction, float3(1.0f, 1.0f, 1.0f), 1.0f, acos(-1.0f) / 2.0f);
+
         }
         else
         {
@@ -204,25 +244,6 @@ void main(ComputeThreadID semantics)
     }
     
     result[semantics.group_thread_ID.x] = tmp;
-    
-    ///* ヒット最小距離 */
-    //const float min = 0.0f;
-    ///* ヒット最大距離 */
-    //float max = float(0xffffffff);
-    ///* ヒット判定フラグ */
-    //bool hit_flag = false;
-    ///* ヒット位置の法線 */
-    //float3 hit_normal = 0.0f;
-    //for (uint sp_index = 0; sp_index < sp_num; ++sp_index)
-    //{
-    //    if (sp[sp_index].IsHit(ray, hit_time, min, max) == true)
-    //    {
-    //        hit_flag = true;
-    //        hit_normal = sp[sp_index].normal;
-    //        max = hit_time;
-    //        result[semantics.group_thread_ID.x] = 0.5f * (sp[sp_index].normal + 1.0f);
-    //    }
-    //}
     
     /* グループスレッドの同期 */
     GroupMemoryBarrierWithGroupSync();
@@ -240,6 +261,12 @@ void main(ComputeThreadID semantics)
     
     if(semantics.group_thread_ID.x == 0)
     {
-        tex[semantics.group_ID.xy] = float4(result[semantics.group_thread_ID.x] / THREAD_X, 1.0f);
+        /* ガンマ補正 */
+        result[semantics.group_thread_ID.x] = sqrt((1.0f / THREAD_X) * result[semantics.group_thread_ID.x]);
+        result[semantics.group_thread_ID.x].x = clamp(result[semantics.group_thread_ID.x].x, 0.001f, 1.0f);
+        result[semantics.group_thread_ID.x].y = clamp(result[semantics.group_thread_ID.x].y, 0.001f, 1.0f);
+        result[semantics.group_thread_ID.x].z = clamp(result[semantics.group_thread_ID.x].z, 0.001f, 1.0f);
+        
+        tex[semantics.group_ID.xy] = float4(result[semantics.group_thread_ID.x], 1.0f);
     }
 }
