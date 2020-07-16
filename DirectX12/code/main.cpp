@@ -9,7 +9,7 @@
 
 namespace {
 	/* ウィンドウサイズ */
-	const st::Vec2 window_size(640, 480);
+	const st::Vec2 window_size(640*2, 480*2);
 	/* クリアカラー */
 	const float clear_color[] = {
 		1.0f, 1.0f, 1.0f, 1.0f
@@ -159,7 +159,8 @@ int main()
 		Dx12Runtime::SRV(texture->heap.Get(), texture->rsc.Get());
 	}
 
-	while (Dx12Runtime::CheckMsg()) {
+	while (Dx12Runtime::CheckMsg()
+		&& !(GetKeyState(VK_ESCAPE) & 0x80)) {
 		allocator->Reset();
 		list->Reset(allocator);
 

@@ -73,7 +73,7 @@ struct Sphere
             /* レイは内側から飛んできている */
             if (dot(ray.direction, normal) > 0.0f)
             {
-                normal = float3(-normal.x, -normal.y, -normal.z);
+                //normal = float3(-normal.x, -normal.y, -normal.z);
             }
             
             return true;
@@ -123,7 +123,7 @@ float Clamp(in float value, in float min = 0.0f, in float max = 1.0f)
 float3 BackColor(in Ray ray)
 {
 	/* 0～1の範囲に */
-    float t = 0.5f * ray.direction.y + 1.0f;
+    float t = 0.5f * (ray.direction.y + 1.0f);
 	/* 線形補完 */
     return (1.0f - t) * float3(1.0f, 1.0f, 1.0f) + (t * float3(0.5f, 0.7f, 1.0f));
 }
@@ -190,9 +190,38 @@ void main(ComputeThreadID semantics)
     /* ヒットカラー */
     result[semantics.group_thread_ID.x] = BackColor(ray);
     
+    ///* 
+    //* ヒット最小距離 
+    //* シャドウアクネの除去
+    //*/
+    //const float min = 0.001f;
+    ///* ヒット最大距離 */
+    //float max = float(0xffffffff);
+    ///* ヒット判定フラグ */
+    //bool hit_flag = false;
+    ///* ヒット位置の法線 */
+    //float3 hit_normal = 0.0f;
+    //for (uint sp_index = 0; sp_index < sp_num; ++sp_index)
+    //{
+    //    if (sp[sp_index].IsHit(ray, hit_time, min, max) == true)
+    //    {
+    //        hit_flag = true;
+    //        hit_normal = sp[sp_index].normal;
+    //        max = hit_time;
+    //        result[semantics.group_thread_ID.x] = 0.5f * (sp[sp_index].normal + 1.0f);
+    //    }
+    //}
+    
     float3 tmp = 1.0f;
-    for (uint ref_index = 0; ref_index < 50; ++ref_index)
+    uint ref_cnt = 0;
+    while (true)
     {
+        if(ref_cnt >= 50)
+        {
+            tmp *= 0.0f;
+            break;
+        }
+        
         /* 
         * ヒット最小距離 
         * シャドウアクネの除去
@@ -208,32 +237,54 @@ void main(ComputeThreadID semantics)
         {
             if (sp[sp_index].IsHit(ray, hit_time, min, max) == true)
             {
-                hit_flag   = true;
+                hit_flag = true;
                 hit_normal = sp[sp_index].normal;
-                max        = hit_time;
-                result[semantics.group_thread_ID.x] = 0.5f * (sp[sp_index].normal + 1.0f);
+                max = hit_time;
+                //result[semantics.group_thread_ID.x] = 0.5f * (sp[sp_index].normal + 1.0f);
             }
         }
         
-        if(hit_flag == true)
+        if (hit_flag == true)
         {
-            //ray.pos = ray.At(hit_time);
-            //float theta = sin(Randam(uv, ref_index) * 2.0f * acos(-1.0f));
             
-            //ray.direction = Randam(uv, ref_index);
-            ///* 法線方向に近い向きにする */
-            ////float r = sqrt(1.0f - pow(Randam(uv, ref_index), 2.0f));
-            ////ray.direction.x = r * cos(theta);
-            ////ray.direction.y = r * sin(theta);
-            ////ray.direction.z = theta;
+            float a = Randam(uv, ref_cnt) * 2.0f * acos(-1.0f);
+            float z = 2.0f * Randam(uv, ref_cnt) - 1.0f;
+            float r = sqrt(1.0f - z * z);
             
-            //tmp *= 0.5f * LambertReflection(ray.direction, hit_normal, float3(1.0f, 1.0f, 1.0f), 0.8f);
+            float3 rand;
+            rand.x = r * cos(a);
+            rand.y = r * sin(a);
+            rand.z = z;
             
-            Ray r = ray;
+            
+            /* 反射すると色が半減していく */
+            tmp *= 0.5f;
+            /* 反射レイ */
             ray.pos = ray.At(hit_time);
-            ray.direction = Randam(uv, ref_index);
+            float3 target = ray.pos + hit_normal + rand;
+            ray.direction = target - ray.pos;
             
-            tmp *= OrenNayerReflection(r, hit_normal, ray.direction, float3(1.0f, 1.0f, 1.0f), 1.0f, acos(-1.0f) / 2.0f);
+            
+            //ray.pos = ray.At(hit_time);
+            //uint index = 0;
+            //while (true)
+            //{
+            //    ray.direction.x = hit_normal.x + cos(Randam(uv, ref_index + index++) * acos(-1.0f));
+            //    ray.direction.y = hit_normal.y + cos(Randam(uv, ref_index + index++) * acos(-1.0f));
+            //    ray.direction.z = hit_normal.z + cos(Randam(uv, ref_index + index++) * acos(-1.0f));
+            //    if (pow(length(ray.direction), 2.0f) < 1.0f)
+            //    {
+            //        break;
+            //    }
+            //}
+            
+            //tmp *= 0.5f;
+            
+            //Ray r = ray;
+            //ray.pos = ray.At(hit_time);
+            //ray.direction = Randam(uv, ref_index);
+            
+            //tmp *= OrenNayerReflection(r, hit_normal, ray.direction, float3(1.0f, 1.0f, 1.0f), 1.0f, acos(-1.0f) / 2.0f);
 
         }
         else
@@ -241,6 +292,8 @@ void main(ComputeThreadID semantics)
             tmp *= BackColor(ray);
             break;
         }
+        
+        ++ref_cnt;
     }
     
     result[semantics.group_thread_ID.x] = tmp;
