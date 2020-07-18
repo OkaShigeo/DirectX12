@@ -9,11 +9,20 @@ RWTexture2D<float4>tex : register(u0);
 
 cbuffer RaytracingParam : register(b0)
 {
-	/* カメラ位置 */
+	/* 視点 */
     float3 eye_pos;
 	/* レイの最大距離 */
     float distance;
+    /* ライト位置 */
+    float3 light;
 }
+
+/* 球体の最大数 */
+#define SPHERE_MAX 2
+/* マテリアル無し */
+#define MATERIAL_NONE 0
+/* ランバート反射マテリアル */
+#define MATERIAL_LAMBERT 1
 
 /* レイの情報 */
 struct Ray
@@ -26,8 +35,24 @@ struct Ray
     /* 直線の方程式 */
     float3 At(in float time)
     {
+        /* 時間経過による位置を求める */
         return pos + (time * direction);
     }
+};
+
+/* ヒット情報 */
+struct Hit
+{
+    /* ヒットタイミング */
+    float time;
+    /* ヒットした位置 */
+    float3 pos;
+    /* ヒットした法線 */
+    float3 normal;
+    /* ヒットカラー */
+    float3 color;
+    /* マテリアル */
+    uint material;
 };
 
 /* 球体の情報 */
@@ -35,10 +60,12 @@ struct Sphere
 {
 	/* 中心座標 */
     float3 pos;
-    /* 法線 */
-    float3 normal;
 	/* 半径 */
     float radius;
+    /* カラー */
+    float3 color;
+    /* マテリアル */
+    uint material;
     
     /* 球体の方程式 */
     float At(in float3 vec)
@@ -46,39 +73,62 @@ struct Sphere
         return dot((vec - pos), (vec - pos)) - pow(radius, 2.0f);
     }
     /* ヒット判定 */
-    bool IsHit(in Ray ray, out float time, in float min = 0.001f, in float max = float(0xffffffff))
+    bool IsHit(in Ray ray, out Hit hit, in float min = 0.001f, in float max = float(0xffffffff))
     {
+        float3 oc = ray.pos - pos;
+        
         /* 同じベクトル同士の内積はベクトルの長さの二乗に等しい */
         float a = pow(length(ray.direction), 2.0f);
-        float b = dot((ray.pos - pos), ray.direction);
+        float b = dot(oc, ray.direction);
+        float c = pow(length(oc), 2.0f) - pow(radius, 2.0f);
         /* 二次方程式 */
-        float discriminant = b * b - a * At(ray.pos);
+        float discriminant = b * b - a * c;
         
-        /* ヒットあり */
+        /* ヒットあり 
+        * D > 0 ヒットあり(２箇所)
+        * D = 0 ヒットあり(１箇所)
+        * D < 0 ヒットなし
+        */
         if (discriminant > 0.0f)
-        {
+        {   
             /* ヒットしたタイミングを算出 */
-            time = (-b - sqrt(discriminant)) / a;
+            float time = (-b - sqrt(discriminant)) / a;
             if (!(min < time && time < max))
             {
                 time = (-b + sqrt(discriminant)) / a;
                 if (!(min < time && time < max))
                 {
+                    /* ヒット情報の初期化 */
+                    hit.time = -1.0f;
+                    hit.pos = hit.normal = hit.color = 0.0f;
+                    hit.material = MATERIAL_NONE;
+                    
                     return false;
                 }
             }
             
             /* 法線を算出 */
-            normal = (ray.At(time) - pos) / radius;
+            float3 normal = (ray.At(time) - pos) / radius;
             /* レイは内側から飛んできている */
-            if (dot(ray.direction, normal) > 0.0f)
+            if (!(dot(ray.direction, normal) < 0.0f))
             {
-                //normal = float3(-normal.x, -normal.y, -normal.z);
+                normal = float3(-normal.x, -normal.y, -normal.z);
             }
+            
+            hit.time     = time;
+            hit.pos      = ray.At(time);
+            hit.normal   = normal;
+            hit.color    = color;
+            hit.material = material;
             
             return true;
         }
 
+        /* ヒット情報の初期化 */
+        hit.time = -1.0f;
+        hit.pos = hit.normal = hit.color = 0.0f;
+        hit.material = MATERIAL_NONE;
+        
         return false;
     }
 };
@@ -92,31 +142,10 @@ struct ComputeThreadID
     uint group_index      : SV_GroupIndex;
 };
 
-/* 角度からラジアン変換 */
-float ChangeRadian(in float degree)
-{
-    return degree * acos(-1.0f) / 180.0f;
-}
-
 /* ランダム値の取得 */
-float Randam(in float2 uv, in int seed = 0)
+float Random(in float2 uv, in int seed = 0)
 {
     return frac(sin(dot(sin(uv), float2(12.9898f, 78.233)) + seed) * 43758.5453);
-}
-
-/* 範囲内に収める */
-float Clamp(in float value, in float min = 0.0f, in float max = 1.0f)
-{
-    if(value < min)
-    {
-        return min;
-    }
-    else if(value > max)
-    {
-        return max;
-    }
-    
-    return value;
 }
 
 /* 背景色の算出 */
@@ -128,30 +157,87 @@ float3 BackColor(in Ray ray)
     return (1.0f - t) * float3(1.0f, 1.0f, 1.0f) + (t * float3(0.5f, 0.7f, 1.0f));
 }
 
-/* ランバート反射 */
-float3 LambertReflection(in float3 direction, in float3 normal, in float3 brightness = 1.0f, in float reflect = 1.0f)
+/* リニア色空間に変換 */
+float3 ChangeLinearColor(in float3 color)
 {
-    return brightness * max(0.0f, dot(direction, normal)) * reflect;
+    return pow(color, 2.2f);
 }
 
-/* オーレン・ネイヤー反射 */
-float3 OrenNayerReflection(in Ray ray, in float3 normal, in float3 reflect_vector, in float3 brightness = 1.0f, in float albedo = 1.0f, in float roughness = 0.0f)
+/* sRGB色空間に変換 */
+float3 ChangeSRGBColor(in float3 color)
 {
-    float s = dot(reflect_vector, ray.direction) - (dot(normal, reflect_vector) * dot(normal, ray.direction));
-    float t = 1.0f;
-    if(s > 0.0f)
+    return pow(color, 1.0f / 2.2f);
+}
+
+/* 
+* 球体とのヒット判定 
+* シャドウアクネ適用
+*/
+bool IsSphereHit(in Ray ray, in Sphere sp[SPHERE_MAX], out Hit hit)
+{
+    const float min = 0.01f;
+    float max = float(0xffffffff);
+    
+    /* ヒット情報の初期化 */
+    hit.time = -1.0f;
+    hit.pos = hit.normal = hit.color = 0.0f;
+    hit.material = MATERIAL_NONE;
+    
+    for (uint i = 0; i < SPHERE_MAX; ++i)
     {
-        t = max(dot(normal, reflect_vector), dot(normal, ray.direction));
+        Hit dummy_hit = hit;
+        if (sp[i].IsHit(ray, dummy_hit, min, max) == true)
+        {
+            hit = dummy_hit;
+            max = hit.time;
+        }
     }
     
-    float A = 1.0f / acos(-1.0f) * (1.0f - (0.5f * (pow(roughness, 2.0f) / (pow(roughness, 2.0f) + 0.33f))) + (0.17 * albedo * (pow(roughness, 2.0f) / (pow(roughness, 2.0f) + 0.13f))));
-    float B = 1.0f / acos(-1.0f) * (0.45f * (pow(roughness, 2.0f) / (pow(roughness, 2.0f) + 0.09f)));
-    return albedo * dot(normal, reflect_vector) * (A + (B * (s / t))) * brightness;
+    return (hit.time >= 0.0f);
+}
 
+/* ランバート反射 */
+float3 LambertReflection(out Ray ray, in Hit hit, in float albedo = 1.0f, uint random_num = 10)
+{
+    float max = float(0xffffffff);
+    float3 random_vec = 0.0f;
+    
+    random_vec.x = Random(hit.pos.xy);
+    random_vec.y = Random(hit.pos.yz);
+    random_vec.z = Random(hit.pos.zx);
+            
+    /* 単位球内に一番近い反射向きを求める */
+    for (uint i = 0; i < random_num; ++i)
+    {        
+        /* 一様分布に近づける */
+        float a = Random(random_vec.xy, i) * 2.0f * acos(-1.0f);
+        float z = 2.0f * Random(random_vec.yz, i) - 1.0f;
+        float r = sqrt(1.0f - z * z);
+            
+        random_vec.x = r * cos(a);
+        random_vec.y = r * sin(a);
+        random_vec.z = z;
+        
+        float tmp = pow(length(random_vec), 2.0f);
+        if(tmp < 1.0f)
+        {
+            break;
+        }
+        else
+        {
+            max = min(max, tmp);
+        }
+    }
+            
+    /* レイの反射 */
+    ray.pos = hit.pos;
+    ray.direction = hit.normal + random_vec;
+
+    return hit.color * albedo;
 }
 
 /* グループスレッド数 */
-#define THREAD_X 256
+#define THREAD_X 512
 #define THREAD_Y 1
 #define THREAD_Z 1
 
@@ -176,127 +262,46 @@ void main(ComputeThreadID semantics)
     /* 球体 */
     Sphere sp[sp_num] =
     {
-        { float3(0.0f, 0.0f, 0.0f), float3(0.0f, 0.0f, 0.0f), 0.5f },
-        { float3(0.0f, -100.5f, 0.0f), float3(0.0f, 0.0f, 0.0f), 100.0f },
+        { float3(0.0f, 0.0f, 0.0f), 0.5f, float3(1.0f, 1.0f, 1.0f), MATERIAL_LAMBERT },
+        { float3(0.0f, -100.5f, 0.0f), 100.0f, float3(1.0f, 1.0f, 1.0f), MATERIAL_LAMBERT },
     };
     
     /* UV値の算出 */
-    const float2 uv = (float2(semantics.group_ID.xy) + Randam(semantics.group_ID.xy, semantics.group_thread_ID.x)) / float2(size);
+    const float2 uv = (float2(semantics.group_ID.xy) + Random(semantics.group_ID.xy, semantics.group_thread_ID.x)) / float2(size);
 	/* レイ */
-    Ray ray = { eye_pos, left_pos + float3(viewport * uv, 0.0f) - eye_pos };
-        
-    /* ヒットタイム */
-    float hit_time = float(0xffffffff);
+    Ray ray = 
+    { 
+        eye_pos, left_pos + float3(viewport * uv, 0.0f) - eye_pos 
+    };
     /* ヒットカラー */
-    result[semantics.group_thread_ID.x] = BackColor(ray);
+    float3 color = 1.0f;
+    /* 反射強度 */
+    const float albedo = 0.5f;
     
-    ///* 
-    //* ヒット最小距離 
-    //* シャドウアクネの除去
-    //*/
-    //const float min = 0.001f;
-    ///* ヒット最大距離 */
-    //float max = float(0xffffffff);
-    ///* ヒット判定フラグ */
-    //bool hit_flag = false;
-    ///* ヒット位置の法線 */
-    //float3 hit_normal = 0.0f;
-    //for (uint sp_index = 0; sp_index < sp_num; ++sp_index)
-    //{
-    //    if (sp[sp_index].IsHit(ray, hit_time, min, max) == true)
-    //    {
-    //        hit_flag = true;
-    //        hit_normal = sp[sp_index].normal;
-    //        max = hit_time;
-    //        result[semantics.group_thread_ID.x] = 0.5f * (sp[sp_index].normal + 1.0f);
-    //    }
-    //}
-    
-    float3 tmp = 1.0f;
-    uint ref_cnt = 0;
-    while (true)
+    for (uint ref_cnt = 0; ref_cnt < 10; ++ref_cnt)
     {
-        if(ref_cnt >= 50)
+        /* ヒット情報 */
+        Hit hit =
         {
-            tmp *= 0.0f;
-            break;
-        }
+            -1.0f, float3(0.0f, 0.0f, 0.0f), float3(0.0f, 0.0f, 0.0f), float3(0.0f, 0.0f, 0.0f), MATERIAL_NONE
+        };
         
-        /* 
-        * ヒット最小距離 
-        * シャドウアクネの除去
-        */
-        const float min = 0.001f;
-        /* ヒット最大距離 */
-        float max = float(0xffffffff);
-        /* ヒット判定フラグ */
-        bool hit_flag = false;
-        /* ヒット位置の法線 */
-        float3 hit_normal = 0.0f;
-        for (uint sp_index = 0; sp_index < sp_num; ++sp_index)
+        /* ヒット判定チェック */
+        if (IsSphereHit(ray, sp, hit) == true)
         {
-            if (sp[sp_index].IsHit(ray, hit_time, min, max) == true)
+            if (hit.material == MATERIAL_LAMBERT)
             {
-                hit_flag = true;
-                hit_normal = sp[sp_index].normal;
-                max = hit_time;
-                //result[semantics.group_thread_ID.x] = 0.5f * (sp[sp_index].normal + 1.0f);
+                color *= LambertReflection(ray, hit, albedo) * max(0.0f, dot((light - hit.pos), hit.normal));
             }
-        }
-        
-        if (hit_flag == true)
-        {
-            
-            float a = Randam(uv, ref_cnt) * 2.0f * acos(-1.0f);
-            float z = 2.0f * Randam(uv, ref_cnt) - 1.0f;
-            float r = sqrt(1.0f - z * z);
-            
-            float3 rand;
-            rand.x = r * cos(a);
-            rand.y = r * sin(a);
-            rand.z = z;
-            
-            
-            /* 反射すると色が半減していく */
-            tmp *= 0.5f;
-            /* 反射レイ */
-            ray.pos = ray.At(hit_time);
-            float3 target = ray.pos + hit_normal + rand;
-            ray.direction = target - ray.pos;
-            
-            
-            //ray.pos = ray.At(hit_time);
-            //uint index = 0;
-            //while (true)
-            //{
-            //    ray.direction.x = hit_normal.x + cos(Randam(uv, ref_index + index++) * acos(-1.0f));
-            //    ray.direction.y = hit_normal.y + cos(Randam(uv, ref_index + index++) * acos(-1.0f));
-            //    ray.direction.z = hit_normal.z + cos(Randam(uv, ref_index + index++) * acos(-1.0f));
-            //    if (pow(length(ray.direction), 2.0f) < 1.0f)
-            //    {
-            //        break;
-            //    }
-            //}
-            
-            //tmp *= 0.5f;
-            
-            //Ray r = ray;
-            //ray.pos = ray.At(hit_time);
-            //ray.direction = Randam(uv, ref_index);
-            
-            //tmp *= OrenNayerReflection(r, hit_normal, ray.direction, float3(1.0f, 1.0f, 1.0f), 1.0f, acos(-1.0f) / 2.0f);
-
         }
         else
         {
-            tmp *= BackColor(ray);
+            color *= BackColor(ray);
             break;
         }
-        
-        ++ref_cnt;
     }
     
-    result[semantics.group_thread_ID.x] = tmp;
+    result[semantics.group_thread_ID.x] = color;
     
     /* グループスレッドの同期 */
     GroupMemoryBarrierWithGroupSync();
@@ -314,12 +319,8 @@ void main(ComputeThreadID semantics)
     
     if(semantics.group_thread_ID.x == 0)
     {
-        /* ガンマ補正 */
-        result[semantics.group_thread_ID.x] = sqrt((1.0f / THREAD_X) * result[semantics.group_thread_ID.x]);
-        result[semantics.group_thread_ID.x].x = clamp(result[semantics.group_thread_ID.x].x, 0.001f, 1.0f);
-        result[semantics.group_thread_ID.x].y = clamp(result[semantics.group_thread_ID.x].y, 0.001f, 1.0f);
-        result[semantics.group_thread_ID.x].z = clamp(result[semantics.group_thread_ID.x].z, 0.001f, 1.0f);
-        
-        tex[semantics.group_ID.xy] = float4(result[semantics.group_thread_ID.x], 1.0f);
+        result[semantics.group_thread_ID.x] /= THREAD_X;
+       
+        tex[semantics.group_ID.xy] = float4(ChangeSRGBColor(result[semantics.group_thread_ID.x]), 1.0f);
     }
 }

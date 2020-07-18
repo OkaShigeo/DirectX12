@@ -24,10 +24,10 @@ namespace {
 	const std::vector<VertexInfo>vertex = {
 		/* 左から右 */
 		/* 上から下 */
-		{ st::Vec3f(-0.5f, -0.5f, 0.0f), st::Vec2f(0.0f, 0.0f) },
-		{ st::Vec3f( 0.5f, -0.5f, 0.0f), st::Vec2f(1.0f, 0.0f) },
-		{ st::Vec3f(-0.5f,  0.5f, 0.0f), st::Vec2f(0.0f, 1.0f) },
-		{ st::Vec3f( 0.5f,  0.5f, 0.0f), st::Vec2f(1.0f, 1.0f) },
+		{ st::Vec3f(-1.0f, -1.0f, 0.0f), st::Vec2f(0.0f, 0.0f) },
+		{ st::Vec3f( 1.0f, -1.0f, 0.0f), st::Vec2f(1.0f, 0.0f) },
+		{ st::Vec3f(-1.0f,  1.0f, 0.0f), st::Vec2f(0.0f, 1.0f) },
+		{ st::Vec3f( 1.0f,  1.0f, 0.0f), st::Vec2f(1.0f, 1.0f) },
 	};
 	/* 入力属性 */
 	const std::vector<D3D12_INPUT_ELEMENT_DESC>input = {
@@ -66,9 +66,11 @@ namespace {
 	/* レイトレーシングパラメータ */
 	struct RaytracingParam {
 		/* 視線位置 */
-		st::Vec3f eye_pos;
+		st::Vec3f eye;
 		/* レイの最大距離 */
 		float distance;
+		/* ライト位置 */
+		st::Vec3f light;
 	};
 }
 
@@ -145,8 +147,9 @@ int main()
 			(sizeof(RaytracingParam) + 0xff) & ~0xff, D3D12_RESOURCE_STATES::D3D12_RESOURCE_STATE_GENERIC_READ);
 		Dx12Runtime::CBV(compute->heap.Get(), compute->rsc[index].Get(), index);
 		RaytracingParam param{};
-		param.eye_pos.z = 1.0f;
+		param.eye.z = 1.0f;
 		param.distance  = 1.0f;
+		param.light = st::Vec3f(1.0f, 1.0f, 1.0f);
 		compute->rsc[index].Map(&buffer, sizeof(RaytracingParam));
 		std::memcpy(buffer, &param, sizeof(param));
 		compute->rsc[index].Unmap();
