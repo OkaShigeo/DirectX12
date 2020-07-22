@@ -147,9 +147,10 @@ int main()
 			(sizeof(RaytracingParam) + 0xff) & ~0xff, D3D12_RESOURCE_STATES::D3D12_RESOURCE_STATE_GENERIC_READ);
 		Dx12Runtime::CBV(compute->heap.Get(), compute->rsc[index].Get(), index);
 		RaytracingParam param{};
+		//param.eye.x = -0.5f;
 		param.eye.z = 1.0f;
 		param.distance  = 1.0f;
-		param.light = st::Vec3f(1.0f, 1.0f, 1.0f);
+		param.light = st::Vec3f(0.0f, 1.0f, 1.0f);
 		compute->rsc[index].Map(&buffer, sizeof(RaytracingParam));
 		std::memcpy(buffer, &param, sizeof(param));
 		compute->rsc[index].Unmap();

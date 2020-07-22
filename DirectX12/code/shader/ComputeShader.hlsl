@@ -18,11 +18,15 @@ cbuffer RaytracingParam : register(b0)
 }
 
 /* 球体の最大数 */
-#define SPHERE_MAX 2
+#define SPHERE_MAX 4
 /* マテリアル無し */
 #define MATERIAL_NONE 0
 /* ランバート反射マテリアル */
 #define MATERIAL_LAMBERT 1
+/* 鏡面反射マテリアル */
+#define MATERIAL_METAL 2
+/* 誘電体マテリアル */
+#define MATERIAL_DIELECTRIC 3
 
 /* レイの情報 */
 struct Ray
@@ -53,6 +57,8 @@ struct Hit
     float3 color;
     /* マテリアル */
     uint material;
+    /* 法線が内側向き確認フラグ */
+    bool inside_normal;
 };
 
 /* 球体の情報 */
@@ -102,6 +108,7 @@ struct Sphere
                     hit.time = -1.0f;
                     hit.pos = hit.normal = hit.color = 0.0f;
                     hit.material = MATERIAL_NONE;
+                    hit.inside_normal = false;
                     
                     return false;
                 }
@@ -110,14 +117,14 @@ struct Sphere
             /* 法線を算出 */
             float3 normal = (ray.At(time) - pos) / radius;
             /* レイは内側から飛んできている */
-            if (!(dot(ray.direction, normal) < 0.0f))
+            if (!(hit.inside_normal = (dot(ray.direction, normal) < 0.0f)))
             {
-                normal = float3(-normal.x, -normal.y, -normal.z);
+                normal = -normal;
             }
             
             hit.time     = time;
             hit.pos      = ray.At(time);
-            hit.normal   = normal;
+            hit.normal   = (normal);
             hit.color    = color;
             hit.material = material;
             
@@ -128,6 +135,7 @@ struct Sphere
         hit.time = -1.0f;
         hit.pos = hit.normal = hit.color = 0.0f;
         hit.material = MATERIAL_NONE;
+        hit.inside_normal = false;
         
         return false;
     }
@@ -146,6 +154,15 @@ struct ComputeThreadID
 float Random(in float2 uv, in int seed = 0)
 {
     return frac(sin(dot(sin(uv), float2(12.9898f, 78.233)) + seed) * 43758.5453);
+}
+
+/* 反射 */
+float3 Reflect(in float3 in_vec, in float3 normal)
+{
+    /* 入射ベクトルと法線ベクトルが単位ベクトルの場合の反射 */
+    //return in_vec + 2.0f * normal;
+    /* 法線ベクトルだ単位ベクトルの場合の反射 */
+    return in_vec - 2.0f * dot(in_vec, normal) * normal;
 }
 
 /* 背景色の算出 */
@@ -196,29 +213,34 @@ bool IsSphereHit(in Ray ray, in Sphere sp[SPHERE_MAX], out Hit hit)
     return (hit.time >= 0.0f);
 }
 
-/* ランバート反射 */
-float3 LambertReflection(out Ray ray, in Hit hit, in float albedo = 1.0f, uint random_num = 10)
+/* ランバート反射
+@ レイ情報
+@ 反射強度
+@ ヒット情報
+@ ランダム計算回数
+*/
+float3 LambertReflection(out Ray ray, in Hit hit, in float albedo = 1.0f, in uint random_num = 10)
 {
     float max = float(0xffffffff);
-    float3 random_vec = 0.0f;
+    float3 random = 0.0f;
     
-    random_vec.x = Random(hit.pos.xy);
-    random_vec.y = Random(hit.pos.yz);
-    random_vec.z = Random(hit.pos.zx);
+    random.x = Random(hit.pos.xy);
+    random.y = Random(hit.pos.yz);
+    random.z = Random(hit.pos.zx);
             
     /* 単位球内に一番近い反射向きを求める */
     for (uint i = 0; i < random_num; ++i)
     {        
         /* 一様分布に近づける */
-        float a = Random(random_vec.xy, i) * 2.0f * acos(-1.0f);
-        float z = 2.0f * Random(random_vec.yz, i) - 1.0f;
+        float a = Random(random.xy, i) * 2.0f * acos(-1.0f);
+        float z = 2.0f * Random(random.yz, i) - 1.0f;
         float r = sqrt(1.0f - z * z);
             
-        random_vec.x = r * cos(a);
-        random_vec.y = r * sin(a);
-        random_vec.z = z;
+        random.x = r * cos(a);
+        random.y = r * sin(a);
+        random.z = z;
         
-        float tmp = pow(length(random_vec), 2.0f);
+        float tmp = pow(length(random), 2.0f);
         if(tmp < 1.0f)
         {
             break;
@@ -231,13 +253,95 @@ float3 LambertReflection(out Ray ray, in Hit hit, in float albedo = 1.0f, uint r
             
     /* レイの反射 */
     ray.pos = hit.pos;
-    ray.direction = hit.normal + random_vec;
+    ray.direction = normalize(hit.normal + random);
 
+    return hit.color * albedo /* * max(0.0f, dot((light - hit.pos), hit.normal)) */;
+}
+
+/* 鏡面反射 
+@ レイ情報
+@ ヒット情報
+@ 反射強度
+@ ぼかし率
+@ ランダム計算回数
+*/
+float3 MetalRefrection(in out Ray ray, in Hit hit, in float albedo = 1.0f, in float fazz = 0.0f, in uint random_num = 10)
+{
+    ray.pos = hit.pos;
+    ray.direction = Reflect(ray.direction, hit.normal);
+    
+    /* ぼかし処理 */
+    if(fazz > 0.0f)
+    {
+        float max = float(0xffffffff);
+        float3 random = 0.0f;
+        
+        for (uint i = 0; i < random_num; ++i)
+        {
+            random.x = 2.0f * Random(hit.pos.xy, i) - 1.0f;
+            random.y = 2.0f * Random(hit.pos.yz, i) - 1.0f;
+            random.z = 2.0f * Random(hit.pos.zx, i) - 1.0f;
+            
+            float tmp = pow(length(random), 2.0f);
+            if (tmp < 1.0f)
+            {
+                break;
+            }
+            else
+            {
+                max = min(max, tmp);
+            }
+        }
+        
+        ray.direction += min(fazz, 1.0f) * random;
+    }
+    
     return hit.color * albedo;
 }
 
+/* 誘電体 */
+float3 DielectricReflection(in out Ray ray, in Hit hit, in float refract = 0.0f)
+{
+    /* 入射ベクトルを単位ベクトルに変換 */
+    float3 tmp = normalize(ray.direction);
+    /* cos(入射角)を求める */
+    float cos_theta1 = dot(-tmp, hit.normal);
+    
+    float rate = 1.0f / refract;
+    if(hit.inside_normal == true)
+    {
+        rate = refract;
+        cos_theta1 = dot(tmp, hit.normal);;
+        cos_theta1 = sqrt(1.0f - pow(rate, 2.0f) * (1 - pow(cos_theta1, 2.0f)));
+    }
+    
+    /** スネルの法則 
+    * 屈折率１ * |単位入射ベクトル - cos(入射角) * 単位法線ベクトル| = 屈折率２ * |単位屈折ベクトル + cos(屈折角) * 単位法線ベクトル|
+    */
+    /* 屈折角 */
+    float cos_theta2 = 1.0f - pow(rate, 2.0f) * (1.0f - pow(cos_theta1, 2.0f));
+    /* 屈折ベクトル */
+    float3 a = 0.0f;
+    /* 屈折角はマイナスの値にはならない */
+    if(cos_theta2 > 0.0f)
+    {
+        /* 屈折ベクトル */
+        a += rate * (tmp - cos_theta1 * hit.normal) - sqrt(cos_theta2) * hit.normal;
+        
+        ray.pos = hit.pos;
+        ray.direction = a;
+    }
+    else
+    {
+        ray.pos = hit.pos;
+        ray.direction = Reflect(ray.direction, hit.normal);
+    }
+    
+    return float3(1.0f, 1.0f, 1.0f);
+}
+
 /* グループスレッド数 */
-#define THREAD_X 512
+#define THREAD_X 64
 #define THREAD_Y 1
 #define THREAD_Z 1
 
@@ -257,13 +361,14 @@ void main(ComputeThreadID semantics)
     const float2 viewport = float2(aspect * 2.0f, 2.0f);
      /* 左上座標 */
     float3 left_pos = eye_pos - float3(viewport / 2.0f, distance);
-    /* 球体の数 */
-    const uint sp_num = 2;
     /* 球体 */
-    Sphere sp[sp_num] =
+    Sphere sp[SPHERE_MAX] =
     {
-        { float3(0.0f, 0.0f, 0.0f), 0.5f, float3(1.0f, 1.0f, 1.0f), MATERIAL_LAMBERT },
-        { float3(0.0f, -100.5f, 0.0f), 100.0f, float3(1.0f, 1.0f, 1.0f), MATERIAL_LAMBERT },
+        { float3( 0.0f,    0.0f, 0.0f),   0.5f, float3(0.7f, 0.3f, 0.3f), MATERIAL_LAMBERT },
+        { float3( 0.0f, -100.5f, 0.0f), 100.0f, float3(0.8f, 0.8f, 0.0f), MATERIAL_LAMBERT },
+        { float3( 1.0f,    0.0f, 0.0f),   0.5f, float3(0.8f, 0.6f, 0.2f), MATERIAL_METAL },
+        { float3(-1.0f,    0.0f, 0.0f),   0.5f, float3(0.8f, 0.6f, 0.8f), MATERIAL_DIELECTRIC },
+        //{ float3(-1.0f,    0.0f, 0.0f), -0.45f, float3(0.8f, 0.6f, 0.8f), MATERIAL_DIELECTRIC },
     };
     
     /* UV値の算出 */
@@ -271,19 +376,19 @@ void main(ComputeThreadID semantics)
 	/* レイ */
     Ray ray = 
     { 
-        eye_pos, left_pos + float3(viewport * uv, 0.0f) - eye_pos 
+        eye_pos, normalize(left_pos + float3(viewport * uv, 0.0f) - eye_pos)
     };
     /* ヒットカラー */
     float3 color = 1.0f;
     /* 反射強度 */
     const float albedo = 0.5f;
     
-    for (uint ref_cnt = 0; ref_cnt < 10; ++ref_cnt)
+    for (uint i = 0; i < 10; ++i)
     {
         /* ヒット情報 */
         Hit hit =
         {
-            -1.0f, float3(0.0f, 0.0f, 0.0f), float3(0.0f, 0.0f, 0.0f), float3(0.0f, 0.0f, 0.0f), MATERIAL_NONE
+            -1.0f, float3(0.0f, 0.0f, 0.0f), float3(0.0f, 0.0f, 0.0f), float3(0.0f, 0.0f, 0.0f), MATERIAL_NONE, false
         };
         
         /* ヒット判定チェック */
@@ -291,7 +396,19 @@ void main(ComputeThreadID semantics)
         {
             if (hit.material == MATERIAL_LAMBERT)
             {
-                color *= LambertReflection(ray, hit, albedo) * max(0.0f, dot((light - hit.pos), hit.normal));
+                color *= LambertReflection(ray, hit, albedo);
+            }
+            else if(hit.material == MATERIAL_METAL)
+            {
+                color *= MetalRefrection(ray, hit, albedo, 0.0f);
+            }
+            else if (hit.material == MATERIAL_DIELECTRIC)
+            {
+                color *= DielectricReflection(ray, hit, 1.5f);
+            }
+            else
+            {
+                color *= 0.0f;
             }
         }
         else
