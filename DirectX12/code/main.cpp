@@ -125,7 +125,7 @@ int main()
 	{
 		pipe->CreatePipeline(input, D3D12_PRIMITIVE_TOPOLOGY_TYPE::D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE, root, vs_shader, ps_shader);
 	}
-	auto* cs_shader = new ShaderCompiler(L"../code/shader/ComputeShader.hlsl", L"main", L"cs_6_4");
+	auto* cs_shader = new ShaderCompiler(L"../code/shader/Raytracing.hlsl", L"main", L"cs_6_4");
 	auto* cs_root = new Dx12RootSignature();
 	{
 		cs_root->CreateRootSignature(cs_shader->Get());
@@ -148,9 +148,9 @@ int main()
 		Dx12Runtime::CBV(compute->heap.Get(), compute->rsc[index].Get(), index);
 		RaytracingParam param{};
 		//param.eye.x = -0.5f;
-		param.eye.z = 1.0f;
+		param.eye.z = 0.0f;
 		param.distance  = 1.0f;
-		param.light = st::Vec3f(0.0f, 1.0f, 1.0f);
+		param.light = st::Vec3f(0.0f, 1.0f, -1.0f);
 		compute->rsc[index].Map(&buffer, sizeof(RaytracingParam));
 		std::memcpy(buffer, &param, sizeof(param));
 		compute->rsc[index].Unmap();
