@@ -55,6 +55,25 @@ struct Hit
     uint material;
 };
 
+/* カメラ */
+struct Camera
+{
+    /* 位置 */
+    float3 pos;
+    /* 注視点 */
+    float3 target;
+    /* 上方向 */
+    float3 up;
+    /* アスペクト比 */
+    float aspect;
+    /* 視野角 */
+    float fov;
+    /* ビューポート */
+    float2 viewport;
+    /* レンズの大きさ */
+    float lens_aperture;
+};
+
 /* レイ */
 struct Ray
 {

@@ -190,6 +190,45 @@ float3 Refract(in out Ray ray, in Hit hit, in float refract)
     return float3(1.0f, 1.0f, 1.0f);
 }
 
+/* ラジアン角度に変換 */
+float Radian(in float angle)
+{
+    return angle * acos(-1.0f) / 180.0f;
+}
+
+/* 被写界深度 */
+float3 DepthOfField(in Camera cam, in uint count = 10)
+{
+    float max = float(0xffffffff);
+    float3 random = 0.0f;
+    random.x = 2.0f * Random(cam.pos.xy) - 1.0f;
+    random.y = 2.0f * Random(cam.pos.yz) - 1.0f;
+    random.z = 2.0f * Random(cam.pos.zx) - 1.0f;
+        
+    for (uint i = 0; i < count; ++i)
+    {
+        random.x = 2.0f * Random(random.xy, i) - 1.0f;
+        random.y = 2.0f * Random(random.yz, i) - 1.0f;
+        random.z = 2.0f * Random(random.zx, i) - 1.0f;
+            
+        float tmp = pow(length(float3(random.x, random.y, 0.0f)), 2.0f);
+        if (tmp < 1.0f)
+        {
+            break;
+        }
+        else
+        {
+            max = min(max, tmp);
+        }
+    }
+    
+    float3 dir = normalize(cam.pos - cam.target);
+    float3 u   = normalize(cross(cam.up, dir));
+    float3 v   = cross(dir, u);
+    
+    return (u * random.x * (cam.lens_aperture / 2.0f)) + (v * random.y * (cam.lens_aperture / 2.0f));
+}
+
 /* グループスレッドごとの計算結果  */
 groupshared float3 result[THREAD_X];
 
@@ -197,37 +236,50 @@ groupshared float3 result[THREAD_X];
 [numthreads(THREAD_X, THREAD_Y, THREAD_Z)]
 void main(ComputeThreadID semantics)
 {
-	/* テクスチャサイズの取得 */ 
-    uint2 size = 0;
-    tex.GetDimensions(size.x, size.y);
-	/* アスペクト比の算出 */
-    const float aspect = float(size.x) / float(size.y);
-	/* ビューポート */
-    const float2 viewport = float2(aspect * 2.0f, 2.0f);
-     /* 左上座標 */
-    float3 left_pos = eye_pos - float3(viewport / 2.0f, distance);
-    /* UV値の算出 */
-    const float2 uv = (float2(semantics.group_ID.xy) + Random(semantics.group_ID.xy, semantics.group_thread_ID.x)) / float2(size);
-    
     /* ヒット情報 */
     Hit hit =
     {
         -1.0f, float3(0.0f, 0.0f, 0.0f), float3(0.0f, 0.0f, 0.0f), float3(0.0f, 0.0f, 0.0f), MATERIAL_NONE
     };
+    
+	/* テクスチャサイズの取得 */ 
+    uint2 size = 0;
+    tex.GetDimensions(size.x, size.y);
+    
+    /* カメラ */
+    Camera cam = 
+    { 
+        float3(3.0f, 3.0f, 2.0f), float3(0.0f, 0.0f, -1.0f), float3(0.0f, 1.0f, 0.0f),
+        float(size.x) / float(size.y), Radian(20.0f), float2(cam.aspect * 2.0f * tan(cam.fov / 2.0f), 2.0f * tan(cam.fov / 2.0f)), 2.0f
+    };
+    
+    /* 集束距離 */
+    float focus_distance = length(cam.pos - cam.target);
+    
+    /* 位置修正 */
+    float3 dir        = normalize(cam.pos - cam.target);
+    float3 horizontal = cam.viewport.x * normalize(cross(cam.up, dir));
+    float3 vertical   = cam.viewport.y * cross(dir, normalize(cross(cam.up, dir)));
+    float3 left       = cam.pos - (horizontal / 2.0f) - (vertical / 2.0f) - (dir);
+    /* UV値の算出 */
+    const float2 uv = (float2(semantics.group_ID.xy) + Random(semantics.group_ID.xy, semantics.group_thread_ID.x)) / float2(size);
+    
     /* レイ */
     Ray ray = 
     {
-        eye_pos, normalize(left_pos + float3(uv * viewport, 0.0f) - eye_pos)
+        cam.pos, left + (horizontal * uv.x) + (vertical * uv.y) - cam.pos - 0
     };
     
     /* 球体 */
     Sphere sp[SPHERE_MAX] =
     {
-        { float3(0.0f,    0.0f, -1.0f),   0.5f, float3(0.7f, 0.3f, 0.3f), MATERIAL_LAMBERT },
-        { float3(0.0f, -100.5f, -2.0f), 100.0f, float3(0.8f, 0.8f, 0.0f), MATERIAL_LAMBERT },
-        { float3(1.0f,    0.0f, -1.0f),   0.5f, float3(0.8f, 0.6f, 0.2f), MATERIAL_REFLECT },
-        { float3(-1.0f,   0.0f, -1.0f),   0.5f, float3(0.8f, 0.8f, 0.8f), MATERIAL_REFRACT },
-        { float3(-1.0f,   0.0f, -1.0f), -0.45f, float3(0.8f, 0.8f, 0.8f), MATERIAL_REFRACT },
+        { float3( 0.0f,    0.0f, -1.0f),   0.5f, float3(0.7f, 0.3f, 0.3f), MATERIAL_LAMBERT },
+        { float3( 0.0f, -100.5f, -2.0f), 100.0f, float3(0.8f, 0.8f, 0.0f), MATERIAL_LAMBERT },
+        { float3( 1.0f,    0.0f, -1.0f),   0.5f, float3(0.8f, 0.6f, 0.2f), MATERIAL_REFLECT },
+        { float3(-1.0f,    0.0f, -1.0f),   0.5f, float3(0.8f, 0.8f, 0.8f), MATERIAL_REFRACT },
+        { float3(-1.0f,    0.0f, -1.0f), -0.45f, float3(0.8f, 0.8f, 0.8f), MATERIAL_REFRACT },
+        //{ float3( acos(-1.0f) / 4.0f, 0.0f, -1.0f), acos(-1.0f) / 4.0f, float3(1.0f, 0.0f, 0.0f), MATERIAL_LAMBERT },
+        //{ float3(-acos(-1.0f) / 4.0f, 0.0f, -1.0f), acos(-1.0f) / 4.0f, float3(0.0f, 0.0f, 1.0f), MATERIAL_LAMBERT },
     };
     
     float3 color = 1.0f;

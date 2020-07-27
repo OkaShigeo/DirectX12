@@ -154,9 +154,6 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <FxCompile Include="..\code\shader\ComputeShader.hlsl">
-      <Filter>リソース ファイル</Filter>
-    </FxCompile>
     <FxCompile Include="..\code\shader\VertexShader.hlsl">
       <Filter>リソース ファイル</Filter>
     </FxCompile>
@@ -168,9 +165,6 @@
     </FxCompile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\code\shader\Header.hlsli">
-      <Filter>リソース ファイル</Filter>
-    </None>
     <None Include="..\code\shader\Raytracing.hlsli">
       <Filter>リソース ファイル</Filter>
     </None>
