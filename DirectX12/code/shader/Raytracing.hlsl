@@ -197,13 +197,13 @@ float Radian(in float angle)
 }
 
 /* 被写界深度 */
-float3 DepthOfField(in Camera cam, in uint count = 10)
+float3 DepthOfField(in Camera cam, in float2 uv, in uint count = 10)
 {
     float max = float(0xffffffff);
     float3 random = 0.0f;
-    random.x = 2.0f * Random(cam.pos.xy) - 1.0f;
-    random.y = 2.0f * Random(cam.pos.yz) - 1.0f;
-    random.z = 2.0f * Random(cam.pos.zx) - 1.0f;
+    random.x = 2.0f * Random(uv) - 1.0f;
+    random.y = 2.0f * Random(uv) - 1.0f;
+    random.z = 2.0f * Random(uv) - 1.0f;
         
     for (uint i = 0; i < count; ++i)
     {
@@ -249,8 +249,8 @@ void main(ComputeThreadID semantics)
     /* カメラ */
     Camera cam = 
     { 
-        float3(3.0f, 3.0f, 2.0f), float3(0.0f, 0.0f, -1.0f), float3(0.0f, 1.0f, 0.0f),
-        float(size.x) / float(size.y), Radian(20.0f), float2(cam.aspect * 2.0f * tan(cam.fov / 2.0f), 2.0f * tan(cam.fov / 2.0f)), 2.0f
+        float3(13.0f, 2.0f, 3.0f), float3(0.0f, 0.0f, 0.0f), float3(0.0f, 1.0f, 0.0f),
+        float(size.x) / float(size.y), Radian(20.0f), float2(cam.aspect * 2.0f * tan(cam.fov / 2.0f), 2.0f * tan(cam.fov / 2.0f)), 0.1f
     };
     
     /* 集束距離 */
@@ -260,14 +260,22 @@ void main(ComputeThreadID semantics)
     float3 dir        = normalize(cam.pos - cam.target);
     float3 horizontal = cam.viewport.x * normalize(cross(cam.up, dir));
     float3 vertical   = cam.viewport.y * cross(dir, normalize(cross(cam.up, dir)));
+    
+    horizontal *= focus_distance;
+    vertical *= focus_distance;
+    dir *= focus_distance;
+    
     float3 left       = cam.pos - (horizontal / 2.0f) - (vertical / 2.0f) - (dir);
     /* UV値の算出 */
     const float2 uv = (float2(semantics.group_ID.xy) + Random(semantics.group_ID.xy, semantics.group_thread_ID.x)) / float2(size);
     
+    float3 offset = DepthOfField(cam, uv);
+    
     /* レイ */
     Ray ray = 
     {
-        cam.pos, left + (horizontal * uv.x) + (vertical * uv.y) - cam.pos - 0
+        //cam.pos, left + (horizontal * uv.x) + (vertical * uv.y) - cam.pos
+        cam.pos + offset, left + (horizontal * uv.x) + (vertical * uv.y) - cam.pos - offset
     };
     
     /* 球体 */
@@ -275,7 +283,7 @@ void main(ComputeThreadID semantics)
     {
         { float3( 0.0f,    0.0f, -1.0f),   0.5f, float3(0.7f, 0.3f, 0.3f), MATERIAL_LAMBERT },
         { float3( 0.0f, -100.5f, -2.0f), 100.0f, float3(0.8f, 0.8f, 0.0f), MATERIAL_LAMBERT },
-        { float3( 1.0f,    0.0f, -1.0f),   0.5f, float3(0.8f, 0.6f, 0.2f), MATERIAL_REFLECT },
+        { float3( 1.0f,    0.0f, -1.0f),   0.5f, float3(1.0f, 1.0f, 1.0f), MATERIAL_REFLECT },
         { float3(-1.0f,    0.0f, -1.0f),   0.5f, float3(0.8f, 0.8f, 0.8f), MATERIAL_REFRACT },
         { float3(-1.0f,    0.0f, -1.0f), -0.45f, float3(0.8f, 0.8f, 0.8f), MATERIAL_REFRACT },
         //{ float3( acos(-1.0f) / 4.0f, 0.0f, -1.0f), acos(-1.0f) / 4.0f, float3(1.0f, 0.0f, 0.0f), MATERIAL_LAMBERT },
@@ -306,7 +314,7 @@ void main(ComputeThreadID semantics)
         }
         else
         {
-            color *= BackgroundColor(ray, float3(0.5f, 0.7f, 1.0f));
+            color *= BackgroundColor(ray, float3(0.6f, 0.8f, 1.0f));
             break;
         }
     }
