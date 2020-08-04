@@ -1,6 +1,11 @@
 #pragma once
 #include "Window.h"
 #include "Device.h"
+#include "CommandAllocator.h"
+#include "CommandList.h"
+#include "CommandQueue.h"
+#include "Fence.h"
+#include "SwapChain.h"
 
 namespace Dx12
 {
@@ -29,5 +34,11 @@ namespace Dx12
 		static Window* window;
 		/* デバイス */
 		static Device* device;
+		/* コマンドキュー */
+		static CommandQueue* queue;
+		/* フェンス */
+		static Fence* fence;
+		/* スワップチェイン */
+		static SwapChain* swap;
 	};
 }

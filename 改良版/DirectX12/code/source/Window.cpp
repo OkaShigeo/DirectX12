@@ -81,7 +81,7 @@ Dx12::Vec2 Window::GetSize(void) const
 	Dx12::Vec2 size = 0;
 	if (handle != nullptr) {
 		RECT rect{};
-		if (GetClientRect(handle, &rect) == 0) {
+		if (GetClientRect(handle, &rect) != 0) {
 			size.x = rect.right;
 			size.y = rect.bottom;
 		}
@@ -95,7 +95,7 @@ Dx12::Vec2 Window::GetLocation(void) const
 	Dx12::Vec2 location = 0;
 	if (handle != nullptr) {
 		RECT rect{};
-		if (GetWindowRect(handle, &rect) == 0) {
+		if (GetWindowRect(handle, &rect) != 0) {
 			location.x = rect.right;
 			location.y = rect.bottom;
 		}
@@ -111,6 +111,11 @@ bool Window::CheckMsg(void)
 		switch (msg.message)
 		{
 		case WM_CREATE:
+			break;
+		case WM_KEYDOWN:
+			if (msg.wParam == VK_ESCAPE) {
+				return false;
+			}
 			break;
 		case WM_QUIT:
 			return false;

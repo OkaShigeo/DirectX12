@@ -130,8 +130,11 @@
     <ClInclude Include="..\code\include\BaseObject.h" />
     <ClInclude Include="..\code\include\CommandAllocator.h" />
     <ClInclude Include="..\code\include\CommandList.h" />
+    <ClInclude Include="..\code\include\CommandQueue.h" />
     <ClInclude Include="..\code\include\Device.h" />
+    <ClInclude Include="..\code\include\Fence.h" />
     <ClInclude Include="..\code\include\Runtime.h" />
+    <ClInclude Include="..\code\include\SwapChain.h" />
     <ClInclude Include="..\code\include\Vector.h" />
     <ClInclude Include="..\code\include\Window.h" />
   </ItemGroup>
@@ -139,8 +142,11 @@
     <ClCompile Include="..\code\main.cpp" />
     <ClCompile Include="..\code\source\CommandAllocator.cpp" />
     <ClCompile Include="..\code\source\CommandList.cpp" />
+    <ClCompile Include="..\code\source\CommandQueue.cpp" />
     <ClCompile Include="..\code\source\Device.cpp" />
+    <ClCompile Include="..\code\source\Fence.cpp" />
     <ClCompile Include="..\code\source\Runtime.cpp" />
+    <ClCompile Include="..\code\source\SwapChain.cpp" />
     <ClCompile Include="..\code\source\Window.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

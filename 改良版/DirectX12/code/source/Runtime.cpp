@@ -6,6 +6,9 @@
 
 Window* Dx12::Runtime::window = nullptr;
 Dx12::Device* Dx12::Runtime::device = nullptr;
+Dx12::CommandQueue* Dx12::Runtime::queue = nullptr;
+Dx12::Fence* Dx12::Runtime::fence = nullptr;
+Dx12::SwapChain* Dx12::Runtime::swap = nullptr;
 
 Dx12::Runtime::Runtime()
 {
@@ -24,12 +27,25 @@ void Dx12::Runtime::Initialize(const Dx12::Vec2& size, const Dx12::Vec2& pos)
 #endif
 
 	window = new Window(size, pos);
-	window->Show();
 	device = new Device();
+	queue  = new CommandQueue();
+	fence  = new Fence(queue);
+	swap   = new SwapChain(window, queue);
+
+	window->Show();
 }
 
 void Dx12::Runtime::UnInitialize(void)
 {
+	if (swap != nullptr) {
+		delete swap;
+	}
+	if (fence != nullptr) {
+		delete fence;
+	}
+	if (queue != nullptr) {
+		delete queue;
+	}
 	if (device != nullptr) {
 		delete device;
 	}

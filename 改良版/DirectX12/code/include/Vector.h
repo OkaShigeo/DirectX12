@@ -1,5 +1,6 @@
 #pragma once
 #include <cmath>
+#include <cstdint>
 
 namespace Dx12
 {
@@ -118,6 +119,6 @@ namespace Dx12
 		};
 	};
 
-	using Vec2  = Vector2<__int32>;
+	using Vec2  = Vector2<std::int32_t>;
 	using Vec2f = Vector2<float>;
 }

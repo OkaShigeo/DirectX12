@@ -12,6 +12,10 @@ namespace Dx12
 		/* デストラクタ */
 		~CommandAllocator();
 
+	public:
+		/* リセット */
+		void Reset(void) const;
+
 	private:
 		/* コマンドアロケータの生成 */
 		ID3D12CommandAllocator* CreateCommandAllocator(const D3D12_COMMAND_LIST_TYPE& type);

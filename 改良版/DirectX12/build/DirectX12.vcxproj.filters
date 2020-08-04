@@ -28,6 +28,15 @@
     <Filter Include="CommandList">
       <UniqueIdentifier>{e73396d9-7f57-45f6-a1db-1ee823537900}</UniqueIdentifier>
     </Filter>
+    <Filter Include="CommandQueue">
+      <UniqueIdentifier>{c3b088ce-301f-4049-984f-f0b7498a0cfc}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Fence">
+      <UniqueIdentifier>{0c529acb-b671-4258-962f-fe25d1928101}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="SwapChain">
+      <UniqueIdentifier>{0ab3c45c-e88a-4360-8d9c-1b57ffd87632}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\code\include\Window.h">
@@ -51,6 +60,15 @@
     <ClInclude Include="..\code\include\CommandList.h">
       <Filter>CommandList</Filter>
     </ClInclude>
+    <ClInclude Include="..\code\include\CommandQueue.h">
+      <Filter>CommandQueue</Filter>
+    </ClInclude>
+    <ClInclude Include="..\code\include\Fence.h">
+      <Filter>Fence</Filter>
+    </ClInclude>
+    <ClInclude Include="..\code\include\SwapChain.h">
+      <Filter>SwapChain</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\code\main.cpp">
@@ -70,6 +88,15 @@
     </ClCompile>
     <ClCompile Include="..\code\source\CommandList.cpp">
       <Filter>CommandList</Filter>
+    </ClCompile>
+    <ClCompile Include="..\code\source\CommandQueue.cpp">
+      <Filter>CommandQueue</Filter>
+    </ClCompile>
+    <ClCompile Include="..\code\source\Fence.cpp">
+      <Filter>Fence</Filter>
+    </ClCompile>
+    <ClCompile Include="..\code\source\SwapChain.cpp">
+      <Filter>SwapChain</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

@@ -19,3 +19,9 @@ ID3D12CommandAllocator * Dx12::CommandAllocator::CreateCommandAllocator(const D3
 
 	return allocator;
 }
+
+void Dx12::CommandAllocator::Reset(void) const
+{
+	auto hr = obj->Reset();
+	assert(hr == S_OK);
+}
