@@ -6,6 +6,12 @@
 #include "CommandQueue.h"
 #include "Fence.h"
 #include "SwapChain.h"
+#include "Descriptor.h"
+#include "Resource.h"
+#include "ShaderCompiler.h"
+#include "RootSignature.h"
+#include "GraphicsPipeline.h"
+#include "ComputePipeline.h"
 
 namespace Dx12
 {
@@ -16,7 +22,31 @@ namespace Dx12
 		static void Initialize(const Dx12::Vec2& size, const Dx12::Vec2& pos = 0x80000000);
 		/* 終了 */
 		static void UnInitialize(void);
-
+		/* クリア */
+		static void Clear(void);
+		/* 実行 */
+		static void Execution(const std::vector<CommandList*>& lists = {});
+		/* ディスクリプタヒープのセット */
+		static void SetDescriptorHeap(const std::vector<Descriptor*>& heap);
+		/* グラフィックス用ルートシグネチャのセット */
+		static void SetGraphicsRootSignature(const RootSignature* root);
+		/* プログラマブル用ルートシグネチャのセット */
+		static void SetComputeRootSignature(const RootSignature* root);
+		/* グラフィックス用にリソースをセット */
+		static void SetGraphicsResource(const Resource* rsc, const std::uint32_t& param_index);
+		/* プログラマブル用にリソースをセット */
+		static void SetComputeResource(const Resource* rsc, const std::uint32_t& param_index);
+		/* グラフィックス用パイプラインのセット */
+		static void SetGraphicsPipeline(const GraphicsPipeline* pipe);
+		/* プログラマブル用パイプラインのセット */
+		static void SetComputePipeline(const ComputePipeline* pipe);
+		/* 頂点リソースによるプリミティブの描画 */
+		static void DrawVertexInstance(const Resource* rsc, const std::uint32_t& vertex_num, const std::uint32_t& instance_num = 1, 
+			const D3D12_PRIMITIVE_TOPOLOGY& topology = D3D12_PRIMITIVE_TOPOLOGY::D3D_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
+		/* インデックスリソースのよるプリミティブの描画 */
+		static void DrawIndexInstance(const Resource* vertex, const std::uint32_t& vertex_num, const Resource* index, const std::uint32_t& index_num, const std::uint32_t& offset = 0,
+			const std::uint32_t& instance_num = 1, const D3D12_PRIMITIVE_TOPOLOGY& topology = D3D12_PRIMITIVE_TOPOLOGY::D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+		
 	public:
 		/* ウィンドウの取得 */
 		static Window* GetWindow(void);
@@ -34,11 +64,19 @@ namespace Dx12
 		static Window* window;
 		/* デバイス */
 		static Device* device;
+		/* コマンドアロケータ */
+		static CommandAllocator* allocator;
+		/* コマンドリスト */
+		static CommandList* list;
 		/* コマンドキュー */
 		static CommandQueue* queue;
 		/* フェンス */
 		static Fence* fence;
 		/* スワップチェイン */
 		static SwapChain* swap;
+		/* ディスクリプタヒープ */
+		static Descriptor* heap;
+		/* リソース */
+		static std::vector<Resource*>rsc;
 	};
 }

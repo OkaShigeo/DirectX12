@@ -12,6 +12,7 @@ namespace Dx12
 	public:
 		/* コンストラクタ */
 		Fence(const CommandQueue* queue);
+		Fence(ID3D12Fence1* fence);
 		/* デストラクタ */
 		~Fence();
 
@@ -25,8 +26,8 @@ namespace Dx12
 
 	private:
 		/* コマンドキュー */
-		const CommandQueue* queue;
+		const CommandQueue* queue{ nullptr };
 		/* フェンスカウント */
-		std::uint64_t count;
+		std::uint64_t count{ 0 };
 	};
 }

@@ -1,10 +1,14 @@
 #include "..\include\CommandQueue.h"
 #include "..\include\Runtime.h"
-#include <cassert>
 
 Dx12::CommandQueue::CommandQueue(const D3D12_COMMAND_LIST_TYPE & type)
 {
 	obj = CreateCommandQueue(type);
+}
+
+Dx12::CommandQueue::CommandQueue(ID3D12CommandQueue * queue)
+{
+	obj = queue;
 }
 
 Dx12::CommandQueue::~CommandQueue()

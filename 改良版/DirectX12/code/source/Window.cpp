@@ -18,8 +18,7 @@ static INT64 __stdcall WindowCallback(HWND__* handle, UINT32 message, UINT64 wpa
 	return DefWindowProc(handle, message, wparam, lparam);
 }
 
-Window::Window(const Dx12::Vec2& size, const Dx12::Vec2& location) : 
-	name(nullptr), instance(nullptr)
+Window::Window(const Dx12::Vec2& size, const Dx12::Vec2& location)
 {
 	handle = CreateWindowHandle(size, location);
 	assert(handle != nullptr);

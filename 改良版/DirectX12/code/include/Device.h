@@ -9,6 +9,7 @@ namespace Dx12
 	public:
 		/* コンストラクタ */
 		Device();
+		Device(ID3D12Device6* device);
 		/* デストラクタ */
 		~Device();
 

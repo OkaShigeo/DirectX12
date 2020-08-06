@@ -33,9 +33,9 @@ private:
 
 private:
 	/* ハンドル */
-	HWND__* handle;
+	HWND__* handle{ nullptr };
 	/* クラス名 */
-	const wchar_t* name;
+	const wchar_t* name{ nullptr };
 	/* インスタンス */
-	const void* instance;
+	const void* instance{ nullptr };
 };

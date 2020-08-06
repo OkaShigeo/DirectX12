@@ -1,7 +1,6 @@
 #include "..\include\Device.h"
 #include <wrl.h>
 #include <cstdint>
-#include <cassert>
 
 namespace {
 	/* ‹@”\ƒŒƒxƒ‹ˆê—— */
@@ -15,6 +14,11 @@ Dx12::Device::Device()
 {
 	obj = CreateDevice();
 	assert(obj != nullptr);
+}
+
+Dx12::Device::Device(ID3D12Device6 * device)
+{
+	obj = device;
 }
 
 Dx12::Device::~Device()

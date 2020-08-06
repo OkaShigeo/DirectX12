@@ -12,6 +12,7 @@ namespace Dx12
 	public:
 		/* コンストラクタ */
 		CommandQueue(const D3D12_COMMAND_LIST_TYPE& type = D3D12_COMMAND_LIST_TYPE::D3D12_COMMAND_LIST_TYPE_DIRECT);
+		CommandQueue(ID3D12CommandQueue* queue);
 		/* デストラクタ */
 		~CommandQueue();
 

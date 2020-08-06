@@ -37,6 +37,30 @@
     <Filter Include="SwapChain">
       <UniqueIdentifier>{0ab3c45c-e88a-4360-8d9c-1b57ffd87632}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Descriptor">
+      <UniqueIdentifier>{d8bb10f0-087a-4030-82fb-6cfa3d42c2aa}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Resource">
+      <UniqueIdentifier>{ee845170-17f1-4885-9658-0851cbe8868d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ShaderCompiler">
+      <UniqueIdentifier>{32e44f17-e306-41d3-b88b-1908a6525030}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="RootSignature">
+      <UniqueIdentifier>{0bb8e1e4-3803-45c1-8372-ce75732e8c85}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="GraphicsPipeline">
+      <UniqueIdentifier>{5de9933e-ad7f-40ca-bff1-78f446235c94}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ComputePipeline">
+      <UniqueIdentifier>{55fb65a3-2bd6-4c5e-951b-c52ebf2e42db}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="リソース ファイル\HLSL">
+      <UniqueIdentifier>{864fdb1c-1071-4645-8947-69a370fad769}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="リソース ファイル\HLSL\Texture">
+      <UniqueIdentifier>{3d94fe9c-6619-4634-a2fa-8718215a2b25}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\code\include\Window.h">
@@ -69,6 +93,24 @@
     <ClInclude Include="..\code\include\SwapChain.h">
       <Filter>SwapChain</Filter>
     </ClInclude>
+    <ClInclude Include="..\code\include\Descriptor.h">
+      <Filter>Descriptor</Filter>
+    </ClInclude>
+    <ClInclude Include="..\code\include\Resource.h">
+      <Filter>Resource</Filter>
+    </ClInclude>
+    <ClInclude Include="..\code\include\ShaderCompiler.h">
+      <Filter>ShaderCompiler</Filter>
+    </ClInclude>
+    <ClInclude Include="..\code\include\RootSignature.h">
+      <Filter>RootSignature</Filter>
+    </ClInclude>
+    <ClInclude Include="..\code\include\GraphicsPipeline.h">
+      <Filter>GraphicsPipeline</Filter>
+    </ClInclude>
+    <ClInclude Include="..\code\include\ComputePipeline.h">
+      <Filter>ComputePipeline</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\code\main.cpp">
@@ -98,5 +140,36 @@
     <ClCompile Include="..\code\source\SwapChain.cpp">
       <Filter>SwapChain</Filter>
     </ClCompile>
+    <ClCompile Include="..\code\source\Descriptor.cpp">
+      <Filter>Descriptor</Filter>
+    </ClCompile>
+    <ClCompile Include="..\code\source\Resource.cpp">
+      <Filter>Resource</Filter>
+    </ClCompile>
+    <ClCompile Include="..\code\source\ShaderCompiler.cpp">
+      <Filter>ShaderCompiler</Filter>
+    </ClCompile>
+    <ClCompile Include="..\code\source\RootSignature.cpp">
+      <Filter>RootSignature</Filter>
+    </ClCompile>
+    <ClCompile Include="..\code\source\GraphicsPipeline.cpp">
+      <Filter>GraphicsPipeline</Filter>
+    </ClCompile>
+    <ClCompile Include="..\code\source\ComputePipeline.cpp">
+      <Filter>ComputePipeline</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\code\hlsl\Texture.hlsli">
+      <Filter>リソース ファイル\HLSL\Texture</Filter>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <FxCompile Include="..\code\hlsl\TextureVertex.hlsl">
+      <Filter>リソース ファイル\HLSL\Texture</Filter>
+    </FxCompile>
+    <FxCompile Include="..\code\hlsl\TexturePixel.hlsl">
+      <Filter>リソース ファイル\HLSL\Texture</Filter>
+    </FxCompile>
   </ItemGroup>
 </Project>

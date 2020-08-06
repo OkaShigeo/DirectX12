@@ -9,6 +9,7 @@ namespace Dx12
 	public:
 		/* コンストラクタ */
 		CommandAllocator(const D3D12_COMMAND_LIST_TYPE& type = D3D12_COMMAND_LIST_TYPE::D3D12_COMMAND_LIST_TYPE_DIRECT);
+		CommandAllocator(ID3D12CommandAllocator* allocator);
 		/* デストラクタ */
 		~CommandAllocator();
 

@@ -7,6 +7,7 @@ class Window;
 namespace Dx12
 {
 	class CommandQueue;
+	class Resource;
 
 	class SwapChain :
 		public BaseObject<IDXGISwapChain4>
@@ -14,10 +15,13 @@ namespace Dx12
 	public:
 		/* コンストラクタ */
 		SwapChain(const Window* window, const CommandQueue* queue, const std::uint32_t& buffer_num = 2);
+		SwapChain(IDXGISwapChain4* swap);
 		/* デストラクタ */
 		~SwapChain();
 
 	public:
+		/* リソースの取得 */
+		ID3D12Resource2* GetRsc(const std::uint32_t& index);
 		/* バッファの切り替え*/
 		void Present(void) const;
 

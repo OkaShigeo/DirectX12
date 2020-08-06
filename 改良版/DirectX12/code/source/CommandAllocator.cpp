@@ -1,10 +1,14 @@
 #include "..\include\CommandAllocator.h"
 #include "..\include\Runtime.h"
-#include <cassert>
 
 Dx12::CommandAllocator::CommandAllocator(const D3D12_COMMAND_LIST_TYPE & type)
 {
 	obj = CreateCommandAllocator(type);
+}
+
+Dx12::CommandAllocator::CommandAllocator(ID3D12CommandAllocator * allocator)
+{
+	obj = allocator;
 }
 
 Dx12::CommandAllocator::~CommandAllocator()

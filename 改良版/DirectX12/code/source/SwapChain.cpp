@@ -1,11 +1,15 @@
 #include "..\include\SwapChain.h"
 #include "..\include\Runtime.h"
 #include <wrl.h>
-#include <cassert>
 
 Dx12::SwapChain::SwapChain(const Window * window, const CommandQueue * queue, const std::uint32_t& buffer_num)
 {
 	obj = CreateSwapChain(window, queue, buffer_num);
+}
+
+Dx12::SwapChain::SwapChain(IDXGISwapChain4 * swap)
+{
+	obj = swap;
 }
 
 Dx12::SwapChain::~SwapChain()
@@ -42,6 +46,15 @@ IDXGISwapChain4 * Dx12::SwapChain::CreateSwapChain(const Window * window, const 
 	assert(hr == S_OK);
 
 	return swap;
+}
+
+ID3D12Resource2 * Dx12::SwapChain::GetRsc(const std::uint32_t & index)
+{
+	ID3D12Resource2* rsc = nullptr;
+	auto hr = obj->GetBuffer(index, IID_PPV_ARGS(&rsc));
+	assert(hr == S_OK);
+
+	return rsc;
 }
 
 void Dx12::SwapChain::Present(void) const

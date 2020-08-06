@@ -1,11 +1,15 @@
 #include "..\include\Fence.h"
 #include "..\include\Runtime.h"
-#include <cassert>
 
 Dx12::Fence::Fence(const CommandQueue * queue) : 
-	queue(queue), count(0)
+	queue(queue)
 {
 	obj = CreateFence();
+}
+
+Dx12::Fence::Fence(ID3D12Fence1 * fence)
+{
+	obj = fence;
 }
 
 Dx12::Fence::~Fence()
