@@ -1,57 +1,54 @@
 #include "..\include\Window.h"
 #include <Windows.h>
+#include <cassert>
 
 /* ウィンドウコールバック */
-static INT64 __stdcall WindowCallback(HWND__* handle, UINT32 message, UINT64 wparam, INT64 lparam) {
+static INT64 __stdcall WindowCallback(HWND__* handle, UINT32 message, UINT64 wparam, INT64 lparam)
+{
 	switch (message)
 	{
 	case WM_CLOSE:
-		DestroyWindow(handle);
-		return 0;
 	case WM_DESTROY:
 		PostQuitMessage(0);
 		return 0;
 	default:
 		break;
 	}
+
 	return DefWindowProc(handle, message, wparam, lparam);
 }
 
-Window::Window(const st::Vec2& size, const st::Vec2& pos) : 
-	handle(nullptr), name(nullptr), instance(nullptr)
+Window::Window(const Dx12::Vec2& size, const Dx12::Vec2& location)
 {
-	CreateWindowHandle(size, pos);
+	handle = CreateWindowHandle(size, location);
+	assert(handle != nullptr);
 }
 
 Window::~Window()
 {
 	if (handle != nullptr) {
 		UnregisterClass(name, (HINSTANCE)instance);
+		DestroyWindow(handle);
 		handle = nullptr;
 	}
 }
 
-std::uint32_t Window::CreateWindowHandle(const st::Vec2& size, const st::Vec2& pos)
+HWND__ * Window::CreateWindowHandle(const Dx12::Vec2& size, const Dx12::Vec2& location)
 {
-	if (handle != nullptr) {
-		OutputDebugStringA("失敗：ウィンドウハンドル生成済み\n");
-		return S_FALSE;
-	}
-
-	WNDCLASSEX desc{};
-	desc.cbClsExtra    = 0;
-	desc.cbSize        = sizeof(WNDCLASSEX);
-	desc.cbWndExtra    = 0;
-	desc.hbrBackground = CreateSolidBrush(COLOR_APPWORKSPACE);
-	desc.hInstance     = GetModuleHandle(0);
-	desc.hCursor       = LoadCursor(nullptr, IDC_ARROW);
-	desc.hIcon         = LoadIcon(desc.hInstance, nullptr);
-	desc.hIconSm       = desc.hIcon;
-	desc.lpfnWndProc   = WNDPROC(WindowCallback);
-	desc.lpszClassName = L"おかもん";
-	desc.lpszMenuName  = desc.lpszClassName;
-	desc.style         = CS_HREDRAW | CS_VREDRAW;
-	RegisterClassEx(&desc);
+	WNDCLASSEX wnd{};
+	wnd.cbClsExtra    = 0;
+	wnd.cbSize        = sizeof(WNDCLASSEX);
+	wnd.cbWndExtra    = 0;
+	wnd.hbrBackground = CreateSolidBrush(COLOR_APPWORKSPACE);
+	wnd.hInstance     = GetModuleHandle(0);
+	wnd.hCursor       = LoadCursor(nullptr, IDC_ARROW);
+	wnd.hIcon         = LoadIcon(wnd.hInstance, nullptr);
+	wnd.hIconSm       = wnd.hIcon;
+	wnd.lpfnWndProc   = WNDPROC(WindowCallback);
+	wnd.lpszClassName = L"おかもん";
+	wnd.lpszMenuName  = wnd.lpszClassName;
+	wnd.style         = CS_HREDRAW | CS_VREDRAW;
+	RegisterClassEx(&wnd);
 
 	RECT rect{};
 	rect.bottom = size.y;
@@ -59,65 +56,75 @@ std::uint32_t Window::CreateWindowHandle(const st::Vec2& size, const st::Vec2& p
 	rect.right  = size.x;
 	rect.top    = 0;
 
-	handle = CreateWindowEx(WS_EX_ACCEPTFILES, desc.lpszClassName, L"おかもん", WS_OVERLAPPEDWINDOW, pos.x, pos.y,
-		(rect.right - rect.left), (rect.bottom - rect.top), nullptr, nullptr, desc.hInstance, nullptr);
-	if (handle == nullptr) {
-		OutputDebugStringA("失敗：ウィンドウハンドルの生成ができませんでした\n");
-		return S_FALSE;
-	}
-
-	name     = desc.lpszClassName;
-	instance = desc.hInstance;
-
-	return S_OK;
+	name = wnd.lpszClassName;
+	instance = wnd.hInstance;
+	
+	return CreateWindowEx(WS_EX_ACCEPTFILES, wnd.lpszClassName, wnd.lpszClassName, WS_OVERLAPPEDWINDOW, 0x80000000, 0x80000000,
+		(rect.right - rect.left), (rect.bottom - rect.top), nullptr, nullptr, wnd.hInstance, nullptr);
 }
 
-void Window::ShowWndow(void) const
+void Window::Show(void) const
 {
-	if (handle == nullptr) {
-		OutputDebugStringA("失敗：ウィンドウハンドルが生成されていません\n");
+	if (handle != nullptr) {
+		ShowWindow(handle, SW_SHOW);
 	}
-
-	ShowWindow(handle, SW_SHOW);
 }
 
-HWND__* Window::Get(void) const
+HWND__ * Window::Get(void) const
 {
-	if (handle == nullptr) {
-		OutputDebugStringA("ウィンドウハンドルが生成されていません\n");
-	}
-
 	return handle;
 }
 
-st::Vec2 Window::GetWindowSize(void) const
+Dx12::Vec2 Window::GetSize(void) const
 {
-	if (handle == nullptr) {
-		OutputDebugStringA("失敗：ウィンドウハンドルが生成されていません\n");
-		return 0;
+	Dx12::Vec2 size = 0;
+	if (handle != nullptr) {
+		RECT rect{};
+		if (GetClientRect(handle, &rect) != 0) {
+			size.x = rect.right;
+			size.y = rect.bottom;
+		}
 	}
 
-	RECT rect{};
-	if (GetClientRect(handle, &rect) == 0) {
-		OutputDebugStringA("失敗：ウィンドウサイズを求めることができませんでした\n");
-		return 0;
-	}
-
-	return { std::int32_t(rect.right), std::int32_t(rect.bottom) };
+	return size;
 }
 
-st::Vec2 Window::GetWindowPos(void) const
+Dx12::Vec2 Window::GetLocation(void) const
 {
-	if (handle == nullptr) {
-		OutputDebugStringA("失敗：ウィンドウハンドルが生成されていません\n");
-		return 0;
+	Dx12::Vec2 location = 0;
+	if (handle != nullptr) {
+		RECT rect{};
+		if (GetWindowRect(handle, &rect) != 0) {
+			location.x = rect.right;
+			location.y = rect.bottom;
+		}
 	}
 
-	RECT rect{};
-	if (GetWindowRect(handle, &rect) == 0) {
-		OutputDebugStringA("失敗：ウィンドウ座標を求めることができませんでした\n");
-		return 0;
+	return location;
+}
+
+bool Window::CheckMsg(void)
+{
+	static MSG msg{};
+	if (PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE)) {
+		switch (msg.message)
+		{
+		case WM_CREATE:
+			break;
+		case WM_KEYDOWN:
+			if (msg.wParam == VK_ESCAPE) {
+				return false;
+			}
+			break;
+		case WM_QUIT:
+			return false;
+		default:
+			break;
+		}
+
+		TranslateMessage(&msg);
+		DispatchMessage(&msg);
 	}
 
-	return { std::int32_t(rect.right), std::int32_t(rect.bottom) };
+	return true;
 }

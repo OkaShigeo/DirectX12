@@ -1,17 +1,21 @@
 #pragma once
-#include "DxBaseObject.h"
+#include "BaseObject.h"
 #include <string>
 
-class ShaderCompiler :
-	public DxBaseObject<ID3DBlob>
+namespace Dx12
 {
-public:
-	/* コンストラクタ */
-	ShaderCompiler(const std::wstring& file_path, const std::wstring& entry_func, const std::wstring& shader_model);
-	/* デストラクタ */
-	~ShaderCompiler();
-	
-private:
-	/* シェーダのコンパイル */
-	std::uint32_t Compile(const std::wstring& file_path, const std::wstring& entry_func, const std::wstring& shader_model);
-};
+	class ShaderCompiler :
+		public BaseObject<ID3DBlob>
+	{
+	public:
+		/* コンストラクタ */
+		ShaderCompiler(const std::wstring& file_path, const std::wstring& function, const std::wstring& shader_model);
+		ShaderCompiler(ID3DBlob* blob);
+		/* デストラクタ */
+		~ShaderCompiler();
+
+	private:
+		/* シェーダのコンパイル */
+		ID3DBlob* Compile(const std::wstring& file_path, const std::wstring& function, const std::wstring& shader_model);
+	};
+}

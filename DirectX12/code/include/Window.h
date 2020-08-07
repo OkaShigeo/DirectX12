@@ -7,30 +7,35 @@ class Window
 {
 public:
 	/* コンストラクタ */
-	Window(const st::Vec2& size, const st::Vec2& pos = 0x80000000);
+	Window(const Dx12::Vec2& size, const Dx12::Vec2& location = 0x80000000);
 	/* デストラクタ */
 	~Window();
-	/* ウィンドウ表示 */
-	void ShowWndow(void) const;
 
 public:
-	/* ウィンドウハンドルの取得 */
+	/* ウィンドウの表示 */
+	void Show(void) const;
+
+public:
+	/* ハンドルの取得 */
 	HWND__* Get(void) const;
-	/* ウィンドウのサイズを求める */
-	st::Vec2 GetWindowSize(void) const;
-	/* ウィンドウの座標を求める */
-	st::Vec2 GetWindowPos(void) const;
+	/* サイズの取得 */
+	Dx12::Vec2 GetSize(void) const;
+	/* 表示座標の取得 */
+	Dx12::Vec2 GetLocation(void) const;
+
+public:
+	/* メッセージの確認 */
+	static bool CheckMsg(void);
 
 private:
-	/* ウィンドウハンドルの生成 */
-	std::uint32_t CreateWindowHandle(const st::Vec2& size, const st::Vec2& pos = 0x80000000);
-
+	/* ウィンドウの生成 */
+	HWND__* CreateWindowHandle(const Dx12::Vec2& size, const Dx12::Vec2& location);
 
 private:
-	/* ウィンドウハンドル */
-	HWND__* handle;
-	/* ウィンドウクラス名 */
-	const wchar_t* name;
+	/* ハンドル */
+	HWND__* handle{ nullptr };
+	/* クラス名 */
+	const wchar_t* name{ nullptr };
 	/* インスタンス */
-	const void* instance;
+	const void* instance{ nullptr };
 };

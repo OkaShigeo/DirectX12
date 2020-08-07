@@ -1,34 +1,42 @@
-#include "include/Dx12Runtime.h"
-#include "include/Dx12CommandAllocator.h"
-#include "include/Dx12CommandList.h"
-#include "include/ShaderCompiler.h"
-#include "include/Dx12RootSignature.h"
-#include "include/Dx12Pipeline.h"
-#include "include/Dx12Heap.h"
-#include "include/Dx12Resource.h"
+#include "include/Runtime.h"
+#include <random>
 
-namespace {
+namespace
+{
 	/* ウィンドウサイズ */
-	const st::Vec2 window_size(640*2, 480*2);
-	/* クリアカラー */
-	const float clear_color[] = {
-		1.0f, 1.0f, 1.0f, 1.0f
-	};
+	const Dx12::Vec2 window_size(640, 480);
+
 	/* 頂点情報 */
-	struct VertexInfo {
+	struct VertexInfo
+	{
 		/* 座標 */
-		st::Vec3f pos;
-		/* UV */
-		st::Vec2f uv;
+		Dx12::Vec3f pos{ 0.0f };
+		/* テクスチャ座標 */
+		Dx12::Vec2f uv{ 0.0f };
 	};
-	const std::vector<VertexInfo>vertex = {
+	VertexInfo vertex_info[] = 
+	{
 		/* 左から右 */
 		/* 上から下 */
-		{ st::Vec3f(-1.0f, -1.0f, 0.0f), st::Vec2f(0.0f, 0.0f) },
-		{ st::Vec3f( 1.0f, -1.0f, 0.0f), st::Vec2f(1.0f, 0.0f) },
-		{ st::Vec3f(-1.0f,  1.0f, 0.0f), st::Vec2f(0.0f, 1.0f) },
-		{ st::Vec3f( 1.0f,  1.0f, 0.0f), st::Vec2f(1.0f, 1.0f) },
+		{ Dx12::Vec3f(-1.0f, -1.0f, 0.0f), Dx12::Vec2f(0.0f, 0.0f) },
+		{ Dx12::Vec3f( 1.0f, -1.0f, 0.0f), Dx12::Vec2f(1.0f, 0.0f) },
+		{ Dx12::Vec3f(-1.0f,  1.0f, 0.0f), Dx12::Vec2f(0.0f, 1.0f) },
+		{ Dx12::Vec3f( 1.0f,  1.0f, 0.0f), Dx12::Vec2f(1.0f, 1.0f) },
 	};
+	/* インデックス情報 */
+	std::uint16_t index_info[] = 
+	{
+		0, 1, 2,
+		1, 2, 3,
+	};
+
+	/* シェーダーファイルディレクトリ */
+	const std::wstring shader_dir = L"../code/hlsl/";
+	/* シェーダエントリーポイント */
+	const std::wstring shader_func = L"main";
+	/* シェーダーモデル */
+	const std::wstring shader_model = L"_6_3";
+
 	/* 入力属性 */
 	const std::vector<D3D12_INPUT_ELEMENT_DESC>input = {
 		{ "POSITION", 0,
@@ -37,186 +45,222 @@ namespace {
 		{ "TEXCOORD", 0,
 			DXGI_FORMAT::DXGI_FORMAT_R32G32_FLOAT, 0, D3D12_APPEND_ALIGNED_ELEMENT,
 			D3D12_INPUT_CLASSIFICATION::D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
-		/*{ "NORMAL", 0,
-			DXGI_FORMAT::DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D12_APPEND_ALIGNED_ELEMENT,
-			D3D12_INPUT_CLASSIFICATION::D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
-		{ "BONENO", 0,
-			DXGI_FORMAT::DXGI_FORMAT_R16G16_UINT, 0, D3D12_APPEND_ALIGNED_ELEMENT,
-			D3D12_INPUT_CLASSIFICATION::D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
-		{ "WEIGHT", 0,
-			DXGI_FORMAT::DXGI_FORMAT_R8_UINT, 0, D3D12_APPEND_ALIGNED_ELEMENT,
-			D3D12_INPUT_CLASSIFICATION::D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },*/
 	};
-	/* コンピュート */
-	struct Compute {
-		/* ヒープ */
-		Dx12Heap heap;
-		/* リソース */
-		std::vector<Dx12Resource>rsc;
+
+	/* カメラ情報 */
+	struct Camera
+	{
+		/* 座標 */
+		Dx12::Vec3f pos{ 0.0f };
+		/* 視野角 */
+		float fov{ 90.0f };
+		/* 焦点座標 */
+		Dx12::Vec3f target{ 0.0f };
+		/* レンズの大きさ */
+		float lens{ 0.0f };
+		/* アップベクトル */
+		Dx12::Vec3f up{ Dx12::Vec3f(0.0f, 1.0f, 0.0f) };
+		/* アライメント */
+		float alighment{ 0.0f };
 	};
-	/* テクスチャリソース */
-	struct Texture {
-		/* ヒープ */
-		Dx12Heap heap;
-		/* リソース */
-		Dx12Resource rsc;
+	/* マテリアル種別 */
+	enum class Material : std::uint32_t
+	{
+		/* マテリアル無し */
+		None,
+		/* ランバート反射 */
+		Lambert,
+		/* 鏡面反射 */
+		reflect,
+		/* 屈折 */
+		Refract,
 	};
-	/* テクスチャサイズ */
-	const st::Vec2 texture_size = window_size;
-	/* レイトレーシングパラメータ */
-	struct RaytracingParam {
-		/* 視線位置 */
-		st::Vec3f eye;
-		/* レイの最大距離 */
-		float distance;
-		/* ライト位置 */
-		st::Vec3f light;
+	/* 球体情報 */
+	struct Sphere
+	{
+		/* 中心座標 */
+		Dx12::Vec3f center{ 0.0f };
+		/* 半径 */
+		float radius{ 0.0f };
+		/* 色 */
+		Dx12::Vec3f color{ 1.0f };
+		/* マテリアルタイプ */
+		Material material{ Material::None };
+	};
+	/* 球体の最大数 */
+	const std::uint32_t sphere_max = 128;
+	/* 第一週レイトレーシングパラメータ */
+	struct FirstRaytracingParam
+	{
+		/* カメラ情報 */
+		Camera cam;
+		/* 球体情報 */
+		Sphere sp[sphere_max];
 	};
 }
 
 int main()
 {
-	void* buffer = nullptr;
+	Dx12::Runtime::Initialize(window_size);
 
-	Dx12Runtime::Initialized(window_size);
-	auto* allocator = new Dx12CommandAllocator();
-	auto* list = new Dx12CommandList();
-	auto* plane = new Dx12Resource();
-	{
-		plane->CreateResource(Dx12Resource::GetUploadProp(), D3D12_RESOURCE_FLAGS::D3D12_RESOURCE_FLAG_NONE, sizeof(vertex[0]) * vertex.size(), D3D12_RESOURCE_STATES::D3D12_RESOURCE_STATE_GENERIC_READ);
-		plane->Map(&buffer, plane->Get()->GetDesc().Width);
-		std::memcpy(buffer, vertex.data(), plane->Get()->GetDesc().Width);
-		plane->Unmap();
-	}
-	auto* vs_shader = new ShaderCompiler(L"../code/shader/VertexShader.hlsl", L"main", L"vs_6_4");
-	auto* ps_shader = new ShaderCompiler(L"../code/shader/PixelShader.hlsl", L"main", L"ps_6_4");
-	auto* root = new Dx12RootSignature();
-	{
-		std::vector<D3D12_DESCRIPTOR_RANGE1>range(1);
-		range[0].BaseShaderRegister = 0;
-		range[0].Flags = D3D12_DESCRIPTOR_RANGE_FLAGS::D3D12_DESCRIPTOR_RANGE_FLAG_NONE;
-		range[0].NumDescriptors = 1;
-		range[0].OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
-		range[0].RangeType = D3D12_DESCRIPTOR_RANGE_TYPE::D3D12_DESCRIPTOR_RANGE_TYPE_SRV;
-		range[0].RegisterSpace = 0;
-		std::vector<D3D12_ROOT_PARAMETER1>param(1);
-		param[0].DescriptorTable.NumDescriptorRanges = std::uint32_t(range.size());
-		param[0].DescriptorTable.pDescriptorRanges = range.data();
-		param[0].ParameterType = D3D12_ROOT_PARAMETER_TYPE::D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
-		param[0].ShaderVisibility = D3D12_SHADER_VISIBILITY::D3D12_SHADER_VISIBILITY_ALL;
+	Dx12::Resource* vertex_rsc            = new Dx12::Resource(D3D12_RESOURCE_STATES::D3D12_RESOURCE_STATE_GENERIC_READ, Dx12::Resource::GetUploadProp(), sizeof(vertex_info));
+	Dx12::Resource* index_rsc             = new Dx12::Resource(D3D12_RESOURCE_STATES::D3D12_RESOURCE_STATE_GENERIC_READ, Dx12::Resource::GetUploadProp(), sizeof(index_info));
+	Dx12::Resource* texture			      = new Dx12::Resource(D3D12_RESOURCE_STATES::D3D12_RESOURCE_STATE_GENERIC_READ, Dx12::Resource::GetDefaultProp(), DXGI_FORMAT::DXGI_FORMAT_R8G8B8A8_UNORM, window_size.x, window_size.y, D3D12_RESOURCE_FLAGS::D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS);
+	Dx12::Descriptor* heap                = new Dx12::Descriptor(D3D12_DESCRIPTOR_HEAP_TYPE::D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, 1);
+	Dx12::ShaderCompiler* vertex          = new Dx12::ShaderCompiler(shader_dir + L"TextureVertex.hlsl", shader_func, L"vs" + shader_model);
+	Dx12::ShaderCompiler* pixel           = new Dx12::ShaderCompiler(shader_dir + L"TexturePixel.hlsl", shader_func, L"ps" + shader_model);
+	Dx12::RootSignature* graphics_root    = new Dx12::RootSignature(vertex);
+	Dx12::GraphicsPipeline* graphics_pipe = new Dx12::GraphicsPipeline(input, graphics_root, vertex, pixel);
 
-		D3D12_STATIC_SAMPLER_DESC sampler{};
-		sampler.AddressU = D3D12_TEXTURE_ADDRESS_MODE::D3D12_TEXTURE_ADDRESS_MODE_WRAP;
-		sampler.AddressV = D3D12_TEXTURE_ADDRESS_MODE::D3D12_TEXTURE_ADDRESS_MODE_WRAP;
-		sampler.AddressW = D3D12_TEXTURE_ADDRESS_MODE::D3D12_TEXTURE_ADDRESS_MODE_WRAP;
-		sampler.BorderColor = D3D12_STATIC_BORDER_COLOR::D3D12_STATIC_BORDER_COLOR_OPAQUE_BLACK;
-		sampler.ComparisonFunc = D3D12_COMPARISON_FUNC::D3D12_COMPARISON_FUNC_NEVER;
-		sampler.Filter = D3D12_FILTER::D3D12_FILTER_COMPARISON_MIN_LINEAR_MAG_POINT_MIP_LINEAR;
-		sampler.MaxAnisotropy = 0;
-		sampler.MaxLOD = float(UINT_MAX);
-		sampler.MinLOD = 0.0f;
-		sampler.MipLODBias = 0.0f;
-		sampler.RegisterSpace = 0;
-		sampler.ShaderRegister = 0;
-		sampler.ShaderVisibility = D3D12_SHADER_VISIBILITY::D3D12_SHADER_VISIBILITY_ALL;
-		root->CreateRootSignature(D3D12_ROOT_SIGNATURE_FLAGS::D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT, param, { sampler });
-	}
-	auto* pipe = new Dx12Pipeline();
+	std::vector<Dx12::Resource*>compute_rsc =
 	{
-		pipe->CreatePipeline(input, D3D12_PRIMITIVE_TOPOLOGY_TYPE::D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE, root, vs_shader, ps_shader);
-	}
-	auto* cs_shader = new ShaderCompiler(L"../code/shader/Raytracing.hlsl", L"main", L"cs_6_4");
-	auto* cs_root = new Dx12RootSignature();
+		new Dx12::Resource(D3D12_RESOURCE_STATES::D3D12_RESOURCE_STATE_GENERIC_READ, Dx12::Resource::GetUploadProp(), (sizeof(FirstRaytracingParam) + 0xff) & ~0xff),
+		new Dx12::Resource(D3D12_RESOURCE_STATES::D3D12_RESOURCE_STATE_COPY_SOURCE, Dx12::Resource::GetDefaultProp(), 
+			DXGI_FORMAT::DXGI_FORMAT_R8G8B8A8_UNORM,window_size.x, window_size.y, D3D12_RESOURCE_FLAGS::D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS),
+	};
+	Dx12::Descriptor* compute_heap            = new Dx12::Descriptor(D3D12_DESCRIPTOR_HEAP_TYPE::D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, compute_rsc.size());
+	Dx12::ShaderCompiler* compute             = new Dx12::ShaderCompiler(shader_dir + L"FirstRaytracing.hlsl", shader_func, L"cs" + shader_model);
+	Dx12::RootSignature* compute_root         = new Dx12::RootSignature(compute);
+	Dx12::ComputePipeline* compute_pipe       = new Dx12::ComputePipeline(compute_root, compute);
+
+	/* GPUへ頂点情報を送信 */
 	{
-		cs_root->CreateRootSignature(cs_shader->Get());
+		auto* buffer = vertex_rsc->GetBuffer();
+		std::memcpy(buffer, &vertex_info[0], sizeof(vertex_info));
+		vertex_rsc->ReleaseBuffer();
 	}
-	auto* cs_pipe = new Dx12Pipeline();
+	/* GPUへインデックス情報を送信 */
 	{
-		cs_pipe->CreatePipeline(cs_shader, cs_root);
+		auto* buffer = index_rsc->GetBuffer();
+		std::memcpy(buffer, &index_info[0], sizeof(index_info));
+		index_rsc->ReleaseBuffer();
 	}
-	Compute* compute = new Compute();
+	/* ビューの生成 */
 	{
-		compute->heap.CreateHeap(D3D12_DESCRIPTOR_HEAP_TYPE::D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, 2);
-		compute->rsc.resize(compute->heap->GetDesc().NumDescriptors);
+		heap->CreateShaderResourceView(texture);
+	}
+
+	/* ビューの生成 */
+	{
 		std::uint32_t index = 0;
-		compute->rsc[index].CreateResource(Dx12Resource::GetDefaultProp(), D3D12_RESOURCE_FLAGS::D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS,
-			texture_size.x, texture_size.y, D3D12_RESOURCE_STATES::D3D12_RESOURCE_STATE_COPY_SOURCE);
-		Dx12Runtime::UAV(compute->heap.Get(), compute->rsc[index].Get(), index);
-		++index;
-		compute->rsc[index].CreateResource(Dx12Resource::GetUploadProp(), D3D12_RESOURCE_FLAGS::D3D12_RESOURCE_FLAG_NONE,
-			(sizeof(RaytracingParam) + 0xff) & ~0xff, D3D12_RESOURCE_STATES::D3D12_RESOURCE_STATE_GENERIC_READ);
-		Dx12Runtime::CBV(compute->heap.Get(), compute->rsc[index].Get(), index);
-		RaytracingParam param{};
-		//param.eye.x = -0.5f;
-		param.eye.z = 0.0f;
-		param.distance  = 1.0f;
-		param.light = st::Vec3f(0.0f, 1.0f, -1.0f);
-		compute->rsc[index].Map(&buffer, sizeof(RaytracingParam));
-		std::memcpy(buffer, &param, sizeof(param));
-		compute->rsc[index].Unmap();
+		compute_heap->CreateConstantBufferView(compute_rsc[index++]);
+		compute_heap->CreateUnorderAccessView(compute_rsc[index++]);
 	}
-	Texture* texture = new Texture();
+	/* GPUへ計算用データを送信 */
 	{
-		texture->heap.CreateHeap(D3D12_DESCRIPTOR_HEAP_TYPE::D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, 1);
-		texture->rsc.CreateResource(Dx12Resource::GetDefaultProp(), D3D12_RESOURCE_FLAGS::D3D12_RESOURCE_FLAG_NONE,
-			texture_size.x, texture_size.y, D3D12_RESOURCE_STATES::D3D12_RESOURCE_STATE_COPY_DEST);
-		Dx12Runtime::SRV(texture->heap.Get(), texture->rsc.Get());
-	}
+		auto* buffer = (*compute_rsc.begin())->GetBuffer();
 
-	while (Dx12Runtime::CheckMsg()
-		&& !(GetKeyState(VK_ESCAPE) & 0x80)) {
-		allocator->Reset();
-		list->Reset(allocator);
+		FirstRaytracingParam param{};
+		param.cam.pos    = Dx12::Vec3f(13.0f, 2.0f, 3.0f);
+		param.cam.fov    = 20.0f;
+		param.cam.target = Dx12::Vec3f(0.0f, 0.0f, 0.0f);
+		param.cam.lens   = 0.1f;
 
-		list->SetComputeRootSignature(cs_root);
-		list->SetPipeline(cs_pipe);
-		list->SetBarrier(compute->rsc[0].Get(),
-			D3D12_RESOURCE_STATES::D3D12_RESOURCE_STATE_COPY_SOURCE, D3D12_RESOURCE_STATES::D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
-		list->Get()->SetDescriptorHeaps(1, (ID3D12DescriptorHeap* const*)&compute->heap);
-		for (std::uint32_t i = 0; i < compute->rsc.size(); ++i) {
-			list->Get()->SetComputeRootDescriptorTable(i, compute->heap.GetGpuAddress(i));
+		std::uint32_t count = 0;
+		if (count < sphere_max) {
+			param.sp[count++] = { Dx12::Vec3f(0.0f, -1000.0f, 0.0f), 1000.0f, Dx12::Vec3f(0.5f, 0.5f, 0.5f), Material::Lambert };
+			param.sp[count++] = { Dx12::Vec3f(0.0f,     1.0f, 0.0f),    1.0f, Dx12::Vec3f(1.0f, 1.0f, 1.0f), Material::reflect };
+			param.sp[count++] = { Dx12::Vec3f(-4.0f,     1.0f, 0.0f),    1.0f, Dx12::Vec3f(0.4f, 0.2f, 0.1f), Material::Lambert };
+			param.sp[count++] = { Dx12::Vec3f(4.0f,     1.0f, 0.0f),    1.0f, Dx12::Vec3f(0.7f, 0.6f, 0.5f), Material::reflect };
 		}
-		list->Get()->Dispatch(texture_size.x, texture_size.y, 1);
-		list->SetBarrier(compute->rsc[0].Get());
-		list->SetBarrier(compute->rsc[0].Get(),
-			D3D12_RESOURCE_STATES::D3D12_RESOURCE_STATE_UNORDERED_ACCESS, D3D12_RESOURCE_STATES::D3D12_RESOURCE_STATE_COPY_SOURCE);
-		list->Get()->CopyResource(texture->rsc.Get(), compute->rsc[0].Get());
+		for (std::int32_t i = -5; i < 5; ++i)
+		{
+			for (std::int32_t n = -5; n < 5; ++n)
+			{
+				if (count < sphere_max) {
+					std::random_device seed;
+					std::mt19937 mt(seed());
+					std::uniform_real_distribution<float>rand(-1.0f, 1.0f);
+					Dx12::Vec3f center = Dx12::Vec3f(i + 0.9f * rand(mt), 0.2f, n + 0.9f * rand(mt));
 
-		list->SetRect(Dx12Runtime::GetWindowSize());
+					if ((center - Dx12::Vec3f(4.0f, 0.2f, 0.0f)).Length() > 0.9f)
+					{
+						std::uniform_real_distribution<float>color(0.0f, 1.0f);
+						param.sp[count].center = center;
+						param.sp[count].color  = Dx12::Vec3f(color(mt), color(mt), color(mt));
+						param.sp[count].radius = 0.2f;
 
-		list->SetBarrier(Dx12Runtime::GetRenderTarget(),
-			D3D12_RESOURCE_STATES::D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATES::D3D12_RESOURCE_STATE_RENDER_TARGET);
-		Dx12Runtime::ClearRenderTarget(list, clear_color);
+						if (rand(mt) < 0.4f)
+						{
+							param.sp[count].material = Material::Lambert;
+						}
+						else if (rand(mt) < 0.8f)
+						{
+							param.sp[count].material = Material::reflect;
+						}
+						else
+						{
+							param.sp[count].material = Material::Refract;
+						}
+					}
 
-		list->SetRootSignature(root);
-		list->SetPipeline(pipe);
-		list->SetBarrier(texture->rsc.Get(),
-			D3D12_RESOURCE_STATES::D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATES::D3D12_RESOURCE_STATE_GENERIC_READ);
-		list->Get()->SetDescriptorHeaps(1, (ID3D12DescriptorHeap* const*)&texture->heap);
-		list->Get()->SetGraphicsRootDescriptorTable(0, texture->heap.GetGpuAddress());
-		list->DrawVertexInstance(plane, vertex.size(), D3D12_PRIMITIVE_TOPOLOGY::D3D_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
-		list->SetBarrier(texture->rsc.Get(),
-			D3D12_RESOURCE_STATES::D3D12_RESOURCE_STATE_GENERIC_READ, D3D12_RESOURCE_STATES::D3D12_RESOURCE_STATE_COPY_DEST);
+					++count;
+				}
+			}
+		}
 
-		list->SetBarrier(Dx12Runtime::GetRenderTarget(),
-			D3D12_RESOURCE_STATES::D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATES::D3D12_RESOURCE_STATE_PRESENT);
-
-		Dx12Runtime::ExecuteCommand({ list });
+		std::memcpy(buffer, &param, sizeof(param));
+		(*compute_rsc.begin())->ReleaseBuffer();
 	}
 
-	delete texture;
-	delete compute;
-	delete cs_pipe;
-	delete cs_root;
-	delete cs_shader;
-	delete pipe;
-	delete root;
-	delete ps_shader;
-	delete vs_shader;
-	delete plane;
-	delete list;
-	delete allocator;
-	Dx12Runtime::UnInitialized();
+	while (Window::CheckMsg() == true) {
+		Dx12::Runtime::Clear();
 
+		/* プログラマブル */
+		{
+			std::uint32_t rsc_index   = 0;
+			std::uint32_t param_index = 0;
+
+			Dx12::Runtime::SetComputeRootSignature(compute_root);
+			Dx12::Runtime::SetComputePipeline(compute_pipe);
+			Dx12::Runtime::SetDescriptorHeap({ compute_heap });
+			Dx12::Runtime::SetComputeResource(compute_rsc[rsc_index++], param_index++);
+			Dx12::Runtime::SetComputeResource(compute_rsc[rsc_index], param_index++);
+
+			Dx12::Runtime::SetRscBarrier(compute_rsc[rsc_index],
+				D3D12_RESOURCE_STATES::D3D12_RESOURCE_STATE_COPY_SOURCE, D3D12_RESOURCE_STATES::D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
+			Dx12::Runtime::Dispatch(window_size.x, window_size.y);
+			Dx12::Runtime::SetUavRscBarrier(compute_rsc[rsc_index]);
+			Dx12::Runtime::SetRscBarrier(compute_rsc[rsc_index++],
+				D3D12_RESOURCE_STATES::D3D12_RESOURCE_STATE_UNORDERED_ACCESS, D3D12_RESOURCE_STATES::D3D12_RESOURCE_STATE_COPY_SOURCE);
+
+			Dx12::Runtime::SetRscBarrier(texture,
+				D3D12_RESOURCE_STATES::D3D12_RESOURCE_STATE_GENERIC_READ, D3D12_RESOURCE_STATES::D3D12_RESOURCE_STATE_COPY_DEST);
+			Dx12::Runtime::CopyResource(texture, (*compute_rsc.rbegin()));
+			Dx12::Runtime::SetRscBarrier(texture,
+				D3D12_RESOURCE_STATES::D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATES::D3D12_RESOURCE_STATE_GENERIC_READ);
+		}
+		/* グラフィックス */
+		{
+			std::uint32_t param_index = 0;
+
+			Dx12::Runtime::SetGraphicsRootSignature(graphics_root);
+			Dx12::Runtime::SetGraphicsPipeline(graphics_pipe);
+			Dx12::Runtime::SetDescriptorHeap({ heap });
+			Dx12::Runtime::SetGraphicsResource(texture, param_index++);
+			//Dx12::Runtime::DrawVertexInstance(vertex_rsc, _countof(vertex_info));
+			Dx12::Runtime::DrawIndexInstance(vertex_rsc, _countof(vertex_info), index_rsc, _countof(index_info));
+		}
+
+		Dx12::Runtime::Execution({});
+	}
+
+	delete compute_pipe;
+	delete compute_root;
+	delete compute;
+	delete compute_heap;
+	for (auto& i : compute_rsc) {
+		delete i;
+	}
+
+	delete graphics_pipe;
+	delete graphics_root;
+	delete pixel;
+	delete vertex;
+	delete heap;
+	delete texture;
+	delete index_rsc;
+	delete vertex_rsc;
+	Dx12::Runtime::UnInitialize();
 	return 0;
 }

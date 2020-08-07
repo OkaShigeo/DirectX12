@@ -3,170 +3,182 @@
   <ItemGroup>
     <Filter Include="ソース ファイル">
       <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
-      <Extensions>cpp;c;cc;cxx;c++;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
     </Filter>
     <Filter Include="ヘッダー ファイル">
       <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
-      <Extensions>h;hh;hpp;hxx;h++;hm;inl;inc;ipp;xsd</Extensions>
+      <Extensions>h;hh;hpp;hxx;hm;inl;inc;ipp;xsd</Extensions>
     </Filter>
     <Filter Include="リソース ファイル">
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
-    <Filter Include="Dx12Runtime">
-      <UniqueIdentifier>{a0a98b43-ed00-4f0f-a21e-1035579375d4}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Window">
-      <UniqueIdentifier>{afa460db-9d48-42b1-bf32-41cb5b7cf678}</UniqueIdentifier>
+      <UniqueIdentifier>{a878bcdd-de5c-479d-b36d-b7d26b3c2118}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Dx12Device">
-      <UniqueIdentifier>{f99fcf0b-3d5a-4897-95a1-c01bccdcf6e7}</UniqueIdentifier>
+    <Filter Include="Deivce">
+      <UniqueIdentifier>{dc61b202-c7d3-4c34-a461-c1ce132be548}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Dx12CommandAllocator">
-      <UniqueIdentifier>{1f61dca2-64c5-4e11-84bb-ffa6f8959026}</UniqueIdentifier>
+    <Filter Include="Runtime">
+      <UniqueIdentifier>{e8ef3045-90a4-4065-87e9-06f612781eea}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Dx12CommandList">
-      <UniqueIdentifier>{02e6c8bc-47e4-4b64-8339-fd2c58981373}</UniqueIdentifier>
+    <Filter Include="CommandAllocator">
+      <UniqueIdentifier>{7b318372-8758-4541-92c5-1a3a5c65d6d0}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Dx12CommandQueue">
-      <UniqueIdentifier>{6fb600bb-a025-4827-935d-be1211253362}</UniqueIdentifier>
+    <Filter Include="CommandList">
+      <UniqueIdentifier>{e73396d9-7f57-45f6-a1db-1ee823537900}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Dx12Fence">
-      <UniqueIdentifier>{c000a4c9-3f86-4035-915a-793ad711006c}</UniqueIdentifier>
+    <Filter Include="CommandQueue">
+      <UniqueIdentifier>{c3b088ce-301f-4049-984f-f0b7498a0cfc}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Dx12SwapChain">
-      <UniqueIdentifier>{63340878-b331-4ff4-a63a-d4b91f600bc8}</UniqueIdentifier>
+    <Filter Include="Fence">
+      <UniqueIdentifier>{0c529acb-b671-4258-962f-fe25d1928101}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Dx12Heap">
-      <UniqueIdentifier>{0a030d5f-fb23-4919-be72-d29e4ffdad30}</UniqueIdentifier>
+    <Filter Include="SwapChain">
+      <UniqueIdentifier>{0ab3c45c-e88a-4360-8d9c-1b57ffd87632}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Dx12Resource">
-      <UniqueIdentifier>{58f72dbd-b38c-4183-ae63-9b30269b3c77}</UniqueIdentifier>
+    <Filter Include="Descriptor">
+      <UniqueIdentifier>{d8bb10f0-087a-4030-82fb-6cfa3d42c2aa}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Dx12RenderTarget">
-      <UniqueIdentifier>{bc370288-7451-4f8f-b357-8d74f64dd60f}</UniqueIdentifier>
+    <Filter Include="Resource">
+      <UniqueIdentifier>{ee845170-17f1-4885-9658-0851cbe8868d}</UniqueIdentifier>
     </Filter>
     <Filter Include="ShaderCompiler">
-      <UniqueIdentifier>{4a0d468d-ebeb-4184-8f71-2b44d33e727a}</UniqueIdentifier>
+      <UniqueIdentifier>{32e44f17-e306-41d3-b88b-1908a6525030}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Dx12RootSignature">
-      <UniqueIdentifier>{a334b6c1-e613-4993-a54e-5e4bf2d1a353}</UniqueIdentifier>
+    <Filter Include="RootSignature">
+      <UniqueIdentifier>{0bb8e1e4-3803-45c1-8372-ce75732e8c85}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Dx12Pipeline">
-      <UniqueIdentifier>{a90a4675-dc7d-4f85-b7e7-16ab4f6c446f}</UniqueIdentifier>
+    <Filter Include="GraphicsPipeline">
+      <UniqueIdentifier>{5de9933e-ad7f-40ca-bff1-78f446235c94}</UniqueIdentifier>
     </Filter>
+    <Filter Include="ComputePipeline">
+      <UniqueIdentifier>{55fb65a3-2bd6-4c5e-951b-c52ebf2e42db}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="リソース ファイル\HLSL">
+      <UniqueIdentifier>{864fdb1c-1071-4645-8947-69a370fad769}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="リソース ファイル\HLSL\Texture">
+      <UniqueIdentifier>{3d94fe9c-6619-4634-a2fa-8718215a2b25}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="リソース ファイル\HLSL\FirstRaytracing">
+      <UniqueIdentifier>{71b114e4-1b60-4317-b073-08372a34517d}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\code\include\Window.h">
+      <Filter>Window</Filter>
+    </ClInclude>
+    <ClInclude Include="..\code\include\Device.h">
+      <Filter>Deivce</Filter>
+    </ClInclude>
+    <ClInclude Include="..\code\include\BaseObject.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="..\code\include\Vector.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="..\code\include\Runtime.h">
+      <Filter>Runtime</Filter>
+    </ClInclude>
+    <ClInclude Include="..\code\include\CommandAllocator.h">
+      <Filter>CommandAllocator</Filter>
+    </ClInclude>
+    <ClInclude Include="..\code\include\CommandList.h">
+      <Filter>CommandList</Filter>
+    </ClInclude>
+    <ClInclude Include="..\code\include\CommandQueue.h">
+      <Filter>CommandQueue</Filter>
+    </ClInclude>
+    <ClInclude Include="..\code\include\Fence.h">
+      <Filter>Fence</Filter>
+    </ClInclude>
+    <ClInclude Include="..\code\include\SwapChain.h">
+      <Filter>SwapChain</Filter>
+    </ClInclude>
+    <ClInclude Include="..\code\include\Descriptor.h">
+      <Filter>Descriptor</Filter>
+    </ClInclude>
+    <ClInclude Include="..\code\include\Resource.h">
+      <Filter>Resource</Filter>
+    </ClInclude>
+    <ClInclude Include="..\code\include\ShaderCompiler.h">
+      <Filter>ShaderCompiler</Filter>
+    </ClInclude>
+    <ClInclude Include="..\code\include\RootSignature.h">
+      <Filter>RootSignature</Filter>
+    </ClInclude>
+    <ClInclude Include="..\code\include\GraphicsPipeline.h">
+      <Filter>GraphicsPipeline</Filter>
+    </ClInclude>
+    <ClInclude Include="..\code\include\ComputePipeline.h">
+      <Filter>ComputePipeline</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\code\main.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
-    <ClCompile Include="..\code\source\Dx12Runtime.cpp">
-      <Filter>Dx12Runtime</Filter>
-    </ClCompile>
     <ClCompile Include="..\code\source\Window.cpp">
       <Filter>Window</Filter>
     </ClCompile>
-    <ClCompile Include="..\code\source\Dx12Device.cpp">
-      <Filter>Dx12Device</Filter>
+    <ClCompile Include="..\code\source\Device.cpp">
+      <Filter>Deivce</Filter>
     </ClCompile>
-    <ClCompile Include="..\code\source\Dx12CommandAllocator.cpp">
-      <Filter>Dx12CommandAllocator</Filter>
+    <ClCompile Include="..\code\source\Runtime.cpp">
+      <Filter>Runtime</Filter>
     </ClCompile>
-    <ClCompile Include="..\code\source\Dx12CommandList.cpp">
-      <Filter>Dx12CommandList</Filter>
+    <ClCompile Include="..\code\source\CommandAllocator.cpp">
+      <Filter>CommandAllocator</Filter>
     </ClCompile>
-    <ClCompile Include="..\code\source\Dx12CommandQueue.cpp">
-      <Filter>Dx12CommandQueue</Filter>
+    <ClCompile Include="..\code\source\CommandList.cpp">
+      <Filter>CommandList</Filter>
     </ClCompile>
-    <ClCompile Include="..\code\source\Dx12Fence.cpp">
-      <Filter>Dx12Fence</Filter>
+    <ClCompile Include="..\code\source\CommandQueue.cpp">
+      <Filter>CommandQueue</Filter>
     </ClCompile>
-    <ClCompile Include="..\code\source\Dx12SwapChain.cpp">
-      <Filter>Dx12SwapChain</Filter>
+    <ClCompile Include="..\code\source\Fence.cpp">
+      <Filter>Fence</Filter>
     </ClCompile>
-    <ClCompile Include="..\code\source\Dx12Heap.cpp">
-      <Filter>Dx12Heap</Filter>
+    <ClCompile Include="..\code\source\SwapChain.cpp">
+      <Filter>SwapChain</Filter>
     </ClCompile>
-    <ClCompile Include="..\code\source\Dx12Resource.cpp">
-      <Filter>Dx12Resource</Filter>
+    <ClCompile Include="..\code\source\Descriptor.cpp">
+      <Filter>Descriptor</Filter>
     </ClCompile>
-    <ClCompile Include="..\code\source\Dx12RenderTarget.cpp">
-      <Filter>Dx12RenderTarget</Filter>
+    <ClCompile Include="..\code\source\Resource.cpp">
+      <Filter>Resource</Filter>
     </ClCompile>
     <ClCompile Include="..\code\source\ShaderCompiler.cpp">
       <Filter>ShaderCompiler</Filter>
     </ClCompile>
-    <ClCompile Include="..\code\source\Dx12RootSignature.cpp">
-      <Filter>Dx12RootSignature</Filter>
+    <ClCompile Include="..\code\source\RootSignature.cpp">
+      <Filter>RootSignature</Filter>
     </ClCompile>
-    <ClCompile Include="..\code\source\Dx12Pipeline.cpp">
-      <Filter>Dx12Pipeline</Filter>
+    <ClCompile Include="..\code\source\GraphicsPipeline.cpp">
+      <Filter>GraphicsPipeline</Filter>
+    </ClCompile>
+    <ClCompile Include="..\code\source\ComputePipeline.cpp">
+      <Filter>ComputePipeline</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\code\include\Dx12Runtime.h">
-      <Filter>Dx12Runtime</Filter>
-    </ClInclude>
-    <ClInclude Include="..\code\include\Vector.h">
-      <Filter>ヘッダー ファイル</Filter>
-    </ClInclude>
-    <ClInclude Include="..\code\include\Window.h">
-      <Filter>Window</Filter>
-    </ClInclude>
-    <ClInclude Include="..\code\include\Dx12Device.h">
-      <Filter>Dx12Device</Filter>
-    </ClInclude>
-    <ClInclude Include="..\code\include\DxBaseObject.h">
-      <Filter>ヘッダー ファイル</Filter>
-    </ClInclude>
-    <ClInclude Include="..\code\include\Dx12CommandAllocator.h">
-      <Filter>Dx12CommandAllocator</Filter>
-    </ClInclude>
-    <ClInclude Include="..\code\include\Dx12CommandList.h">
-      <Filter>Dx12CommandList</Filter>
-    </ClInclude>
-    <ClInclude Include="..\code\include\Dx12CommandQueue.h">
-      <Filter>Dx12CommandQueue</Filter>
-    </ClInclude>
-    <ClInclude Include="..\code\include\Dx12Fence.h">
-      <Filter>Dx12Fence</Filter>
-    </ClInclude>
-    <ClInclude Include="..\code\include\Dx12SwapChain.h">
-      <Filter>Dx12SwapChain</Filter>
-    </ClInclude>
-    <ClInclude Include="..\code\include\Dx12Heap.h">
-      <Filter>Dx12Heap</Filter>
-    </ClInclude>
-    <ClInclude Include="..\code\include\Dx12Resource.h">
-      <Filter>Dx12Resource</Filter>
-    </ClInclude>
-    <ClInclude Include="..\code\include\Dx12RenderTarget.h">
-      <Filter>Dx12RenderTarget</Filter>
-    </ClInclude>
-    <ClInclude Include="..\code\include\ShaderCompiler.h">
-      <Filter>ShaderCompiler</Filter>
-    </ClInclude>
-    <ClInclude Include="..\code\include\Dx12RootSignature.h">
-      <Filter>Dx12RootSignature</Filter>
-    </ClInclude>
-    <ClInclude Include="..\code\include\Dx12Pipeline.h">
-      <Filter>Dx12Pipeline</Filter>
-    </ClInclude>
-  </ItemGroup>
-  <ItemGroup>
-    <FxCompile Include="..\code\shader\VertexShader.hlsl">
-      <Filter>リソース ファイル</Filter>
-    </FxCompile>
-    <FxCompile Include="..\code\shader\PixelShader.hlsl">
-      <Filter>リソース ファイル</Filter>
-    </FxCompile>
-    <FxCompile Include="..\code\shader\Raytracing.hlsl">
-      <Filter>リソース ファイル</Filter>
-    </FxCompile>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="..\code\shader\Raytracing.hlsli">
-      <Filter>リソース ファイル</Filter>
+    <None Include="..\code\hlsl\Texture.hlsli">
+      <Filter>リソース ファイル\HLSL\Texture</Filter>
     </None>
+    <None Include="..\code\hlsl\FirstRaytracing.hlsli">
+      <Filter>リソース ファイル\HLSL\FirstRaytracing</Filter>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <FxCompile Include="..\code\hlsl\TextureVertex.hlsl">
+      <Filter>リソース ファイル\HLSL\Texture</Filter>
+    </FxCompile>
+    <FxCompile Include="..\code\hlsl\TexturePixel.hlsl">
+      <Filter>リソース ファイル\HLSL\Texture</Filter>
+    </FxCompile>
+    <FxCompile Include="..\code\hlsl\FirstRaytracing.hlsl">
+      <Filter>リソース ファイル\HLSL\FirstRaytracing</Filter>
+    </FxCompile>
   </ItemGroup>
 </Project>

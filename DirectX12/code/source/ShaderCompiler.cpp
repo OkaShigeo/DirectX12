@@ -1,77 +1,54 @@
 #include "..\include\ShaderCompiler.h"
 #include <wrl.h>
 #include <dxcapi.h>
+#include <cassert>
 
 #pragma comment(lib, "dxcompiler.lib")
 
-ShaderCompiler::ShaderCompiler(const std::wstring & file_path, const std::wstring & entry_func, const std::wstring & shader_model)
+Dx12::ShaderCompiler::ShaderCompiler(const std::wstring & file_path, const std::wstring & function, const std::wstring & shader_model)
 {
-	Compile(file_path, entry_func, shader_model);
+	obj = Compile(file_path, function, shader_model);
 }
 
-ShaderCompiler::~ShaderCompiler()
+Dx12::ShaderCompiler::ShaderCompiler(ID3DBlob * blob)
+{
+	obj = blob;
+}
+
+Dx12::ShaderCompiler::~ShaderCompiler()
 {
 }
 
-std::uint32_t ShaderCompiler::Compile(const std::wstring & file_path, const std::wstring & entry_func, const std::wstring & shader_model)
+ID3DBlob* Dx12::ShaderCompiler::Compile(const std::wstring & file_path, const std::wstring & function, const std::wstring & shader_model)
 {
 	Microsoft::WRL::ComPtr<IDxcLibrary>library = nullptr;
 	auto hr = DxcCreateInstance(CLSID_DxcLibrary, IID_PPV_ARGS(&library));
-	if (FAILED(hr)) {
-		OutputDebugStringA("失敗：ライブラリハンドルが取得できませんでした\n");
-		return hr;
-	}
+	assert(hr == S_OK);
 
 	Microsoft::WRL::ComPtr<IDxcIncludeHandler>handle = nullptr;
 	hr = library->CreateIncludeHandler(&handle);
-	if (FAILED(hr)) {
-		OutputDebugStringA("失敗：インクルードハンドルが取得できませんでした\n");
-		return hr;
-	}
+	assert(hr == S_OK);
 
 	Microsoft::WRL::ComPtr<IDxcBlobEncoding>encode = nullptr;
 	hr = library->CreateBlobFromFile(file_path.c_str(), nullptr, &encode);
-	if (FAILED(hr)) {
-		OutputDebugStringA("失敗：エンコーダーが取得できませんでした\n");
-		return hr;
-	}
+	assert(hr == S_OK);
 
 	Microsoft::WRL::ComPtr<IDxcCompiler>compile = nullptr;
 	hr = DxcCreateInstance(CLSID_DxcCompiler, IID_PPV_ARGS(&compile));
-	if (FAILED(hr)) {
-		OutputDebugStringA("失敗：コンパイラーが取得できませんでした\n");
-		return hr;
-	}
+	assert(hr == S_OK);
 
 	Microsoft::WRL::ComPtr<IDxcOperationResult>result = nullptr;
-	hr = compile->Compile(encode.Get(), file_path.c_str(), entry_func.c_str(), shader_model.c_str(), nullptr, 0, nullptr, 0, handle.Get(), &result);
-	if (FAILED(hr)) {
-		OutputDebugStringA("失敗：シェーダのコンパイルができませんでした\n");
-		return hr;
-	}
+	hr = compile->Compile(encode.Get(), file_path.c_str(), function.c_str(), shader_model.c_str(), nullptr, 0, nullptr, 0, handle.Get(), &result);
+	assert(hr == S_OK);
 
+	ID3DBlob* blob = nullptr;
 	result->GetStatus(&hr);
 	if (SUCCEEDED(hr))
 	{
-		hr = result->GetResult((IDxcBlob**)&obj);
-		if (FAILED(hr)) {
-			OutputDebugStringA("失敗：シェーダのコンパイル結果を取得できませんでした\n");
-			return hr;
-		}
-	}
-	else
-	{
-		Microsoft::WRL::ComPtr<IDxcBlobEncoding>print = nullptr;
-		Microsoft::WRL::ComPtr<IDxcBlobEncoding>print16 = nullptr;
-
-		hr = result->GetErrorBuffer(&print);
-		_ASSERT(hr == S_OK);
-
-		hr = library->GetBlobAsUtf16(print.Get(), &print16);
-		_ASSERT(hr == S_OK);
-
-		wprintf(L"%*s", (int)print16->GetBufferSize() / 2, (LPCWSTR)print16->GetBufferPointer());
+		hr = result->GetResult((IDxcBlob**)&blob);
 	}
 
-	return hr;
+	assert(hr == S_OK);
+
+	return blob;
 }
