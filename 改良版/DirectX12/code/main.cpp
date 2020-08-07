@@ -10,7 +10,7 @@ namespace
 	{
 		/* 座標 */
 		Dx12::Vec3f pos;
-		/* テクスタ座標 */
+		/* テクスチャ座標 */
 		Dx12::Vec2f uv;
 	};
 	VertexInfo vertex_info[] = 
