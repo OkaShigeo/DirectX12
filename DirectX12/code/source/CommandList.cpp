@@ -182,5 +182,11 @@ void Dx12::CommandList::CopyResource(const Resource* dst, const Resource* src) c
 
 void Dx12::CommandList::Dispatch(const std::uint64_t& thread_x, const std::uint64_t& thread_y, const std::uint64_t& thread_z) const
 {
+	auto type = obj->GetType();
+	if (!(type == D3D12_COMMAND_LIST_TYPE::D3D12_COMMAND_LIST_TYPE_DIRECT
+		|| type == D3D12_COMMAND_LIST_TYPE::D3D12_COMMAND_LIST_TYPE_COMPUTE)) {
+		return;
+	}
+
 	obj->Dispatch(std::uint32_t(thread_x), std::uint32_t(thread_y), std::uint32_t(thread_z));
 }

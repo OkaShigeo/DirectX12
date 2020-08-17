@@ -1,5 +1,6 @@
 #include "include/Runtime.h"
 #include <random>
+#include <queue>
 
 namespace
 {
@@ -60,8 +61,6 @@ namespace
 		float lens{ 0.0f };
 		/* アップベクトル */
 		Dx12::Vec3f up{ Dx12::Vec3f(0.0f, 1.0f, 0.0f) };
-		/* アライメント */
-		float alighment{ 0.0f };
 	};
 	/* マテリアル種別 */
 	enum class Material : std::uint32_t
@@ -75,6 +74,26 @@ namespace
 		/* 屈折 */
 		Refract,
 	};
+	/* Axis Aligned Bounding Box */
+	struct AABB
+	{
+		/* 最小位置 */
+		Dx12::Vec3f min_pos{ 0.0f };
+		/* 最大位置 */
+		Dx12::Vec3f max_pos{ 0.0f };
+
+		/* 直方体の面積の取得 */
+		float GetArea(void) const
+		{
+			return 2.0f * std::pow((max_pos.x - min_pos.x), 2.0f) + std::pow((max_pos.y - min_pos.y), 2.0f) + std::pow((max_pos.z - min_pos.z), 2.0f);
+		}
+		/* AABBのマージ */
+		static AABB MergeAABB(const AABB& box1, const AABB& box2)
+		{
+			return { Dx12::Vec3f(std::fmin(box1.min_pos.x, box2.min_pos.x), std::fmin(box1.min_pos.y, box2.min_pos.y), std::fmin(box1.min_pos.z, box2.min_pos.z)),
+					 Dx12::Vec3f(std::fmax(box1.max_pos.x, box2.max_pos.x), std::fmax(box1.max_pos.y, box2.max_pos.y), std::fmax(box1.max_pos.z, box2.max_pos.z)) };
+		}
+	};
 	/* 球体情報 */
 	struct Sphere
 	{
@@ -86,6 +105,37 @@ namespace
 		Dx12::Vec3f color{ 1.0f };
 		/* マテリアルタイプ */
 		Material material{ Material::None };
+		/* 移動量 */
+		Dx12::Vec3f velocity{ 0.0f };
+		/* アライメント */
+		float alignment{ 0.0f };
+
+		/* AABBの取得 */
+		AABB GetAABB(void) const
+		{
+			AABB min = { center - radius, center + radius };
+			AABB max = { (center + velocity) - radius, (center + velocity) + radius };
+
+			return AABB::MergeAABB(min, max);
+		}
+	};
+	/* BVHノード */
+	struct BVH_NODE
+	{
+		/* AABB */
+		AABB aabb{};
+		/* 左ノード番号 */
+		std::int32_t left{ -1 };
+		/* 右ノード番号 */
+		std::int32_t right{ -1 };
+		/* 球体リスト */
+		std::vector<Sphere>sp;
+	};
+	/* Bounding Volume Hierarchy */
+	struct BVH
+	{
+		/* ノード */
+		std::vector<BVH_NODE>node;
 	};
 	/* 球体の最大数 */
 	const std::uint32_t sphere_max = 128;
@@ -94,8 +144,41 @@ namespace
 	{
 		/* カメラ情報 */
 		Camera cam;
+		/* 球体の数 */
+		std::uint32_t sphere_cnt{ 0 };
 		/* 球体情報 */
-		Sphere sp[sphere_max];
+		std::vector<Sphere>sp;
+		/* BVH */
+		BVH bvh{};
+
+		/* 球体の追加 */
+		void AddSphere(const Sphere& sphere)
+		{
+			if (sphere_cnt < sphere_max) {
+				sp.push_back(sphere);
+				sphere_cnt++;
+			}
+		}
+		/* データのコピー */
+		void Copy(std::uint8_t* buffer)
+		{
+			std::uint32_t index = 0;
+			std::memcpy(&buffer[index], &cam, sizeof(Camera));
+			index += sizeof(Camera);
+			std::memcpy(&buffer[index], &sphere_cnt, sizeof(std::uint32_t));
+			index += sizeof(std::uint32_t);
+			std::memcpy(&buffer[index], sp.data(), sizeof(Sphere) * sp.size());
+		}
+		/* サイズの取得 */
+		std::uint32_t GetSize(void) const 
+		{
+			return sizeof(cam) + sizeof(sphere_cnt) + (sizeof(Sphere) * sphere_cnt);
+		}
+		/* 最大サイズの取得 */
+		static std::uint32_t GetMaxSize(void)
+		{
+			return sizeof(Camera) + sizeof(std::uint32_t) + (sizeof(Sphere) * sphere_max);
+		}
 	};
 }
 
@@ -114,14 +197,14 @@ int main()
 
 	std::vector<Dx12::Resource*>compute_rsc =
 	{
-		new Dx12::Resource(D3D12_RESOURCE_STATES::D3D12_RESOURCE_STATE_GENERIC_READ, Dx12::Resource::GetUploadProp(), (sizeof(FirstRaytracingParam) + 0xff) & ~0xff),
+		new Dx12::Resource(D3D12_RESOURCE_STATES::D3D12_RESOURCE_STATE_GENERIC_READ, Dx12::Resource::GetUploadProp(), (FirstRaytracingParam::GetMaxSize() + 0xff) & ~0xff),
 		new Dx12::Resource(D3D12_RESOURCE_STATES::D3D12_RESOURCE_STATE_COPY_SOURCE, Dx12::Resource::GetDefaultProp(), 
 			DXGI_FORMAT::DXGI_FORMAT_R8G8B8A8_UNORM,window_size.x, window_size.y, D3D12_RESOURCE_FLAGS::D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS),
 	};
-	Dx12::Descriptor* compute_heap            = new Dx12::Descriptor(D3D12_DESCRIPTOR_HEAP_TYPE::D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, compute_rsc.size());
-	Dx12::ShaderCompiler* compute             = new Dx12::ShaderCompiler(shader_dir + L"FirstRaytracing.hlsl", shader_func, L"cs" + shader_model);
-	Dx12::RootSignature* compute_root         = new Dx12::RootSignature(compute);
-	Dx12::ComputePipeline* compute_pipe       = new Dx12::ComputePipeline(compute_root, compute);
+	Dx12::Descriptor* compute_heap      = new Dx12::Descriptor(D3D12_DESCRIPTOR_HEAP_TYPE::D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, compute_rsc.size());
+	Dx12::ShaderCompiler* compute       = new Dx12::ShaderCompiler(shader_dir + L"FirstRaytracing.hlsl", shader_func, L"cs" + shader_model);
+	Dx12::RootSignature* compute_root   = new Dx12::RootSignature(compute);
+	Dx12::ComputePipeline* compute_pipe = new Dx12::ComputePipeline(compute_root, compute);
 
 	/* GPUへ頂点情報を送信 */
 	{
@@ -148,26 +231,26 @@ int main()
 	}
 	/* GPUへ計算用データを送信 */
 	{
-		auto* buffer = (*compute_rsc.begin())->GetBuffer();
-
 		FirstRaytracingParam param{};
 		param.cam.pos    = Dx12::Vec3f(13.0f, 2.0f, 3.0f);
 		param.cam.fov    = 20.0f;
 		param.cam.target = Dx12::Vec3f(0.0f, 0.0f, 0.0f);
 		param.cam.lens   = 0.1f;
 
-		std::uint32_t count = 0;
-		if (count < sphere_max) {
-			param.sp[count++] = { Dx12::Vec3f(0.0f, -1000.0f, 0.0f), 1000.0f, Dx12::Vec3f(0.5f, 0.5f, 0.5f), Material::Lambert };
-			param.sp[count++] = { Dx12::Vec3f(0.0f,     1.0f, 0.0f),    1.0f, Dx12::Vec3f(1.0f, 1.0f, 1.0f), Material::reflect };
-			param.sp[count++] = { Dx12::Vec3f(-4.0f,     1.0f, 0.0f),    1.0f, Dx12::Vec3f(0.4f, 0.2f, 0.1f), Material::Lambert };
-			param.sp[count++] = { Dx12::Vec3f(4.0f,     1.0f, 0.0f),    1.0f, Dx12::Vec3f(0.7f, 0.6f, 0.5f), Material::reflect };
+		if (param.sphere_cnt < sphere_max) {
+			param.AddSphere({ Dx12::Vec3f(0.0f, -1000.0f, 0.0f), 1000.0f, Dx12::Vec3f(0.5f, 0.5f, 0.5f), Material::Lambert });
+			param.AddSphere({ Dx12::Vec3f(0.0f,     1.0f, 0.0f),    1.0f, Dx12::Vec3f(1.0f, 1.0f, 1.0f), Material::Refract });
+			param.AddSphere({ Dx12::Vec3f(-4.0f,    1.0f, 0.0f),    1.0f, Dx12::Vec3f(0.4f, 0.2f, 0.1f), Material::Lambert });
+			param.AddSphere({ Dx12::Vec3f(4.0f,     1.0f, 0.0f),    1.0f, Dx12::Vec3f(0.7f, 0.6f, 0.5f), Material::reflect });
 		}
+
+		Sphere sp{};
+		AABB aabb{};
 		for (std::int32_t i = -5; i < 5; ++i)
 		{
 			for (std::int32_t n = -5; n < 5; ++n)
 			{
-				if (count < sphere_max) {
+				if (param.sphere_cnt < sphere_max) {
 					std::random_device seed;
 					std::mt19937 mt(seed());
 					std::uniform_real_distribution<float>rand(-1.0f, 1.0f);
@@ -176,30 +259,110 @@ int main()
 					if ((center - Dx12::Vec3f(4.0f, 0.2f, 0.0f)).Length() > 0.9f)
 					{
 						std::uniform_real_distribution<float>color(0.0f, 1.0f);
-						param.sp[count].center = center;
-						param.sp[count].color  = Dx12::Vec3f(color(mt), color(mt), color(mt));
-						param.sp[count].radius = 0.2f;
+						sp.center = center;
+						sp.color  = Dx12::Vec3f(color(mt), color(mt), color(mt));
+						sp.radius = 0.2f;
+
+						std::uniform_real_distribution<float>velocity(0.0f, 0.3f);
+						sp.velocity.x = velocity(mt);
+						sp.velocity.y = velocity(mt);
+						sp.velocity.z = velocity(mt);
 
 						if (rand(mt) < 0.4f)
 						{
-							param.sp[count].material = Material::Lambert;
+							sp.material = Material::Lambert;
 						}
 						else if (rand(mt) < 0.8f)
 						{
-							param.sp[count].material = Material::reflect;
+							sp.material = Material::reflect;
 						}
 						else
 						{
-							param.sp[count].material = Material::Refract;
+							sp.material = Material::Refract;
+						}
+
+						param.AddSphere(sp);
+
+						if (param.bvh.node.size() > 0) {
+							aabb = AABB::MergeAABB(aabb, sp.GetAABB());
+						}
+						else {
+							aabb = sp.GetAABB();
 						}
 					}
-
-					++count;
 				}
 			}
 		}
 
-		std::memcpy(buffer, &param, sizeof(param));
+		param.bvh.node.push_back({ aabb, -1, -1 });
+		{
+			std::uint32_t index = param.bvh.node.size();
+
+			auto bvh_node = [&](BVH_NODE& bvh, std::vector<Sphere>& sp)->std::uint32_t {
+				/* SAHの格納 */
+				float sah = sp.size();
+				/* 分割軸 */
+				std::int32_t axis = -1;
+				/* 分割インデックス */
+				std::uint32_t sprite = 0;
+
+				for (std::uint32_t i = 0; i < 3; ++i) {
+					/* ソート */
+					std::sort(sp.begin(), sp.end(), [i](const Sphere& a, const Sphere& b)->bool {
+						return a.center.value[i] < b.center.value[i];
+					});
+
+					AABB aabb = sp.begin()->GetAABB();
+					std::vector<float>area1;
+					area1.push_back(aabb.GetArea());
+					for (std::uint32_t n = 1; n < sp.size(); ++n) {
+						aabb = AABB::MergeAABB(aabb, sp[n].GetAABB());
+						area1.push_back(aabb.GetArea());
+					}
+
+					std::reverse(sp.begin(), sp.end());
+					aabb = sp.begin()->GetAABB();
+					std::vector<float>area2;
+					area2.push_back(aabb.GetArea());
+					for (std::uint32_t n = 1; n < sp.size(); ++n) {
+						aabb = AABB::MergeAABB(aabb, sp[n].GetAABB());
+						area2.push_back(aabb.GetArea());
+
+						float cost = 2.0f + (area1[n] * area1.size() + area2[n] * area2.size()) / bvh.aabb.GetArea();
+						if (cost < sah) {
+							sah    = cost;
+							axis   = i;
+							sprite = n;
+						}
+					}
+
+					if (axis == -1) {
+						bvh.left = bvh.right = -1;
+						bvh.sp = sp;
+					}
+					else {
+						bvh.left  = index++;
+						bvh.right = index++;
+
+						std::sort(sp.begin(), sp.end(), [axis](const Sphere& a, const Sphere& b)->bool {
+							return a.center.value[axis] < b.center.value[axis];
+						});
+					}
+				}
+
+				return sprite;
+			};
+
+			std::vector<Sphere>sp = param.sp;
+			std::uint32_t sprite = 0;
+			std::uint32_t count = 0;
+			do {
+				sprite = bvh_node(param.bvh.node[count], sp);
+			} while (sprite != 0);
+		}
+
+		auto* buffer = (*compute_rsc.begin())->GetBuffer();
+		param.Copy(buffer);
 		(*compute_rsc.begin())->ReleaseBuffer();
 	}
 
@@ -223,7 +386,9 @@ int main()
 			Dx12::Runtime::SetUavRscBarrier(compute_rsc[rsc_index]);
 			Dx12::Runtime::SetRscBarrier(compute_rsc[rsc_index++],
 				D3D12_RESOURCE_STATES::D3D12_RESOURCE_STATE_UNORDERED_ACCESS, D3D12_RESOURCE_STATES::D3D12_RESOURCE_STATE_COPY_SOURCE);
-
+		}
+		/* プログラマブルリソースをグラフィックスリソースにコピー */
+		{
 			Dx12::Runtime::SetRscBarrier(texture,
 				D3D12_RESOURCE_STATES::D3D12_RESOURCE_STATE_GENERIC_READ, D3D12_RESOURCE_STATES::D3D12_RESOURCE_STATE_COPY_DEST);
 			Dx12::Runtime::CopyResource(texture, (*compute_rsc.rbegin()));

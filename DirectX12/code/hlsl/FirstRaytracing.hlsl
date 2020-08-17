@@ -10,20 +10,28 @@ float3 BackgroundColor(in Ray ray, in float3 end, in float3 begin = float3(1.0f,
 }
 
 /* ‹…‘Ì‚Ìƒqƒbƒg”»’è */
-bool IsSphereHit(in Ray ray, in Sphere sp[SPHERE_MAX], out Hit hit)
+bool IsSphereHit(in Camera cam, in Ray ray, in Sphere sp[SPHERE_MAX], out Hit hit)
 {
     hit.time = -1.0f;
     hit.pos = hit.normal = hit.color = 0.0f;
     
     float min = 0.001f;
     float max = float(0xffffffff);
-    for (uint i = 0; i < SPHERE_MAX; ++i)
+    for (uint i = 0; i < sphere_max; ++i)
     {
-        Hit dummy = hit;
-        if (sp[i].IsHit(ray, dummy, min, max) == true)
+        if (i < SPHERE_MAX)
         {
-            hit = dummy;
-            max = hit.time;
+            Hit dummy = hit;
+              
+            if (sp[i].IsHit(cam, ray, dummy, min, max) == true)
+            {
+                hit = dummy;
+                max = hit.time;
+            }
+        }
+        else
+        {
+            break;
         }
     }
 
@@ -225,8 +233,8 @@ float3 DepthOfField(in Camera cam, in float2 uv, in uint count = 10)
     }
     
     float3 dir = normalize(cam.pos - cam.target);
-    float3 u = normalize(cross(cam.up, dir));
-    float3 v = cross(dir, u);
+    float3 u   = normalize(cross(cam.up, dir));
+    float3 v   = cross(dir, u);
     
     return (u * random.x * (cam.lens_aperture / 2.0f)) + (v * random.y * (cam.lens_aperture / 2.0f));
 }
@@ -269,13 +277,13 @@ void main(ComputeThreadID semantics)
     /* ƒŒƒC */
     Ray ray =
     {
-        cam.pos + offset, left + (horizontal * uv.x) + (vertical * uv.y) - ray.pos
+        cam.pos + offset, left + (horizontal * uv.x) + (vertical * uv.y) - ray.pos, Random(uv, semantics.group_index)
     };
     
     float3 color = 1.0f;
     for (uint i = 0; i < 10; ++i)
     {
-        if (IsSphereHit(ray, sp, hit) == true)
+        if (IsSphereHit(cam, ray, sp, hit) == true)
         {
             if (hit.material == MATERIAL_LAMBERT)
             {
