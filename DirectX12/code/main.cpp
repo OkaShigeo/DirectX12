@@ -1,6 +1,5 @@
 #include "include/Runtime.h"
 #include <random>
-#include <queue>
 
 namespace
 {
@@ -78,20 +77,30 @@ namespace
 	struct AABB
 	{
 		/* 最小位置 */
-		Dx12::Vec3f min_pos{ 0.0f };
+		Dx12::Vec3f min{ 0.0f };
 		/* 最大位置 */
-		Dx12::Vec3f max_pos{ 0.0f };
+		Dx12::Vec3f max{ 0.0f };
 
+		/* 中心位置の取得 */
+		Dx12::Vec3f GetCenter(void) const
+		{
+			return (min - max) / 2.0f;
+		}
 		/* 直方体の面積の取得 */
 		float GetArea(void) const
 		{
-			return 2.0f * std::pow((max_pos.x - min_pos.x), 2.0f) + std::pow((max_pos.y - min_pos.y), 2.0f) + std::pow((max_pos.z - min_pos.z), 2.0f);
+			return 2.0f * std::pow((max.x - min.x), 2.0f) + std::pow((max.y - min.y), 2.0f) + std::pow((max.z - min.z), 2.0f);
+		}
+		/* サイズの取得 */
+		std::uint32_t GetSize(void) const
+		{
+			return sizeof(min) + sizeof(max);
 		}
 		/* AABBのマージ */
 		static AABB MergeAABB(const AABB& box1, const AABB& box2)
 		{
-			return { Dx12::Vec3f(std::fmin(box1.min_pos.x, box2.min_pos.x), std::fmin(box1.min_pos.y, box2.min_pos.y), std::fmin(box1.min_pos.z, box2.min_pos.z)),
-					 Dx12::Vec3f(std::fmax(box1.max_pos.x, box2.max_pos.x), std::fmax(box1.max_pos.y, box2.max_pos.y), std::fmax(box1.max_pos.z, box2.max_pos.z)) };
+			return { Dx12::Vec3f(std::fmin(box1.min.x, box2.min.x), std::fmin(box1.min.y, box2.min.y), std::fmin(box1.min.z, box2.min.z)),
+					 Dx12::Vec3f(std::fmax(box1.max.x, box2.max.x), std::fmax(box1.max.y, box2.max.y), std::fmax(box1.max.z, box2.max.z)) };
 		}
 	};
 	/* 球体情報 */
@@ -120,22 +129,104 @@ namespace
 		}
 	};
 	/* BVHノード */
-	struct BVH_NODE
+	template <typename T>
+	struct BoundingVolume
 	{
 		/* AABB */
 		AABB aabb{};
 		/* 左ノード番号 */
-		std::int32_t left{ -1 };
+		std::int32_t left{ 0 };
 		/* 右ノード番号 */
-		std::int32_t right{ -1 };
-		/* 球体リスト */
-		std::vector<Sphere>sp;
+		std::int32_t right{ 0 };
+		/* オブジェクトリスト */
+		std::vector<T>obj;
+
+		/* サイズの取得 */
+		std::uint32_t GetSize(void) const
+		{
+			return aabb.GetSize() + (sizeof(std::int32_t) * 2) + (sizeof(T) * obj.size());
+		}
 	};
 	/* Bounding Volume Hierarchy */
+	template <typename T>
 	struct BVH
 	{
 		/* ノード */
-		std::vector<BVH_NODE>node;
+		std::vector<BoundingVolume<T>>node;
+
+		/* データの構築 */
+		void Construction(const std::vector<T>& obj, const bool& reset = true)
+		{
+			static std::uint32_t node_index = 0;
+			if (reset == true) {
+				node_index = 1;
+			}
+
+			BoundingVolume node{};
+			for (std::uint32_t i = 0; i < obj.size(); ++i) {
+				node.aabb = AABB::MergeAABB(node.aabb, obj[i]);
+			}
+
+			/* SAHの値 */
+			float sah = float(obj.size());
+			/* 分割軸 */
+			std::int32_t axis = -1;
+			/* 分割数 */
+			std::int32_t sprite = -1;
+
+			/* ソート結果 */
+			std::vector<AABB>sort = obj;
+
+			for (std::uint32_t i = 0; i < 3; ++i) {
+				/* 各軸の中心座標でソート */
+				std::sort(sort.begin(), sort.end(), [i](const AABB& a, const AABB& b) {
+					return a.GetCenter().value[i] < b.GetCenter().value[i];
+				});
+
+				AABB tmp = {};
+				std::vector<float>area1;
+				for (std::uint32_t n = 0; n < sort.size(); ++n) {
+					tmp = AABB::MergeAABB(tmp, sort[n]);
+					area1.push_back(std::abs(tmp.GetArea()));
+				}
+
+				tmp = {};
+				std::vector<float>area2;
+				for (std::int32_t n = std::int32_t(sort.size() - 1); n >= 0; --n) {
+					tmp = AABB::MergeAABB(tmp, sort[n]);
+					area2.push_back(std::abs(tmp.GetArea()));
+
+					/* SAHの算出 */
+					float cost = 2.0f + (area1[n] * n + (*area2.rbegin()) * (sort.size() - n)) / node.aabb.GetArea();
+					if (sah > cost) {
+						sah    = cost;
+						axis   = i;
+						sprite = n;
+					}
+				}
+			}
+
+			if (axis != -1) {
+				std::vector<AABB>sort = obj;
+				std::sort(sort.begin(), sort.end(), [axis](const AABB& a, const AABB& b)->bool {
+					return a.GetCenter().value[axis] < b.GetCenter().value[axis];
+				});
+
+				node.left  = node_index++;
+				node.right = node_index++;
+
+				this->node.push_back(node);
+
+				Construction(std::vector<AABB>(sort.begin(), sort.begin() + sprite), false);
+				Construction(std::vector<AABB>(sort.begin() + sprite, sort.end()), false);
+			}
+			else {
+				node.left = node.right = -1;
+				node.obj = obj;
+
+				this->node.push_back(node);
+			}
+		}
 	};
 	/* 球体の最大数 */
 	const std::uint32_t sphere_max = 128;
@@ -148,8 +239,6 @@ namespace
 		std::uint32_t sphere_cnt{ 0 };
 		/* 球体情報 */
 		std::vector<Sphere>sp;
-		/* BVH */
-		BVH bvh{};
 
 		/* 球体の追加 */
 		void AddSphere(const Sphere& sphere)
@@ -245,7 +334,6 @@ int main()
 		}
 
 		Sphere sp{};
-		AABB aabb{};
 		for (std::int32_t i = -5; i < 5; ++i)
 		{
 			for (std::int32_t n = -5; n < 5; ++n)
@@ -282,83 +370,9 @@ int main()
 						}
 
 						param.AddSphere(sp);
-
-						if (param.bvh.node.size() > 0) {
-							aabb = AABB::MergeAABB(aabb, sp.GetAABB());
-						}
-						else {
-							aabb = sp.GetAABB();
-						}
 					}
 				}
 			}
-		}
-
-		param.bvh.node.push_back({ aabb, -1, -1 });
-		{
-			std::uint32_t index = param.bvh.node.size();
-
-			auto bvh_node = [&](BVH_NODE& bvh, std::vector<Sphere>& sp)->std::uint32_t {
-				/* SAHの格納 */
-				float sah = sp.size();
-				/* 分割軸 */
-				std::int32_t axis = -1;
-				/* 分割インデックス */
-				std::uint32_t sprite = 0;
-
-				for (std::uint32_t i = 0; i < 3; ++i) {
-					/* ソート */
-					std::sort(sp.begin(), sp.end(), [i](const Sphere& a, const Sphere& b)->bool {
-						return a.center.value[i] < b.center.value[i];
-					});
-
-					AABB aabb = sp.begin()->GetAABB();
-					std::vector<float>area1;
-					area1.push_back(aabb.GetArea());
-					for (std::uint32_t n = 1; n < sp.size(); ++n) {
-						aabb = AABB::MergeAABB(aabb, sp[n].GetAABB());
-						area1.push_back(aabb.GetArea());
-					}
-
-					std::reverse(sp.begin(), sp.end());
-					aabb = sp.begin()->GetAABB();
-					std::vector<float>area2;
-					area2.push_back(aabb.GetArea());
-					for (std::uint32_t n = 1; n < sp.size(); ++n) {
-						aabb = AABB::MergeAABB(aabb, sp[n].GetAABB());
-						area2.push_back(aabb.GetArea());
-
-						float cost = 2.0f + (area1[n] * area1.size() + area2[n] * area2.size()) / bvh.aabb.GetArea();
-						if (cost < sah) {
-							sah    = cost;
-							axis   = i;
-							sprite = n;
-						}
-					}
-
-					if (axis == -1) {
-						bvh.left = bvh.right = -1;
-						bvh.sp = sp;
-					}
-					else {
-						bvh.left  = index++;
-						bvh.right = index++;
-
-						std::sort(sp.begin(), sp.end(), [axis](const Sphere& a, const Sphere& b)->bool {
-							return a.center.value[axis] < b.center.value[axis];
-						});
-					}
-				}
-
-				return sprite;
-			};
-
-			std::vector<Sphere>sp = param.sp;
-			std::uint32_t sprite = 0;
-			std::uint32_t count = 0;
-			do {
-				sprite = bvh_node(param.bvh.node[count], sp);
-			} while (sprite != 0);
 		}
 
 		auto* buffer = (*compute_rsc.begin())->GetBuffer();
