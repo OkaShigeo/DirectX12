@@ -13,13 +13,17 @@ namespace Dx12
 		BaseObject() {}
 		/* デストラクタ */
 		virtual ~BaseObject() {
+			Release();
+		}
+
+	public:
+		/* オブジェクトの破棄 */
+		void Release(void) {
 			if (obj != nullptr) {
 				obj->Release();
 				obj = nullptr;
 			}
 		}
-
-	public:
 		/* オブジェクトの有効判定 */
 		bool IsValied(void) const {
 			return (obj != nullptr);
@@ -38,12 +42,15 @@ namespace Dx12
 		/* 演算子オーバーロード */
 	public:
 		void operator=(const BaseObject& base) {
+			Release();
 			obj = base.obj;
 		}
 		void operator=(const BaseObject* base) {
+			Release();
 			obj = base->obj;
 		}
 		void operator=(T* ptr) {
+			Release();
 			obj = ptr;
 		}
 		T* operator->(void) {

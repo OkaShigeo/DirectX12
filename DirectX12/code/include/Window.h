@@ -6,8 +6,16 @@ struct HWND__;
 class Window
 {
 public:
+	/* メッセージの確認 */
+	static bool CheckMsg(void);
+	/* ウィンドウの生成 */
+	static HWND__* CreateWindowHandle(const Dx12::Vec2& size, const Dx12::Vec2& location);
+
+public:
 	/* コンストラクタ */
+	Window();
 	Window(const Dx12::Vec2& size, const Dx12::Vec2& location = 0x80000000);
+	Window(HWND__* window);
 	/* デストラクタ */
 	~Window();
 
@@ -23,19 +31,11 @@ public:
 	/* 表示座標の取得 */
 	Dx12::Vec2 GetLocation(void) const;
 
-public:
-	/* メッセージの確認 */
-	static bool CheckMsg(void);
-
 private:
-	/* ウィンドウの生成 */
-	HWND__* CreateWindowHandle(const Dx12::Vec2& size, const Dx12::Vec2& location);
+	/* メモリの解放 */
+	void Release(void);
 
 private:
 	/* ハンドル */
 	HWND__* handle{ nullptr };
-	/* クラス名 */
-	const wchar_t* name{ nullptr };
-	/* インスタンス */
-	const void* instance{ nullptr };
 };

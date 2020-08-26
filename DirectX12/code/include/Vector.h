@@ -5,7 +5,7 @@
 namespace Dx12
 {
 	template<typename T>
-	class Vector2
+	struct Vector2
 	{
 	public:
 		/* コンストラクタ */
@@ -124,7 +124,7 @@ namespace Dx12
 
 
 	template<typename T>
-	class Vector3
+	struct Vector3
 	{
 	public:
 		/* コンストラクタ */

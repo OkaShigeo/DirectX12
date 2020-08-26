@@ -16,6 +16,10 @@ namespace Dx12
 		public BaseObject<ID3D12GraphicsCommandList5>
 	{
 	public:
+		/* コマンドリストの生成 */
+		static ID3D12GraphicsCommandList5* CreateCommandList(const D3D12_COMMAND_LIST_TYPE& type);
+
+	public:
 		/* コンストラクタ */
 		CommandList(const D3D12_COMMAND_LIST_TYPE& type = D3D12_COMMAND_LIST_TYPE::D3D12_COMMAND_LIST_TYPE_DIRECT);
 		CommandList(ID3D12GraphicsCommandList5* list);
@@ -61,9 +65,5 @@ namespace Dx12
 		void CopyResource(const Resource* dst, const Resource* src) const;
 		/* プログラマブルシェーダの実行 */
 		void Dispatch(const std::uint64_t& thread_x, const std::uint64_t& thread_y = 1, const std::uint64_t& thread_z = 1) const;
-
-	private:
-		/* コマンドリストの生成 */
-		ID3D12GraphicsCommandList5* CreateCommandList(const D3D12_COMMAND_LIST_TYPE& type);
 	};
 }

@@ -10,21 +10,6 @@ namespace {
 	};
 }
 
-Dx12::Device::Device()
-{
-	obj = CreateDevice();
-	assert(obj != nullptr);
-}
-
-Dx12::Device::Device(ID3D12Device6 * device)
-{
-	obj = device;
-}
-
-Dx12::Device::~Device()
-{
-}
-
 ID3D12Device6* Dx12::Device::CreateDevice(void)
 {
 	Microsoft::WRL::ComPtr<IDXGIFactory7>factory;
@@ -61,4 +46,20 @@ ID3D12Device6* Dx12::Device::CreateDevice(void)
 	}
 
 	return nullptr;
+}
+
+Dx12::Device::Device()
+{
+	obj = CreateDevice();
+	assert(obj != nullptr);
+}
+
+Dx12::Device::Device(ID3D12Device6* device)
+{
+	Release();
+	obj = device;
+}
+
+Dx12::Device::~Device()
+{
 }

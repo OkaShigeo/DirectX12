@@ -25,24 +25,16 @@ D3D12_HEAP_PROPERTIES Dx12::Resource::GetUploadProp(void)
 	return prop;
 }
 
-Dx12::Resource::Resource(const D3D12_RESOURCE_STATES & state, const D3D12_HEAP_PROPERTIES & prop, const std::uint64_t & size, const D3D12_RESOURCE_FLAGS & flag)
+D3D12_HEAP_PROPERTIES Dx12::Resource::GetReadbackProp(void)
 {
-	obj = CreateBufferResource(state, prop, size, flag);
-}
+	D3D12_HEAP_PROPERTIES prop{};
+	prop.CPUPageProperty      = D3D12_CPU_PAGE_PROPERTY::D3D12_CPU_PAGE_PROPERTY_UNKNOWN;
+	prop.CreationNodeMask     = 0;
+	prop.MemoryPoolPreference = D3D12_MEMORY_POOL::D3D12_MEMORY_POOL_UNKNOWN;
+	prop.Type                 = D3D12_HEAP_TYPE::D3D12_HEAP_TYPE_READBACK;
+	prop.VisibleNodeMask      = 0;
 
-Dx12::Resource::Resource(const D3D12_RESOURCE_STATES & state, const D3D12_HEAP_PROPERTIES & prop, 
-	const DXGI_FORMAT & format, const std::uint64_t & width, const std::uint32_t & height, const D3D12_RESOURCE_FLAGS & flag, const D3D12_CLEAR_VALUE * clear)
-{
-	obj = CreateTextureResource(state, prop, format, width, height, flag, clear);
-}
-
-Dx12::Resource::Resource(ID3D12Resource2 * rsc)
-{
-	obj = rsc;
-}
-
-Dx12::Resource::~Resource()
-{
+	return prop;
 }
 
 ID3D12Resource2 * Dx12::Resource::CreateBufferResource(const D3D12_RESOURCE_STATES & state, const D3D12_HEAP_PROPERTIES & prop,
@@ -89,6 +81,31 @@ ID3D12Resource2 * Dx12::Resource::CreateTextureResource(const D3D12_RESOURCE_STA
 	assert(hr == S_OK);
 
 	return rsc;
+}
+
+Dx12::Resource::Resource()
+{
+}
+
+Dx12::Resource::Resource(const D3D12_RESOURCE_STATES& state, const D3D12_HEAP_PROPERTIES& prop, const std::uint64_t& size, const D3D12_RESOURCE_FLAGS& flag)
+{
+	obj = CreateBufferResource(state, prop, size, flag);
+}
+
+Dx12::Resource::Resource(const D3D12_RESOURCE_STATES& state, const D3D12_HEAP_PROPERTIES& prop,
+	const DXGI_FORMAT& format, const std::uint64_t& width, const std::uint32_t& height, const D3D12_RESOURCE_FLAGS& flag, const D3D12_CLEAR_VALUE* clear)
+{
+	obj = CreateTextureResource(state, prop, format, width, height, flag, clear);
+}
+
+Dx12::Resource::Resource(ID3D12Resource2* rsc)
+{
+	Release();
+	obj = rsc;
+}
+
+Dx12::Resource::~Resource()
+{
 }
 
 void Dx12::Resource::ReleaseBuffer(void) const

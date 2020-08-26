@@ -13,7 +13,12 @@ namespace Dx12
 		public BaseObject<IDXGISwapChain4>
 	{
 	public:
+		/* スワップチェインの生成 */
+		static IDXGISwapChain4* CreateSwapChain(const Window* window, const CommandQueue* queue, const std::uint32_t& buffer_num);
+
+	public:
 		/* コンストラクタ */
+		SwapChain();
 		SwapChain(const Window* window, const CommandQueue* queue, const std::uint32_t& buffer_num = 2);
 		SwapChain(IDXGISwapChain4* swap);
 		/* デストラクタ */
@@ -21,7 +26,7 @@ namespace Dx12
 
 	public:
 		/* リソースの取得 */
-		ID3D12Resource2* GetRsc(const std::uint32_t& index);
+		ID3D12Resource2* GetResource(const std::uint32_t& index);
 		/* バッファの切り替え*/
 		void Present(void) const;
 
@@ -32,9 +37,5 @@ namespace Dx12
 		std::uint32_t GetBufferNum(void) const;
 		/* 現在のバッファ番号を取得 */
 		std::uint32_t GetBufferIndex(void) const;
-
-	private:
-		/* スワップチェインの生成 */
-		IDXGISwapChain4* CreateSwapChain(const Window* window, const CommandQueue* queue, const std::uint32_t& buffer_num);
 	};
 }

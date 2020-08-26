@@ -1,21 +1,7 @@
 #include "..\include\Descriptor.h"
 #include "..\include\Runtime.h"
 
-Dx12::Descriptor::Descriptor(const D3D12_DESCRIPTOR_HEAP_TYPE & type, const std::uint64_t& rsc_num, const D3D12_DESCRIPTOR_HEAP_FLAGS & flag)
-{
-	obj = CreateDescriptorHeap(type, rsc_num, flag);
-}
-
-Dx12::Descriptor::Descriptor(ID3D12DescriptorHeap * heap)
-{
-	obj = heap;
-}
-
-Dx12::Descriptor::~Descriptor()
-{
-}
-
-ID3D12DescriptorHeap * Dx12::Descriptor::CreateDescriptorHeap(const D3D12_DESCRIPTOR_HEAP_TYPE & type, const std::uint64_t& rsc_num, const D3D12_DESCRIPTOR_HEAP_FLAGS & flag)
+ID3D12DescriptorHeap* Dx12::Descriptor::CreateDescriptorHeap(const D3D12_DESCRIPTOR_HEAP_TYPE& type, const std::uint64_t& rsc_num, const D3D12_DESCRIPTOR_HEAP_FLAGS& flag)
 {
 	D3D12_DESCRIPTOR_HEAP_DESC desc{};
 	desc.Flags          = flag;
@@ -28,6 +14,25 @@ ID3D12DescriptorHeap * Dx12::Descriptor::CreateDescriptorHeap(const D3D12_DESCRI
 	assert(hr == S_OK);
 
 	return heap;
+}
+
+Dx12::Descriptor::Descriptor()
+{
+}
+
+Dx12::Descriptor::Descriptor(const D3D12_DESCRIPTOR_HEAP_TYPE & type, const std::uint64_t& rsc_num, const D3D12_DESCRIPTOR_HEAP_FLAGS & flag)
+{
+	obj = CreateDescriptorHeap(type, rsc_num, flag);
+}
+
+Dx12::Descriptor::Descriptor(ID3D12DescriptorHeap * heap)
+{
+	Release();
+	obj = heap;
+}
+
+Dx12::Descriptor::~Descriptor()
+{
 }
 
 bool Dx12::Descriptor::CreateRenderTargetView(Resource * rsc)

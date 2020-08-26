@@ -1,21 +1,7 @@
 #include "..\include\CommandQueue.h"
 #include "..\include\Runtime.h"
 
-Dx12::CommandQueue::CommandQueue(const D3D12_COMMAND_LIST_TYPE & type)
-{
-	obj = CreateCommandQueue(type);
-}
-
-Dx12::CommandQueue::CommandQueue(ID3D12CommandQueue * queue)
-{
-	obj = queue;
-}
-
-Dx12::CommandQueue::~CommandQueue()
-{
-}
-
-ID3D12CommandQueue * Dx12::CommandQueue::CreateCommandQueue(const D3D12_COMMAND_LIST_TYPE & type)
+ID3D12CommandQueue* Dx12::CommandQueue::CreateCommandQueue(const D3D12_COMMAND_LIST_TYPE& type)
 {
 	D3D12_COMMAND_QUEUE_DESC desc{};
 	desc.Flags    = D3D12_COMMAND_QUEUE_FLAGS::D3D12_COMMAND_QUEUE_FLAG_NONE;
@@ -28,6 +14,21 @@ ID3D12CommandQueue * Dx12::CommandQueue::CreateCommandQueue(const D3D12_COMMAND_
 	assert(hr == S_OK);
 
 	return queue;
+}
+
+Dx12::CommandQueue::CommandQueue(const D3D12_COMMAND_LIST_TYPE & type)
+{
+	obj = CreateCommandQueue(type);
+}
+
+Dx12::CommandQueue::CommandQueue(ID3D12CommandQueue * queue)
+{
+	Release();
+	obj = queue;
+}
+
+Dx12::CommandQueue::~CommandQueue()
+{
 }
 
 void Dx12::CommandQueue::Execution(const std::vector<CommandList*>& lists)

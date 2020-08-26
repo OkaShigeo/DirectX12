@@ -7,6 +7,10 @@ namespace Dx12
 		public BaseObject<ID3D12CommandAllocator>
 	{
 	public:
+		/* コマンドアロケータの生成 */
+		static ID3D12CommandAllocator* CreateCommandAllocator(const D3D12_COMMAND_LIST_TYPE& type);
+
+	public:
 		/* コンストラクタ */
 		CommandAllocator(const D3D12_COMMAND_LIST_TYPE& type = D3D12_COMMAND_LIST_TYPE::D3D12_COMMAND_LIST_TYPE_DIRECT);
 		CommandAllocator(ID3D12CommandAllocator* allocator);
@@ -15,10 +19,6 @@ namespace Dx12
 
 	public:
 		/* リセット */
-		void Reset(void) const;
-
-	private:
-		/* コマンドアロケータの生成 */
-		ID3D12CommandAllocator* CreateCommandAllocator(const D3D12_COMMAND_LIST_TYPE& type);
+		void Reset(void) const;	
 	};
 }

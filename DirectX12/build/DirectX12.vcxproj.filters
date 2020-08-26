@@ -61,8 +61,17 @@
     <Filter Include="リソース ファイル\HLSL\Texture">
       <UniqueIdentifier>{3d94fe9c-6619-4634-a2fa-8718215a2b25}</UniqueIdentifier>
     </Filter>
-    <Filter Include="リソース ファイル\HLSL\FirstRaytracing">
-      <UniqueIdentifier>{71b114e4-1b60-4317-b073-08372a34517d}</UniqueIdentifier>
+    <Filter Include="HitGroup">
+      <UniqueIdentifier>{b243b323-77aa-40bc-ba51-d716689ead0d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="RaytracingPipeline">
+      <UniqueIdentifier>{45c7086b-bdae-41bf-bf74-96ed807fa49e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="リソース ファイル\HLSL\Raytracing">
+      <UniqueIdentifier>{128cf618-efa9-47a6-9052-77e9bc4cf0f5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="リソース ファイル\HLSL\Raytracing\Sphere">
+      <UniqueIdentifier>{3751f37d-0b81-40ac-9d8a-007206709f0c}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -114,6 +123,15 @@
     <ClInclude Include="..\code\include\ComputePipeline.h">
       <Filter>ComputePipeline</Filter>
     </ClInclude>
+    <ClInclude Include="..\code\include\HitGroup.h">
+      <Filter>HitGroup</Filter>
+    </ClInclude>
+    <ClInclude Include="..\code\include\SubObject.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="..\code\include\RaytracingPipeline.h">
+      <Filter>RaytracingPipeline</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\code\main.cpp">
@@ -161,24 +179,42 @@
     <ClCompile Include="..\code\source\ComputePipeline.cpp">
       <Filter>ComputePipeline</Filter>
     </ClCompile>
+    <ClCompile Include="..\code\source\HitGroup.cpp">
+      <Filter>HitGroup</Filter>
+    </ClCompile>
+    <ClCompile Include="..\code\source\RaytracingPipeline.cpp">
+      <Filter>RaytracingPipeline</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\code\hlsl\Texture.hlsli">
+    <None Include="..\code\hlsl\Raytracing\Sphere.hlsli">
+      <Filter>リソース ファイル\HLSL\Raytracing\Sphere</Filter>
+    </None>
+    <None Include="..\code\hlsl\Texture\Texture.hlsli">
       <Filter>リソース ファイル\HLSL\Texture</Filter>
     </None>
-    <None Include="..\code\hlsl\FirstRaytracing.hlsli">
-      <Filter>リソース ファイル\HLSL\FirstRaytracing</Filter>
+    <None Include="..\code\hlsl\Raytracing\Raytracing.hlsli">
+      <Filter>リソース ファイル\HLSL\Raytracing</Filter>
+    </None>
+    <None Include="..\code\hlsl\Raytracing\Infomation.hlsli">
+      <Filter>リソース ファイル\HLSL\Raytracing</Filter>
+    </None>
+    <None Include="..\code\hlsl\Raytracing\BoundingVolumeHierarchy.hlsli">
+      <Filter>リソース ファイル\HLSL\Raytracing</Filter>
     </None>
   </ItemGroup>
   <ItemGroup>
-    <FxCompile Include="..\code\hlsl\TextureVertex.hlsl">
+    <FxCompile Include="..\code\hlsl\Raytracing\Sphere.hlsl">
+      <Filter>リソース ファイル\HLSL\Raytracing\Sphere</Filter>
+    </FxCompile>
+    <FxCompile Include="..\code\hlsl\Texture\Pixel.hlsl">
       <Filter>リソース ファイル\HLSL\Texture</Filter>
     </FxCompile>
-    <FxCompile Include="..\code\hlsl\TexturePixel.hlsl">
+    <FxCompile Include="..\code\hlsl\Texture\Vertex.hlsl">
       <Filter>リソース ファイル\HLSL\Texture</Filter>
     </FxCompile>
-    <FxCompile Include="..\code\hlsl\FirstRaytracing.hlsl">
-      <Filter>リソース ファイル\HLSL\FirstRaytracing</Filter>
+    <FxCompile Include="..\code\hlsl\Raytracing\Raytracing.hlsl">
+      <Filter>リソース ファイル\HLSL\Raytracing</Filter>
     </FxCompile>
   </ItemGroup>
 </Project>

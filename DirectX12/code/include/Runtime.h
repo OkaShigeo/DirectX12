@@ -67,6 +67,10 @@ namespace Dx12
 		Runtime();
 		/* デストラクタ */
 		~Runtime();
+		/* コピーコンストラクタ */
+		Runtime(const Runtime&) = delete;
+		/* 代入演算子オーバーロード */
+		void operator=(const Runtime&) = delete;
 
 	private:
 		/* ウィンドウ */

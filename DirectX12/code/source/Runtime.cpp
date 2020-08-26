@@ -4,6 +4,7 @@
 #pragma comment(lib, "d3d12.lib")
 #pragma comment(lib, "dxgi.lib")
 
+std::vector<D3D12_STATE_SUBOBJECT> Dx12::SubObject::sub;
 Window* Dx12::Runtime::window = nullptr;
 Dx12::Device* Dx12::Runtime::device = nullptr;
 Dx12::CommandAllocator* Dx12::Runtime::allocator = nullptr;
@@ -29,6 +30,10 @@ void Dx12::Runtime::Initialize(const Dx12::Vec2& size, const Dx12::Vec2& pos)
 	debug->EnableDebugLayer();
 #endif
 
+	if (SubObject::GetSubObjList().capacity() == 0) {
+		SubObject::Reserve(256);
+	}
+
 	window    = new Window(size, pos);
 	device    = new Device();
 	allocator = new CommandAllocator();
@@ -38,7 +43,7 @@ void Dx12::Runtime::Initialize(const Dx12::Vec2& size, const Dx12::Vec2& pos)
 	swap      = new SwapChain(window, queue);
 	heap      = new Descriptor(D3D12_DESCRIPTOR_HEAP_TYPE::D3D12_DESCRIPTOR_HEAP_TYPE_RTV, swap->GetBufferNum(), D3D12_DESCRIPTOR_HEAP_FLAGS::D3D12_DESCRIPTOR_HEAP_FLAG_NONE);
 	for (std::uint32_t i = 0; i < heap->Get()->GetDesc().NumDescriptors; ++i) {
-		rsc.push_back(new Resource(swap->GetRsc(i)));
+		rsc.push_back(new Resource(swap->GetResource(i)));
 		heap->CreateRenderTargetView(rsc[i]);
 	}
 

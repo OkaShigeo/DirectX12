@@ -10,14 +10,15 @@ namespace Dx12
 		public BaseObject<ID3D12PipelineState>
 	{
 	public:
+		/* パイプラインの生成 */
+		static ID3D12PipelineState* CreatePipeline(const RootSignature* root, const ShaderCompiler* shader);
+
+	public:
 		/* コンストラクタ */
+		ComputePipeline();
 		ComputePipeline(const RootSignature* root, const ShaderCompiler* shader);
 		ComputePipeline(ID3D12PipelineState* pipe);
 		/* デストラクタ */
 		~ComputePipeline();
-
-	private:
-		/* パイプラインの生成 */
-		ID3D12PipelineState* CreatePipeline(const RootSignature* root, const ShaderCompiler* shader);
 	};
 }

@@ -10,7 +10,13 @@ namespace Dx12
 		public BaseObject<ID3D12DescriptorHeap>
 	{
 	public:
+		static /* ディスクリプタヒープの生成 */
+			ID3D12DescriptorHeap* CreateDescriptorHeap(const D3D12_DESCRIPTOR_HEAP_TYPE& type,
+				const std::uint64_t& rsc_num, const D3D12_DESCRIPTOR_HEAP_FLAGS& flag);
+
+	public:
 		/* コンストラクタ */
+		Descriptor();
 		Descriptor(const D3D12_DESCRIPTOR_HEAP_TYPE& type, const std::uint64_t& rsc_num, 
 			const D3D12_DESCRIPTOR_HEAP_FLAGS& flag = D3D12_DESCRIPTOR_HEAP_FLAGS::D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE);
 		Descriptor(ID3D12DescriptorHeap* heap);
@@ -28,11 +34,6 @@ namespace Dx12
 		bool CreateUnorderAccessView(Resource* rsc, const std::uint64_t& element_num);
 		/* UAVの生成(テクスチャ) */
 		bool CreateUnorderAccessView(Resource* rsc);
-
-	private:
-		/* ディスクリプタヒープの生成 */
-		ID3D12DescriptorHeap* CreateDescriptorHeap(const D3D12_DESCRIPTOR_HEAP_TYPE& type, 
-			const std::uint64_t& rsc_num, const D3D12_DESCRIPTOR_HEAP_FLAGS& flag);
 
 	private:
 		/* ビュー生成カウント */

@@ -2,20 +2,6 @@
 #include "..\include\Runtime.h"
 #include <wrl.h>
 
-Dx12::SwapChain::SwapChain(const Window * window, const CommandQueue * queue, const std::uint32_t& buffer_num)
-{
-	obj = CreateSwapChain(window, queue, buffer_num);
-}
-
-Dx12::SwapChain::SwapChain(IDXGISwapChain4 * swap)
-{
-	obj = swap;
-}
-
-Dx12::SwapChain::~SwapChain()
-{
-}
-
 IDXGISwapChain4 * Dx12::SwapChain::CreateSwapChain(const Window * window, const CommandQueue * queue, const std::uint32_t& buffer_num)
 {
 	Microsoft::WRL::ComPtr<IDXGIFactory7>factory;
@@ -48,7 +34,26 @@ IDXGISwapChain4 * Dx12::SwapChain::CreateSwapChain(const Window * window, const 
 	return swap;
 }
 
-ID3D12Resource2 * Dx12::SwapChain::GetRsc(const std::uint32_t & index)
+Dx12::SwapChain::SwapChain()
+{
+}
+
+Dx12::SwapChain::SwapChain(const Window* window, const CommandQueue* queue, const std::uint32_t& buffer_num)
+{
+	obj = CreateSwapChain(window, queue, buffer_num);
+}
+
+Dx12::SwapChain::SwapChain(IDXGISwapChain4* swap)
+{
+	Release();
+	obj = swap;
+}
+
+Dx12::SwapChain::~SwapChain()
+{
+}
+
+ID3D12Resource2 * Dx12::SwapChain::GetResource(const std::uint32_t & index)
 {
 	ID3D12Resource2* rsc = nullptr;
 	auto hr = obj->GetBuffer(index, IID_PPV_ARGS(&rsc));
