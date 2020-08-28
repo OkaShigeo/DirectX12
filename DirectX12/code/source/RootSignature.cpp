@@ -63,7 +63,6 @@ void Dx12::RootSignature::AddSubObj(const D3D12_STATE_SUBOBJECT_TYPE & type, con
 	for (auto& i : func_name) {
 		func.push_back(i.c_str());
 	}
-
 	association.NumExports            = std::uint32_t(func_name.size());
 	association.pExports              = func.data();
 	association.pSubobjectToAssociate = &(*sub.rbegin());

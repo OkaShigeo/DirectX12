@@ -6,7 +6,7 @@
 namespace Dx12
 {
 	class CommandAllocator;
-	class Descriptor;
+	class DescriptorHeap;
 	class Resource;
 	class RootSignature;
 	class GraphicsPipeline;
@@ -42,7 +42,7 @@ namespace Dx12
 		/* レンダーターゲットビューのクリア */
 		void ClearRenderTargetView(const Resource* rsc, const float color[4]) const;
 		/* ディスクリプタヒープのセット */
-		void SetDescriptorHeap(const std::vector<Descriptor*>& heap);
+		void SetDescriptorHeap(const std::vector<DescriptorHeap*>& heap);
 		/* グラフィックス用ルートシグネチャのセット */
 		void SetGraphicsRootSignature(const RootSignature* root) const;
 		/* プログラマブル用ルートシグネチャのセット */

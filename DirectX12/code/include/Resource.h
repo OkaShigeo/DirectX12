@@ -4,12 +4,12 @@
 
 namespace Dx12
 {
-	class Descriptor;
+	class DescriptorHeap;
 
 	class Resource :
 		public BaseObject<ID3D12Resource2>
 	{
-		friend Descriptor;
+		friend DescriptorHeap;
 	public:
 		/* デフォルトヒーププロパティの取得 */
 		static D3D12_HEAP_PROPERTIES GetDefaultProp(void);
@@ -40,7 +40,7 @@ namespace Dx12
 
 	public:
 		/* 参照しているディスクリプタヒープの取得 */
-		Descriptor* GetHeap(void) const;
+		DescriptorHeap* GetHeap(void) const;
 		/* CPUハンドルの取得 */
 		D3D12_CPU_DESCRIPTOR_HANDLE GetCpuHandle(void) const;
 		/* GPUハンドルの取得 */
@@ -50,7 +50,7 @@ namespace Dx12
 
 	private:
 		/* 参照しているディスクリプタヒープ */
-		Descriptor* heap{ nullptr };
+		DescriptorHeap* heap{ nullptr };
 		/* ビューアドレスのオフセットカウント*/
 		std::uint32_t count{ 0 };
 	};

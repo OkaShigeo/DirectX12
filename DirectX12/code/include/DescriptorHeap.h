@@ -6,7 +6,7 @@ namespace Dx12
 {
 	class Resource;
 
-	class Descriptor :
+	class DescriptorHeap :
 		public BaseObject<ID3D12DescriptorHeap>
 	{
 	public:
@@ -16,12 +16,12 @@ namespace Dx12
 
 	public:
 		/* コンストラクタ */
-		Descriptor();
-		Descriptor(const D3D12_DESCRIPTOR_HEAP_TYPE& type, const std::uint64_t& rsc_num, 
+		DescriptorHeap();
+		DescriptorHeap(const D3D12_DESCRIPTOR_HEAP_TYPE& type, const std::uint64_t& rsc_num,
 			const D3D12_DESCRIPTOR_HEAP_FLAGS& flag = D3D12_DESCRIPTOR_HEAP_FLAGS::D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE);
-		Descriptor(ID3D12DescriptorHeap* heap);
+		DescriptorHeap(ID3D12DescriptorHeap* heap);
 		/* デストラクタ */
-		~Descriptor();
+		~DescriptorHeap();
 
 	public:
 		/* RTVの生成 */

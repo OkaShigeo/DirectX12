@@ -1,7 +1,7 @@
-#include "..\include\Descriptor.h"
+#include "..\include\DescriptorHeap.h"
 #include "..\include\Runtime.h"
 
-ID3D12DescriptorHeap* Dx12::Descriptor::CreateDescriptorHeap(const D3D12_DESCRIPTOR_HEAP_TYPE& type, const std::uint64_t& rsc_num, const D3D12_DESCRIPTOR_HEAP_FLAGS& flag)
+ID3D12DescriptorHeap* Dx12::DescriptorHeap::CreateDescriptorHeap(const D3D12_DESCRIPTOR_HEAP_TYPE& type, const std::uint64_t& rsc_num, const D3D12_DESCRIPTOR_HEAP_FLAGS& flag)
 {
 	D3D12_DESCRIPTOR_HEAP_DESC desc{};
 	desc.Flags          = flag;
@@ -16,26 +16,26 @@ ID3D12DescriptorHeap* Dx12::Descriptor::CreateDescriptorHeap(const D3D12_DESCRIP
 	return heap;
 }
 
-Dx12::Descriptor::Descriptor()
+Dx12::DescriptorHeap::DescriptorHeap()
 {
 }
 
-Dx12::Descriptor::Descriptor(const D3D12_DESCRIPTOR_HEAP_TYPE & type, const std::uint64_t& rsc_num, const D3D12_DESCRIPTOR_HEAP_FLAGS & flag)
+Dx12::DescriptorHeap::DescriptorHeap(const D3D12_DESCRIPTOR_HEAP_TYPE & type, const std::uint64_t& rsc_num, const D3D12_DESCRIPTOR_HEAP_FLAGS & flag)
 {
 	obj = CreateDescriptorHeap(type, rsc_num, flag);
 }
 
-Dx12::Descriptor::Descriptor(ID3D12DescriptorHeap * heap)
+Dx12::DescriptorHeap::DescriptorHeap(ID3D12DescriptorHeap * heap)
 {
 	Release();
 	obj = heap;
 }
 
-Dx12::Descriptor::~Descriptor()
+Dx12::DescriptorHeap::~DescriptorHeap()
 {
 }
 
-bool Dx12::Descriptor::CreateRenderTargetView(Resource * rsc)
+bool Dx12::DescriptorHeap::CreateRenderTargetView(Resource * rsc)
 {
 	if (count < obj->GetDesc().NumDescriptors) {
 		rsc->heap  = this;
@@ -54,7 +54,7 @@ bool Dx12::Descriptor::CreateRenderTargetView(Resource * rsc)
 	return false;
 }
 
-bool Dx12::Descriptor::CreateConstantBufferView(Resource* rsc)
+bool Dx12::DescriptorHeap::CreateConstantBufferView(Resource* rsc)
 {
 	if (count < obj->GetDesc().NumDescriptors) {
 		rsc->heap  = this;
@@ -72,7 +72,7 @@ bool Dx12::Descriptor::CreateConstantBufferView(Resource* rsc)
 	return false;
 }
 
-bool Dx12::Descriptor::CreateShaderResourceView(Resource * rsc)
+bool Dx12::DescriptorHeap::CreateShaderResourceView(Resource * rsc)
 {
 	if (count < obj->GetDesc().NumDescriptors) {
 		rsc->heap  = this;
@@ -92,7 +92,7 @@ bool Dx12::Descriptor::CreateShaderResourceView(Resource * rsc)
 	return false;
 }
 
-bool Dx12::Descriptor::CreateUnorderAccessView(Resource* rsc, const std::uint64_t& element_num)
+bool Dx12::DescriptorHeap::CreateUnorderAccessView(Resource* rsc, const std::uint64_t& element_num)
 {
 	if (count < obj->GetDesc().NumDescriptors) {
 		rsc->heap  = this;
@@ -115,7 +115,7 @@ bool Dx12::Descriptor::CreateUnorderAccessView(Resource* rsc, const std::uint64_
 	return false;
 }
 
-bool Dx12::Descriptor::CreateUnorderAccessView(Resource * rsc)
+bool Dx12::DescriptorHeap::CreateUnorderAccessView(Resource * rsc)
 {
 	if (count < obj->GetDesc().NumDescriptors) {
 		rsc->heap  = this;

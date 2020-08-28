@@ -92,7 +92,7 @@ namespace
 		float alignment{ 0.0f };
 	};
 	/* 球体の最大数 */
-	const std::uint32_t sphere_max = 128;
+	const std::uint32_t sphere_max = 256;
 }
 
 int main()
@@ -103,7 +103,7 @@ int main()
 	Dx12::Resource* texture_vertex              = new Dx12::Resource(D3D12_RESOURCE_STATES::D3D12_RESOURCE_STATE_GENERIC_READ, Dx12::Resource::GetUploadProp(), sizeof(vertex_info));
 	Dx12::Resource* texture_index               = new Dx12::Resource(D3D12_RESOURCE_STATES::D3D12_RESOURCE_STATE_GENERIC_READ, Dx12::Resource::GetUploadProp(), sizeof(index_info));
 	Dx12::Resource* texture                     = new Dx12::Resource(D3D12_RESOURCE_STATES::D3D12_RESOURCE_STATE_GENERIC_READ, Dx12::Resource::GetDefaultProp(), DXGI_FORMAT::DXGI_FORMAT_R8G8B8A8_UNORM, window_size.x, window_size.y, D3D12_RESOURCE_FLAGS::D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS);
-	Dx12::Descriptor* texture_heap              = new Dx12::Descriptor(D3D12_DESCRIPTOR_HEAP_TYPE::D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, 1);
+	Dx12::DescriptorHeap* texture_heap          = new Dx12::DescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE::D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, 1);
 	Dx12::ShaderCompiler* texture_shader_vertex = new Dx12::ShaderCompiler(shader_dir + L"Texture/Vertex.hlsl", shader_func, L"vs" + shader_model);
 	Dx12::ShaderCompiler* texture_shader_pixel  = new Dx12::ShaderCompiler(shader_dir + L"Texture/Pixel.hlsl", shader_func, L"ps" + shader_model);
 	Dx12::RootSignature* texture_root           = new Dx12::RootSignature(texture_shader_vertex);
@@ -129,7 +129,7 @@ int main()
 	Dx12::Resource* camera                  = new Dx12::Resource(D3D12_RESOURCE_STATES::D3D12_RESOURCE_STATE_GENERIC_READ, Dx12::Resource::GetUploadProp(), (sizeof(Camera) + 0xff) & ~0xff);
 	Dx12::Resource* sphere                  = new Dx12::Resource(D3D12_RESOURCE_STATES::D3D12_RESOURCE_STATE_UNORDERED_ACCESS, Dx12::Resource::GetDefaultProp(), (sizeof(Sphere) * sphere_max), D3D12_RESOURCE_FLAGS::D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS);
 	Dx12::Resource* result                  = new Dx12::Resource(D3D12_RESOURCE_STATES::D3D12_RESOURCE_STATE_COPY_SOURCE, Dx12::Resource::GetDefaultProp(), DXGI_FORMAT::DXGI_FORMAT_R8G8B8A8_UNORM, window_size.x, window_size.y, D3D12_RESOURCE_FLAGS::D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS);
-	Dx12::Descriptor* raytracing_heap       = new Dx12::Descriptor(D3D12_DESCRIPTOR_HEAP_TYPE::D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, 3);
+	Dx12::DescriptorHeap* raytracing_heap   = new Dx12::DescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE::D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, 3);
 	Dx12::ShaderCompiler* sphere_shader     = new Dx12::ShaderCompiler(shader_dir + L"Raytracing/Sphere.hlsl", shader_func, L"cs" + shader_model);
 	Dx12::RootSignature* sphere_root        = new Dx12::RootSignature(sphere_shader);
 	Dx12::ComputePipeline* sphere_pipe      = new Dx12::ComputePipeline(sphere_root, sphere_shader);
@@ -169,27 +169,31 @@ int main()
 		std::memcpy(buffer, &camera_info, sizeof(Camera));
 		camera->ReleaseBuffer();
 	}
+	/* レイトレーシングの実行 */
+	{
+		Dx12::Runtime::Clear();
+
+		std::uint32_t param_index = 0;
+
+		Dx12::Runtime::SetComputeRootSignature(raytracing_root);
+		Dx12::Runtime::SetComputePipeline(raytracing_pipe);
+		Dx12::Runtime::SetDescriptorHeap({ raytracing_heap });
+		Dx12::Runtime::SetComputeResource(camera, param_index++);
+		Dx12::Runtime::SetComputeResource(sphere, param_index++);
+		Dx12::Runtime::SetComputeResource(result, param_index++);
+
+		Dx12::Runtime::SetRscBarrier(result, D3D12_RESOURCE_STATES::D3D12_RESOURCE_STATE_COPY_SOURCE, D3D12_RESOURCE_STATES::D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
+		Dx12::Runtime::Dispatch(window_size.x, window_size.y);
+		Dx12::Runtime::SetUavRscBarrier(result);
+		Dx12::Runtime::SetRscBarrier(result, D3D12_RESOURCE_STATES::D3D12_RESOURCE_STATE_UNORDERED_ACCESS, D3D12_RESOURCE_STATES::D3D12_RESOURCE_STATE_COPY_SOURCE);
+		
+		Dx12::Runtime::Execution();
+	}
 
 	/*==========メインループ==========*/
 	while (Window::CheckMsg() == true) {
 		Dx12::Runtime::Clear();
 
-		/* レイトレーシングの実行 */
-		{
-			std::uint32_t param_index = 0;
-
-			Dx12::Runtime::SetComputeRootSignature(raytracing_root);
-			Dx12::Runtime::SetComputePipeline(raytracing_pipe);
-			Dx12::Runtime::SetDescriptorHeap({ raytracing_heap });
-			Dx12::Runtime::SetComputeResource(camera, param_index++);
-			Dx12::Runtime::SetComputeResource(sphere, param_index++);
-			Dx12::Runtime::SetComputeResource(result, param_index++);
-
-			Dx12::Runtime::SetRscBarrier(result, D3D12_RESOURCE_STATES::D3D12_RESOURCE_STATE_COPY_SOURCE, D3D12_RESOURCE_STATES::D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
-			Dx12::Runtime::Dispatch(window_size.x, window_size.y);
-			Dx12::Runtime::SetUavRscBarrier(result);
-			Dx12::Runtime::SetRscBarrier(result, D3D12_RESOURCE_STATES::D3D12_RESOURCE_STATE_UNORDERED_ACCESS, D3D12_RESOURCE_STATES::D3D12_RESOURCE_STATE_COPY_SOURCE);
-		}
 		/* レイトレーシング結果をレンダーターゲットにコピー*/
 		{
 			Dx12::Runtime::SetRscBarrier(texture, D3D12_RESOURCE_STATES::D3D12_RESOURCE_STATE_GENERIC_READ, D3D12_RESOURCE_STATES::D3D12_RESOURCE_STATE_COPY_DEST);

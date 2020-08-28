@@ -16,6 +16,15 @@ RWStructuredBuffer<Sphere>sphere : register(u0);
 /* 結果テクスチャ */
 RWTexture2D<float4> tex : register(u1);
 
+/* 背景色の算出 */
+float3 BackgroundColor(in Ray ray, in float3 finish_color, in float3 start_color = float3(1.0f, 1.0f, 1.0f))
+{
+    float time = 0.5f * (ray.direction.y + 1.0f);
+
+    /* 線形補間 */
+    return lerp(start_color, finish_color, time);
+}
+
 /* 球体との当たり判定 */
 bool CheckHitSphere(in Ray ray, out Hit hit)
 {
@@ -40,4 +49,10 @@ bool CheckHitSphere(in Ray ray, out Hit hit)
     }
 
     return (hit.time >= 0.0f);
+}
+
+/* 縞模様の取得 */
+float3 GetStripedPatternColor(in float2 uv, in float3 pos, in float3 color1, in float3 color2)
+{
+    return 1.0f;
 }

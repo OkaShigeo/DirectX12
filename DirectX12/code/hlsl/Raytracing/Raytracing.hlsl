@@ -2,6 +2,8 @@
 
 /* 最大スレッドグループ(X) */
 #define MAX_THREAD_GROUP_X 64
+/* 最大反射回数 */
+#define MAX_REFLECT_COUNT 10
 
 /* グループスレッドごとの計算結果  */
 groupshared float3 result[MAX_THREAD_GROUP_X];
@@ -13,7 +15,7 @@ void main(ComputeThreadID semantics)
     /* ヒット情報 */
     Hit hit =
     {
-        -1.0f, float3(0.0f, 0.0f, 0.0f), float3(0.0f, 0.0f, 0.0f), float3(0.0f, 0.0f, 0.0f), MATERIAL_NONE
+        -1.0f, float3(0.0f, 0.0f, 0.0f), float3(0.0f, 0.0f, 0.0f), float3(0.0f, 0.0f, 0.0f), MATERIAL_NONE, float2(0.0f, 0.0f)
     };
     
 	/* テクスチャサイズの取得 */ 
@@ -43,7 +45,7 @@ void main(ComputeThreadID semantics)
     };
     
     float3 color = 1.0f;
-    for (uint i = 0; i < 10; ++i)
+    for (uint i = 0; i < MAX_REFLECT_COUNT; ++i)
     {
         if (CheckHitSphere(ray, hit) == true)
         {

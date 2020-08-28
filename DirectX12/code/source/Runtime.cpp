@@ -12,7 +12,7 @@ Dx12::CommandList* Dx12::Runtime::list = nullptr;
 Dx12::CommandQueue* Dx12::Runtime::queue = nullptr;
 Dx12::Fence* Dx12::Runtime::fence = nullptr;
 Dx12::SwapChain* Dx12::Runtime::swap = nullptr;
-Dx12::Descriptor* Dx12::Runtime::heap = nullptr;
+Dx12::DescriptorHeap* Dx12::Runtime::heap = nullptr;
 std::vector<Dx12::Resource*> Dx12::Runtime::rsc;
 
 namespace {
@@ -41,7 +41,7 @@ void Dx12::Runtime::Initialize(const Dx12::Vec2& size, const Dx12::Vec2& pos)
 	queue     = new CommandQueue();
 	fence     = new Fence(queue);
 	swap      = new SwapChain(window, queue);
-	heap      = new Descriptor(D3D12_DESCRIPTOR_HEAP_TYPE::D3D12_DESCRIPTOR_HEAP_TYPE_RTV, swap->GetBufferNum(), D3D12_DESCRIPTOR_HEAP_FLAGS::D3D12_DESCRIPTOR_HEAP_FLAG_NONE);
+	heap      = new DescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE::D3D12_DESCRIPTOR_HEAP_TYPE_RTV, swap->GetBufferNum(), D3D12_DESCRIPTOR_HEAP_FLAGS::D3D12_DESCRIPTOR_HEAP_FLAG_NONE);
 	for (std::uint32_t i = 0; i < heap->Get()->GetDesc().NumDescriptors; ++i) {
 		rsc.push_back(new Resource(swap->GetResource(i)));
 		heap->CreateRenderTargetView(rsc[i]);
@@ -111,7 +111,7 @@ void Dx12::Runtime::Execution(const std::vector<CommandList*>& lists)
 	fence->Wait();
 }
 
-void Dx12::Runtime::SetDescriptorHeap(const std::vector<Descriptor*>& heap)
+void Dx12::Runtime::SetDescriptorHeap(const std::vector<DescriptorHeap*>& heap)
 {
 	list->SetDescriptorHeap(heap);
 }

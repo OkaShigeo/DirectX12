@@ -3,6 +3,7 @@
 #include <fstream>
 #include <algorithm>
 #include <random>
+#include <array>
 
 namespace {
 	/* ウィンドウXサイズ */
@@ -52,16 +53,53 @@ namespace {
 
 			return aabb;
 		}
+		/* ヒット判定 */
+		bool IsHit(const float ray_pos[3], const float ray_direction[3], float& min_time, float& max_time)
+		{
+			for (std::uint32_t i = 0; i < 3; ++i) {
+				float inv = 1.0f / ray_direction[i];
+				float t0 = (min[i] - ray_pos[i]) * inv;
+				float t1 = (max[i] - ray_pos[i]) * inv;
+
+				if (inv < 0.0f) {
+					std::swap(t0, t1);
+				}
+
+				min_time = std::fmax(t0, min_time);
+				max_time = std::fmin(t1, max_time);
+
+				if (max_time <= min_time) {
+					return false;
+				}
+			}
+
+			return true;
+		}
 	};
 	/* BVHノード */
 	struct BVH_NODE
 	{
+		/* コンストラクタ */
+		BVH_NODE() {
+			for (auto& i : child_index) {
+				i = -1;
+			}
+		}
+		/* 末端ノードか確認 */
+		bool IsLeaf(void) const {
+			for (auto& i : child_index) {
+				if (i == -1) {
+					return true;
+				}
+			}
+
+			return false;
+		}
+
 		/* AABB */
 		AABB aabb;
-		/* 左ノード番号 */
-		std::int32_t left{ 0 };
-		/* 右ノード番号 */
-		std::int32_t right{ 0 };
+		/* ノード番号 */
+		std::array<std::int32_t, 2>child_index;
 	};
 	/* BVH */
 	struct BVH
@@ -127,8 +165,9 @@ namespace {
 					return a.GetCenter(axis) < b.GetCenter(axis);
 				});
 
-				node.left  = node_index++;
-				node.right = node_index++;
+				for (auto& i : node.child_index) {
+					i = node_index++;
+				}
 
 				this->node.push_back(node);
 
@@ -136,10 +175,61 @@ namespace {
 				Construction(std::vector<AABB>(sort.begin() + sprite, sort.end()), false);
 			}
 			else {
-				node.left = node.right = -1;
+				for (auto& i : node.child_index) {
+					i = -1;
+				}
 
 				this->node.push_back(node);
 			}
+		}
+		/* ヒット判定 */
+		BVH_NODE* IsHit(const std::int32_t& index, const float ray_pos[3], const float ray_direction[3], float& min_time, float& max_time)
+		{
+			if (node[index].aabb.IsHit(ray_pos, ray_direction, min_time, max_time) == true) {
+				BVH_NODE* result = nullptr;
+				if (node[index].IsLeaf() != true) {
+					return &node[index];
+				}
+				else {
+					BVH_NODE* tmp = nullptr;
+					for (auto& i : node[index].child_index) {
+						tmp = IsHit(i, ray_pos, ray_direction, min_time, max_time);
+						if (tmp != nullptr) {
+							result = tmp;
+						}
+					}
+
+					return result;
+				}
+			}
+		}
+
+
+
+		/* ヒット判定 */
+		BVH_NODE* IsHit(const std::int32_t& index, const float ray_pos[3], const float ray_direction[3], float& min_time, float& max_time)
+		{
+			if (node[index].aabb.IsHit(ray_pos, ray_direction, min_time, max_time) == true) {
+				/* 中間ノードの場合 */
+				if (node[index].IsLeaf() == true) {
+					BVH_NODE* result = nullptr;
+					for (auto& i : node[index].child_index) {
+						auto* tmp = IsHit(i, ray_pos, ray_direction, min_time, max_time);
+						if (tmp != nullptr) {
+							result = tmp;
+						}
+					}
+
+					if (result != nullptr) {
+						return result;
+					}
+				}
+				else {
+
+				}
+			}
+
+			return nullptr;
 		}
 	};
 }
@@ -267,7 +357,7 @@ int main()
 		MV1DrawModel(model);
 
 		for (std::uint32_t i = 0; i < bvh.node.size(); ++i) {
-			if (bvh.node[i].left == -1 && bvh.node[i].right == -1) {
+			if (bvh.node[i].IsLeaf() == true) {
 				AABB* aabb = &bvh.node[i].aabb;
 
 				std::random_device seed;

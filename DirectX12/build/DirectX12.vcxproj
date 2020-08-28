@@ -127,12 +127,13 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="..\code\include\AccelerationStructure.h" />
     <ClInclude Include="..\code\include\BaseObject.h" />
     <ClInclude Include="..\code\include\CommandAllocator.h" />
     <ClInclude Include="..\code\include\CommandList.h" />
     <ClInclude Include="..\code\include\CommandQueue.h" />
     <ClInclude Include="..\code\include\ComputePipeline.h" />
-    <ClInclude Include="..\code\include\Descriptor.h" />
+    <ClInclude Include="..\code\include\DescriptorHeap.h" />
     <ClInclude Include="..\code\include\Device.h" />
     <ClInclude Include="..\code\include\Fence.h" />
     <ClInclude Include="..\code\include\GraphicsPipeline.h" />
@@ -149,11 +150,12 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\code\main.cpp" />
+    <ClCompile Include="..\code\source\AccelerationStructure.cpp" />
     <ClCompile Include="..\code\source\CommandAllocator.cpp" />
     <ClCompile Include="..\code\source\CommandList.cpp" />
     <ClCompile Include="..\code\source\CommandQueue.cpp" />
     <ClCompile Include="..\code\source\ComputePipeline.cpp" />
-    <ClCompile Include="..\code\source\Descriptor.cpp" />
+    <ClCompile Include="..\code\source\DescriptorHeap.cpp" />
     <ClCompile Include="..\code\source\Device.cpp" />
     <ClCompile Include="..\code\source\Fence.cpp" />
     <ClCompile Include="..\code\source\GraphicsPipeline.cpp" />

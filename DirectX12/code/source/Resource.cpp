@@ -114,7 +114,7 @@ void Dx12::Resource::ReleaseBuffer(void) const
 	obj->Unmap(0, &range);
 }
 
-Dx12::Descriptor * Dx12::Resource::GetHeap(void) const
+Dx12::DescriptorHeap * Dx12::Resource::GetHeap(void) const
 {
 	return heap;
 }

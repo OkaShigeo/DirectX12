@@ -37,9 +37,6 @@
     <Filter Include="SwapChain">
       <UniqueIdentifier>{0ab3c45c-e88a-4360-8d9c-1b57ffd87632}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Descriptor">
-      <UniqueIdentifier>{d8bb10f0-087a-4030-82fb-6cfa3d42c2aa}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Resource">
       <UniqueIdentifier>{ee845170-17f1-4885-9658-0851cbe8868d}</UniqueIdentifier>
     </Filter>
@@ -73,6 +70,12 @@
     <Filter Include="リソース ファイル\HLSL\Raytracing\Sphere">
       <UniqueIdentifier>{3751f37d-0b81-40ac-9d8a-007206709f0c}</UniqueIdentifier>
     </Filter>
+    <Filter Include="AccelerationStructure">
+      <UniqueIdentifier>{3aadae24-e94a-464d-9504-180f68a2e96e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="DescriptorHeap">
+      <UniqueIdentifier>{d8bb10f0-087a-4030-82fb-6cfa3d42c2aa}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\code\include\Window.h">
@@ -105,9 +108,6 @@
     <ClInclude Include="..\code\include\SwapChain.h">
       <Filter>SwapChain</Filter>
     </ClInclude>
-    <ClInclude Include="..\code\include\Descriptor.h">
-      <Filter>Descriptor</Filter>
-    </ClInclude>
     <ClInclude Include="..\code\include\Resource.h">
       <Filter>Resource</Filter>
     </ClInclude>
@@ -131,6 +131,12 @@
     </ClInclude>
     <ClInclude Include="..\code\include\RaytracingPipeline.h">
       <Filter>RaytracingPipeline</Filter>
+    </ClInclude>
+    <ClInclude Include="..\code\include\AccelerationStructure.h">
+      <Filter>AccelerationStructure</Filter>
+    </ClInclude>
+    <ClInclude Include="..\code\include\DescriptorHeap.h">
+      <Filter>DescriptorHeap</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -161,9 +167,6 @@
     <ClCompile Include="..\code\source\SwapChain.cpp">
       <Filter>SwapChain</Filter>
     </ClCompile>
-    <ClCompile Include="..\code\source\Descriptor.cpp">
-      <Filter>Descriptor</Filter>
-    </ClCompile>
     <ClCompile Include="..\code\source\Resource.cpp">
       <Filter>Resource</Filter>
     </ClCompile>
@@ -184,6 +187,12 @@
     </ClCompile>
     <ClCompile Include="..\code\source\RaytracingPipeline.cpp">
       <Filter>RaytracingPipeline</Filter>
+    </ClCompile>
+    <ClCompile Include="..\code\source\DescriptorHeap.cpp">
+      <Filter>DescriptorHeap</Filter>
+    </ClCompile>
+    <ClCompile Include="..\code\source\AccelerationStructure.cpp">
+      <Filter>AccelerationStructure</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

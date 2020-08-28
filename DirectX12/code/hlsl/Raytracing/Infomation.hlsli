@@ -61,6 +61,8 @@ struct Hit
     float3 color;
     /* マテリアル種別 */
     uint material;
+    /* ヒットUV座標 */
+    float2 uv;
 };
 
 /* 球体 */
@@ -133,6 +135,10 @@ struct Sphere
                 hit.color    = color;
                 hit.material = material;
                 
+                float phi = atan2(hit.normal.z, hit.normal.x);
+                float theta = asin(hit.normal.y);
+                hit.uv = float2(1.0f - (phi + acos(-1.0f)) / (2.0f * acos(-1.0f)), (theta + (acos(-1.0f) / 2.0f)) / acos(-1.0f));
+                
                 return true;
             }
         }
@@ -144,15 +150,6 @@ struct Sphere
         return false;
     }
 };
-
-/* 背景色の算出 */
-float3 BackgroundColor(in Ray ray, in float3 finish_color, in float3 start_color = float3(1.0f, 1.0f, 1.0f))
-{
-    float time = 0.5f * (ray.direction.y + 1.0f);
-
-    /* 線形補間 */
-    return lerp(start_color, finish_color, time);
-}
 
 /* ランダム値の取得 */
 float Random(in float2 uv, in int seed = 0)

@@ -6,7 +6,7 @@
 #include "CommandQueue.h"
 #include "Fence.h"
 #include "SwapChain.h"
-#include "Descriptor.h"
+#include "DescriptorHeap.h"
 #include "Resource.h"
 #include "ShaderCompiler.h"
 #include "RootSignature.h"
@@ -27,7 +27,7 @@ namespace Dx12
 		/* 実行 */
 		static void Execution(const std::vector<CommandList*>& lists = {});
 		/* ディスクリプタヒープのセット */
-		static void SetDescriptorHeap(const std::vector<Descriptor*>& heap);
+		static void SetDescriptorHeap(const std::vector<DescriptorHeap*>& heap);
 		/* グラフィックス用ルートシグネチャのセット */
 		static void SetGraphicsRootSignature(const RootSignature* root);
 		/* プログラマブル用ルートシグネチャのセット */
@@ -88,7 +88,7 @@ namespace Dx12
 		/* スワップチェイン */
 		static SwapChain* swap;
 		/* ディスクリプタヒープ */
-		static Descriptor* heap;
+		static DescriptorHeap* heap;
 		/* リソース */
 		static std::vector<Resource*>rsc;
 	};

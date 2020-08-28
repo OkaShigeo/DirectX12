@@ -91,7 +91,7 @@ void Dx12::CommandList::ClearRenderTargetView(const Resource * rsc, const float 
 	obj->ClearRenderTargetView(handle, color, 0, nullptr);
 }
 
-void Dx12::CommandList::SetDescriptorHeap(const std::vector<Descriptor*>& heap)
+void Dx12::CommandList::SetDescriptorHeap(const std::vector<DescriptorHeap*>& heap)
 {
 	std::vector<ID3D12DescriptorHeap*>tmp;
 	for (auto& i : heap) {
