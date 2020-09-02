@@ -25,6 +25,18 @@ float3 BackgroundColor(in Ray ray, in float3 finish_color, in float3 start_color
     return lerp(start_color, finish_color, time);
 }
 
+/* ŽÈ–Í—l‚ÌŽæ“¾ */
+float3 GetStripedPatternColor(in float2 uv, in float3 pos, in float3 color1 = float3(0.0f, 0.0f, 0.0f), in float3 color2 = float3(1.0f, 1.0f, 1.0f))
+{
+    float sine = sin(10.0f * pos.x) * sin(10.0f * pos.y) * sin(10.0f * pos.z);
+    if (sine < 0.0f)
+    {
+        return color1;
+    }
+    
+    return color2;
+}
+
 /* ‹…‘Ì‚Æ‚Ì“–‚½‚è”»’è */
 bool CheckHitSphere(in Ray ray, out Hit hit)
 {
@@ -45,14 +57,13 @@ bool CheckHitSphere(in Ray ray, out Hit hit)
         {
             hit = dummy;
             max = hit.time;
+            
+            if (hit.material == MATERIAL_LAMBERT)
+            {
+                hit.color = GetStripedPatternColor(hit.uv, hit.pos);
+            }
         }
     }
 
     return (hit.time >= 0.0f);
-}
-
-/* ŽÈ–Í—l‚ÌŽæ“¾ */
-float3 GetStripedPatternColor(in float2 uv, in float3 pos, in float3 color1, in float3 color2)
-{
-    return 1.0f;
 }

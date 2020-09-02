@@ -92,7 +92,7 @@ namespace
 		float alignment{ 0.0f };
 	};
 	/* ‹…‘Ì‚ÌÅ‘å” */
-	const std::uint32_t sphere_max = 256;
+	const std::uint32_t sphere_max = 2;
 }
 
 int main()

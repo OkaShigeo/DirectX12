@@ -21,17 +21,17 @@ void main(ComputeThreadID semantics)
         case 1:
             center   = float3(0.0f, 1.0f, 0.0f);
             radius   = 1.0f;
-            color    = float3(1.0f, 1.0f, 1.0f);
-            material = MATERIAL_REFRACT;
-            break;
-        case 2:
-            center   = float3(-4.0f, 1.0f, 0.0f);
-            radius   = 1.0f;
             color    = float3(0.4f, 0.2f, 0.1f);
             material = MATERIAL_LAMBERT;
             break;
-        case 3:
+        case 2:
             center   = float3(4.0f, 1.0f, 0.0f);
+            radius   = 1.0f;
+            color    = float3(1.0f, 1.0f, 1.0f);
+            material = MATERIAL_REFRACT;
+            break;
+        case 3:
+            center   = float3(-4.0f, 1.0f, 0.0f);
             radius   = 1.0f;
             color    = float3(0.7f, 0.6f, 0.5f);
             material = MATERIAL_REFLECT;

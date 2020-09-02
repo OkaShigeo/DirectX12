@@ -8,12 +8,17 @@ Dx12::AcceleratoinStructure::AcceleratoinStructure()
 
 Dx12::AcceleratoinStructure::~AcceleratoinStructure()
 {
+	Release();
 }
 
 void Dx12::AcceleratoinStructure::Release(void)
 {
 	for (auto& i : rsc) {
-		i->Release();
+		if (i != nullptr) {
+			delete i;
+		}
 	}
-	heap->Release();
+	if (heap != nullptr) {
+		delete heap;
+	}
 }
