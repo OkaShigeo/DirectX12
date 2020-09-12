@@ -37,8 +37,7 @@ D3D12_HEAP_PROPERTIES Dx12::Resource::GetReadbackProp(void)
 	return prop;
 }
 
-ID3D12Resource2 * Dx12::Resource::CreateBufferResource(const D3D12_RESOURCE_STATES & state, const D3D12_HEAP_PROPERTIES & prop,
-	const std::uint64_t & size, const D3D12_RESOURCE_FLAGS & flag)
+ID3D12Resource2 * Dx12::Resource::CreateBufferResource(const D3D12_RESOURCE_STATES & state, const D3D12_HEAP_PROPERTIES & prop, const std::uint64_t & size, const D3D12_RESOURCE_FLAGS & flag, const D3D12_CLEAR_VALUE* clear)
 {
 	D3D12_RESOURCE_DESC1 desc{};
 	desc.Dimension                = D3D12_RESOURCE_DIMENSION::D3D12_RESOURCE_DIMENSION_BUFFER;
@@ -53,15 +52,14 @@ ID3D12Resource2 * Dx12::Resource::CreateBufferResource(const D3D12_RESOURCE_STAT
 	desc.Width                    = size;
 
 	ID3D12Resource2* rsc = nullptr;
-	auto hr = Runtime::GetDevice()->Get()->CreateCommittedResource1(&prop, D3D12_HEAP_FLAGS::D3D12_HEAP_FLAG_NONE, (D3D12_RESOURCE_DESC*)&desc,
-		state, nullptr, nullptr, IID_PPV_ARGS(&rsc));
+	auto hr = Runtime::GetDevice()->Get()->CreateCommittedResource1(&prop, D3D12_HEAP_FLAGS::D3D12_HEAP_FLAG_NONE, 
+		(D3D12_RESOURCE_DESC*)&desc, state, clear, nullptr, IID_PPV_ARGS(&rsc));
 	assert(hr == S_OK);
 
 	return rsc;
 }
 
-ID3D12Resource2 * Dx12::Resource::CreateTextureResource(const D3D12_RESOURCE_STATES & state, const D3D12_HEAP_PROPERTIES & prop, const DXGI_FORMAT & format, 
-	const std::uint64_t & width, const std::uint32_t & height, const D3D12_RESOURCE_FLAGS & flag, const D3D12_CLEAR_VALUE * clear)
+ID3D12Resource2 * Dx12::Resource::CreateTextureResource(const D3D12_RESOURCE_STATES & state, const D3D12_HEAP_PROPERTIES & prop, const DXGI_FORMAT & format, const std::uint64_t & width, const std::uint32_t & height, const D3D12_RESOURCE_FLAGS & flag, const D3D12_CLEAR_VALUE * clear)
 {
 	D3D12_RESOURCE_DESC1 desc{};
 	desc.DepthOrArraySize         = 1;
@@ -76,24 +74,28 @@ ID3D12Resource2 * Dx12::Resource::CreateTextureResource(const D3D12_RESOURCE_STA
 	desc.Width                    = width;
 
 	ID3D12Resource2* rsc = nullptr;
-	auto hr = Runtime::GetDevice()->Get()->CreateCommittedResource1(&prop, D3D12_HEAP_FLAGS::D3D12_HEAP_FLAG_NONE, (D3D12_RESOURCE_DESC*)&desc,
-		state, clear, nullptr, IID_PPV_ARGS(&rsc));
+	auto hr = Runtime::GetDevice()->Get()->CreateCommittedResource1(&prop, D3D12_HEAP_FLAGS::D3D12_HEAP_FLAG_NONE, 
+		(D3D12_RESOURCE_DESC*)&desc, state, clear, nullptr, IID_PPV_ARGS(&rsc));
 	assert(hr == S_OK);
 
 	return rsc;
+}
+
+ID3D12Resource2* Dx12::Resource::CreateScratchResource()
+{
+	return nullptr;
 }
 
 Dx12::Resource::Resource()
 {
 }
 
-Dx12::Resource::Resource(const D3D12_RESOURCE_STATES& state, const D3D12_HEAP_PROPERTIES& prop, const std::uint64_t& size, const D3D12_RESOURCE_FLAGS& flag)
+Dx12::Resource::Resource(const D3D12_RESOURCE_STATES& state, const D3D12_HEAP_PROPERTIES& prop, const std::uint64_t& size, const D3D12_RESOURCE_FLAGS& flag, const D3D12_CLEAR_VALUE* clear)
 {
-	obj = CreateBufferResource(state, prop, size, flag);
+	obj = CreateBufferResource(state, prop, size, flag, clear);
 }
 
-Dx12::Resource::Resource(const D3D12_RESOURCE_STATES& state, const D3D12_HEAP_PROPERTIES& prop,
-	const DXGI_FORMAT& format, const std::uint64_t& width, const std::uint32_t& height, const D3D12_RESOURCE_FLAGS& flag, const D3D12_CLEAR_VALUE* clear)
+Dx12::Resource::Resource(const D3D12_RESOURCE_STATES& state, const D3D12_HEAP_PROPERTIES& prop, const DXGI_FORMAT& format, const std::uint64_t& width, const std::uint32_t& height, const D3D12_RESOURCE_FLAGS& flag, const D3D12_CLEAR_VALUE* clear)
 {
 	obj = CreateTextureResource(state, prop, format, width, height, flag, clear);
 }
@@ -106,6 +108,24 @@ Dx12::Resource::Resource(ID3D12Resource2* rsc)
 
 Dx12::Resource::~Resource()
 {
+}
+
+ID3D12Resource2* Dx12::Resource::UpdateSubResource(const std::vector<std::uint8_t>& data, std::vector<D3D12_PLACED_SUBRESOURCE_FOOTPRINT>& information, const std::uint32_t& offset, const std::uint32_t& texture_num)
+{
+	D3D12_RESOURCE_DESC1 desc = obj->GetDesc1();
+	information.resize(desc.MipLevels * (desc.Dimension == D3D12_RESOURCE_DIMENSION::D3D12_RESOURCE_DIMENSION_TEXTURE3D) ? texture_num : desc.DepthOrArraySize);
+
+	ID3D12Resource2* upload = CreateBufferResource(D3D12_RESOURCE_STATES::D3D12_RESOURCE_STATE_GENERIC_READ, GetUploadProp(), GetSize(information.data(), information.size(), offset));
+
+	std::uint8_t* buffer = nullptr;
+	auto hr = upload->Map(0, nullptr, (void**)&buffer);
+	assert(hr == S_OK);
+	for (auto& i : information) {
+		std::memcpy(buffer + i.Offset, &data[i.Offset], i.Footprint.RowPitch * i.Footprint.Height);
+	}
+	upload->Unmap(0, nullptr);
+
+	return upload;
 }
 
 void Dx12::Resource::ReleaseBuffer(void) const
@@ -137,4 +157,13 @@ std::uint8_t * Dx12::Resource::GetBuffer(void) const
 	assert(hr == S_OK);
 	
 	return buffer;
+}
+
+std::uint64_t Dx12::Resource::GetSize(D3D12_PLACED_SUBRESOURCE_FOOTPRINT* information, const std::uint64_t& num, const std::uint32_t& offset) const
+{
+	auto desc = obj->GetDesc();
+	std::uint64_t size = 0;
+	Dx12::Runtime::GetDevice()->Get()->GetCopyableFootprints(&desc, offset, num, 0, information, nullptr, nullptr, &size);
+
+	return size;
 }

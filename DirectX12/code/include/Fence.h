@@ -10,27 +10,40 @@ namespace Dx12
 		public BaseObject<ID3D12Fence1>
 	{
 	public:
-		/* フェンスの生成 */
+		/*＊ フェンスの生成
+		 * @param count フェンスカウント
+		 * @return フェンス
+		 */
 		static ID3D12Fence1* CreateFence(const std::uint64_t& count = 0);
 
 	public:
-		/* コンストラクタ */
+		/** コンストラクタ */
 		Fence();
+		/** コンストラクタ
+		 * @param queue コマンドキュー
+		 */
 		Fence(const CommandQueue* queue);
+		/** コンストラクタ
+		 * @param fence フェンス
+		 */
 		Fence(ID3D12Fence1* fence);
-		/* デストラクタ */
+		/** デストラクタ */
 		~Fence();
 
 	public:
-		/* コマンド完了の待機 */
+		/** コマンド完了の待機 */
 		void Wait(void);
 
 	public:
-		/* フェンスカウントの取得 */
+		/** フェンスカウントの取得 
+		 * @return フェンスカウント
+		 */
 		std::uint64_t GetCount(void) const;
 
 	public:
-		/* フェンスカウントのセット */
+		/** フェンスカウントのセット 
+		 * @param count フェンスカウント
+		 */
 		void SetCount(const std::uint64_t& count);
 		
 	private:

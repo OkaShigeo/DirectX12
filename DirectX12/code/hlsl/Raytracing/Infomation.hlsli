@@ -462,7 +462,7 @@ float ValueNoise(in float2 uv, in float block_num, in int seed = 0)
     /* 小数部の抽出 */
     float2 decimal = float2(frac(size.x), frac(size.y));
     
-    /* 補間基準値 */
+   /* 補間基準値(三次エルミート曲線) */
     float2 interpolation = -(2.0f * pow(decimal, 3.0f)) + (3.0f * pow(decimal, 2.0f));
     
     /* 最小値 */
@@ -493,7 +493,7 @@ float PerlinNoise(in float2 uv, in float block_num, in int seed = 0)
     /* 小数部の抽出 */
     float2 decimal = float2(frac(size.x), frac(size.y));
     
-    /* 補間基準値 */
+    /* 補間基準値(三次エルミート曲線) */
     float2 interpolation = -(2.0f * pow(decimal, 3.0f)) + (3.0f * pow(decimal, 2.0f));
 
     /* 勾配ベクトル */
@@ -520,6 +520,31 @@ float PerlinNoise(in float2 uv, in float block_num, in int seed = 0)
 float Fade(in float time)
 {
     /* イーズ曲線による補間 */
-    return (6.0f * pow(time, 5.0f)) - (14.0f * pow(time, 4.0f)) + (10.0f * pow(time, 3.0f));
+    return (6.0f * pow(time, 5.0f)) - (15.0f * pow(time, 4.0f)) + (10.0f * pow(time, 3.0f));
 }
 
+/** シンプレックスノイズ 
+ */
+float3 SimplexNoise(in float2 uv, in float block_num)
+{
+     /* 拡大後のサイズ */
+    float2 size = uv * block_num;
+    
+    size.x *= 1.1547f;
+    size.y += size.x * 0.5f;
+    
+    /* 整数部の抽出 */
+    float2 integer = float2(floor(size.x), floor(size.y));
+    /* 小数部の抽出 */
+    float2 decimal = float2(frac(size.x), frac(size.y));
+    
+    /* 補間基準値(イーズ曲線) */
+    float2 interpolation = (6.0f * pow(decimal, 5.0f)) - (15.0f * pow(decimal, 4.0f)) + (10.0f * pow(decimal, 3.0f));
+    
+    if (decimal.x > decimal.y)
+    {
+        return float3(float2(1.0f, 1.0f) - float2(decimal.x, decimal.y - decimal.x), decimal.y);
+    }
+    
+    return float3(float2(1.0f, 1.0f) - float2(decimal.x - decimal.y, decimal.y), decimal.x);
+}

@@ -5,7 +5,7 @@
 
 #pragma comment(lib, "dxcompiler.lib")
 
-ID3DBlob* Dx12::ShaderCompiler::Compile(const std::wstring & file_path, const std::wstring & function, const std::wstring & shader_model)
+ID3DBlob* Dx12::ShaderCompiler::CompileFromFile(const std::wstring & file_path, const std::wstring & function, const std::wstring & shader_model)
 {
 	Microsoft::WRL::ComPtr<IDxcLibrary>library = nullptr;
 	auto hr = DxcCreateInstance(CLSID_DxcLibrary, IID_PPV_ARGS(&library));
@@ -57,7 +57,7 @@ Dx12::ShaderCompiler::ShaderCompiler()
 
 Dx12::ShaderCompiler::ShaderCompiler(const std::wstring& file_path, const std::wstring& function, const std::wstring& shader_model)
 {
-	obj = Compile(file_path, function, shader_model);
+	obj = CompileFromFile(file_path, function, shader_model);
 }
 
 Dx12::ShaderCompiler::ShaderCompiler(ID3DBlob* blob)

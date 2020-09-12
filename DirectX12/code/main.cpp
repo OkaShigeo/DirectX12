@@ -1,27 +1,26 @@
 #include "include/Runtime.h"
-#include <random>
 
 namespace
 {
 	/* ウィンドウサイズ */
-	const Dx12::Vec2 window_size(640, 480);
+	const Math::Vec2 window_size(640, 480);
 
 	/* 頂点情報 */
 	struct VertexInfo
 	{
 		/* 座標 */
-		Dx12::Vec3f pos{ 0.0f };
+		Math::Vec3f pos{ 0.0f };
 		/* テクスチャ座標 */
-		Dx12::Vec2f uv{ 0.0f };
+		Math::Vec2f uv{ 0.0f };
 	};
 	VertexInfo vertex_info[] = 
 	{
 		/* 左から右 */
 		/* 上から下 */
-		{ Dx12::Vec3f(-1.0f, -1.0f, 0.0f), Dx12::Vec2f(0.0f, 0.0f) },
-		{ Dx12::Vec3f( 1.0f, -1.0f, 0.0f), Dx12::Vec2f(1.0f, 0.0f) },
-		{ Dx12::Vec3f(-1.0f,  1.0f, 0.0f), Dx12::Vec2f(0.0f, 1.0f) },
-		{ Dx12::Vec3f( 1.0f,  1.0f, 0.0f), Dx12::Vec2f(1.0f, 1.0f) },
+		{ Math::Vec3f(-1.0f, -1.0f, 0.0f), Math::Vec2f(0.0f, 0.0f) },
+		{ Math::Vec3f( 1.0f, -1.0f, 0.0f), Math::Vec2f(1.0f, 0.0f) },
+		{ Math::Vec3f(-1.0f,  1.0f, 0.0f), Math::Vec2f(0.0f, 1.0f) },
+		{ Math::Vec3f( 1.0f,  1.0f, 0.0f), Math::Vec2f(1.0f, 1.0f) },
 	};
 	/* インデックス情報 */
 	std::uint16_t index_info[] = 
@@ -51,15 +50,15 @@ namespace
 	struct Camera
 	{
 		/* 座標 */
-		Dx12::Vec3f pos{ 0.0f };
+		Math::Vec3f pos{ 0.0f };
 		/* 視野角 */
 		float fov{ 90.0f };
 		/* 焦点座標 */
-		Dx12::Vec3f target{ 0.0f };
+		Math::Vec3f target{ 0.0f };
 		/* レンズの大きさ */
 		float lens_aperture{ 0.0f };
 		/* アップベクトル */
-		Dx12::Vec3f up{ Dx12::Vec3f(0.0f, 1.0f, 0.0f) };
+		Math::Vec3f up{ Math::Vec3f(0.0f, 1.0f, 0.0f) };
 		/* アライメント */
 		float alignment{ 0.0f };
 	};
@@ -79,15 +78,15 @@ namespace
 	struct Sphere
 	{
 		/* 中心座標 */
-		Dx12::Vec3f center{ 0.0f };
+		Math::Vec3f center{ 0.0f };
 		/* 半径 */
 		float radius{ 0.0f };
 		/* 色 */
-		Dx12::Vec3f color{ 1.0f };
+		Math::Vec3f color{ 1.0f };
 		/* マテリアルタイプ */
 		Material material{ Material::None };
 		/* 移動量 */
-		Dx12::Vec3f velocity{ 0.0f };
+		Math::Vec3f velocity{ 0.0f };
 		/* アライメント */
 		float alignment{ 0.0f };
 	};
@@ -95,14 +94,21 @@ namespace
 	const std::uint32_t sphere_max = 2;
 }
 
+#include "include/TextureLoader.h"
 int main()
 {
+	Tex::TextureInfo tex;
+	Tex::TextureLoader::LoadFromFile("../material/texture/test.bmp", &tex);
+
+
+
+
 	Dx12::Runtime::Initialize(window_size);
 
 	/*==========テクスチャ関連==========*/
 	Dx12::Resource* texture_vertex              = new Dx12::Resource(D3D12_RESOURCE_STATES::D3D12_RESOURCE_STATE_GENERIC_READ, Dx12::Resource::GetUploadProp(), sizeof(vertex_info));
 	Dx12::Resource* texture_index               = new Dx12::Resource(D3D12_RESOURCE_STATES::D3D12_RESOURCE_STATE_GENERIC_READ, Dx12::Resource::GetUploadProp(), sizeof(index_info));
-	Dx12::Resource* texture                     = new Dx12::Resource(D3D12_RESOURCE_STATES::D3D12_RESOURCE_STATE_GENERIC_READ, Dx12::Resource::GetDefaultProp(), DXGI_FORMAT::DXGI_FORMAT_R8G8B8A8_UNORM, window_size.x, window_size.y, D3D12_RESOURCE_FLAGS::D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS);
+	Dx12::Resource* texture                     = new Dx12::Resource(D3D12_RESOURCE_STATES::D3D12_RESOURCE_STATE_GENERIC_READ, Dx12::Resource::GetDefaultProp(), DXGI_FORMAT::DXGI_FORMAT_R8G8B8A8_UNORM, tex.width, tex.height, D3D12_RESOURCE_FLAGS::D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS);
 	Dx12::DescriptorHeap* texture_heap          = new Dx12::DescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE::D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, 1);
 	Dx12::ShaderCompiler* texture_shader_vertex = new Dx12::ShaderCompiler(shader_dir + L"Texture/Vertex.hlsl", shader_func, L"vs" + shader_model);
 	Dx12::ShaderCompiler* texture_shader_pixel  = new Dx12::ShaderCompiler(shader_dir + L"Texture/Pixel.hlsl", shader_func, L"ps" + shader_model);
@@ -153,16 +159,16 @@ int main()
 		Dx12::Runtime::SetComputeResource(sphere, 0);
 
 		Dx12::Runtime::Dispatch(sphere_max);
-		Dx12::Runtime::SetUavRscBarrier(sphere);
+		Dx12::Runtime::SetUavResourceBarrier(sphere);
 		
 		Dx12::Runtime::Execution();
 	}
 	/* GPUへカメラ情報を送信 */
 	{
 		Camera camera_info{};
-		camera_info.pos           = Dx12::Vec3f(13.0f, 2.0f, 3.0f);
+		camera_info.pos           = Math::Vec3f(13.0f, 2.0f, 3.0f);
 		camera_info.fov           = 20.0f;
-		camera_info.target        = Dx12::Vec3f(0.0f, 0.0f, 0.0f);
+		camera_info.target        = Math::Vec3f(0.0f, 0.0f, 0.0f);
 		camera_info.lens_aperture = 0.0f;
 
 		auto* buffer = camera->GetBuffer();
@@ -170,7 +176,7 @@ int main()
 		camera->ReleaseBuffer();
 	}
 	/* レイトレーシングの実行 */
-	{
+	/*{
 		Dx12::Runtime::Clear();
 
 		std::uint32_t param_index = 0;
@@ -182,24 +188,36 @@ int main()
 		Dx12::Runtime::SetComputeResource(sphere, param_index++);
 		Dx12::Runtime::SetComputeResource(result, param_index++);
 
-		Dx12::Runtime::SetRscBarrier(result, D3D12_RESOURCE_STATES::D3D12_RESOURCE_STATE_COPY_SOURCE, D3D12_RESOURCE_STATES::D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
+		Dx12::Runtime::SetResourceBarrier(result, D3D12_RESOURCE_STATES::D3D12_RESOURCE_STATE_COPY_SOURCE, D3D12_RESOURCE_STATES::D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
 		Dx12::Runtime::Dispatch(window_size.x, window_size.y);
-		Dx12::Runtime::SetUavRscBarrier(result);
-		Dx12::Runtime::SetRscBarrier(result, D3D12_RESOURCE_STATES::D3D12_RESOURCE_STATE_UNORDERED_ACCESS, D3D12_RESOURCE_STATES::D3D12_RESOURCE_STATE_COPY_SOURCE);
+		Dx12::Runtime::SetUavResourceBarrier(result);
+		Dx12::Runtime::SetResourceBarrier(result, D3D12_RESOURCE_STATES::D3D12_RESOURCE_STATE_UNORDERED_ACCESS, D3D12_RESOURCE_STATES::D3D12_RESOURCE_STATE_COPY_SOURCE);
 		
+		Dx12::Runtime::Execution();
+	}*/
+	/* テクスチャの更新 */
+	{
+		Dx12::Runtime::Clear();
+		std::vector<D3D12_PLACED_SUBRESOURCE_FOOTPRINT>layout;
+		Dx12::Resource upload = texture->UpdateSubResource(*Tex::TextureLoader::GetData(tex), layout);
+		Dx12::Runtime::SetResourceBarrier(texture, D3D12_RESOURCE_STATES::D3D12_RESOURCE_STATE_GENERIC_READ, D3D12_RESOURCE_STATES::D3D12_RESOURCE_STATE_COPY_DEST);
+		Dx12::Runtime::CopyTextureRegion(texture, &upload, layout);
+		Dx12::Runtime::SetResourceBarrier(texture, D3D12_RESOURCE_STATES::D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATES::D3D12_RESOURCE_STATE_GENERIC_READ);
 		Dx12::Runtime::Execution();
 	}
 
 	/*==========メインループ==========*/
 	while (Window::CheckMsg() == true) {
+		
+
 		Dx12::Runtime::Clear();
 
 		/* レイトレーシング結果をレンダーターゲットにコピー*/
-		{
-			Dx12::Runtime::SetRscBarrier(texture, D3D12_RESOURCE_STATES::D3D12_RESOURCE_STATE_GENERIC_READ, D3D12_RESOURCE_STATES::D3D12_RESOURCE_STATE_COPY_DEST);
+		/*{
+			Dx12::Runtime::SetResourceBarrier(texture, D3D12_RESOURCE_STATES::D3D12_RESOURCE_STATE_GENERIC_READ, D3D12_RESOURCE_STATES::D3D12_RESOURCE_STATE_COPY_DEST);
 			Dx12::Runtime::CopyResource(texture, result);
-			Dx12::Runtime::SetRscBarrier(texture, D3D12_RESOURCE_STATES::D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATES::D3D12_RESOURCE_STATE_GENERIC_READ);
-		}
+			Dx12::Runtime::SetResourceBarrier(texture, D3D12_RESOURCE_STATES::D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATES::D3D12_RESOURCE_STATE_GENERIC_READ);
+		}*/
 		/* テクスチャ描画 */
 		{
 			std::uint32_t param_index = 0;

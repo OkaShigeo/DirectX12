@@ -70,11 +70,11 @@
     <Filter Include="リソース ファイル\HLSL\Raytracing\Sphere">
       <UniqueIdentifier>{3751f37d-0b81-40ac-9d8a-007206709f0c}</UniqueIdentifier>
     </Filter>
-    <Filter Include="AccelerationStructure">
-      <UniqueIdentifier>{3aadae24-e94a-464d-9504-180f68a2e96e}</UniqueIdentifier>
-    </Filter>
     <Filter Include="DescriptorHeap">
       <UniqueIdentifier>{d8bb10f0-087a-4030-82fb-6cfa3d42c2aa}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="TextureLoader">
+      <UniqueIdentifier>{2ef9ca7f-fd7a-4df2-8352-ecd43580e67d}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -132,11 +132,14 @@
     <ClInclude Include="..\code\include\RaytracingPipeline.h">
       <Filter>RaytracingPipeline</Filter>
     </ClInclude>
-    <ClInclude Include="..\code\include\AccelerationStructure.h">
-      <Filter>AccelerationStructure</Filter>
-    </ClInclude>
     <ClInclude Include="..\code\include\DescriptorHeap.h">
       <Filter>DescriptorHeap</Filter>
+    </ClInclude>
+    <ClInclude Include="..\code\include\Bitmap.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="..\code\include\TextureLoader.h">
+      <Filter>TextureLoader</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -191,8 +194,8 @@
     <ClCompile Include="..\code\source\DescriptorHeap.cpp">
       <Filter>DescriptorHeap</Filter>
     </ClCompile>
-    <ClCompile Include="..\code\source\AccelerationStructure.cpp">
-      <Filter>AccelerationStructure</Filter>
+    <ClCompile Include="..\code\source\TextureLoader.cpp">
+      <Filter>TextureLoader</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

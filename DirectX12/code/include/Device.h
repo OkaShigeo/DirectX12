@@ -7,14 +7,19 @@ namespace Dx12
 		public BaseObject<ID3D12Device6>
 	{
 	public:
-		/* デバイスの生成 */
+		/** デバイスの生成 
+		 * @return デバイス
+		 */
 		static ID3D12Device6* CreateDevice(void);
 
 	public:
-		/* コンストラクタ */
+		/*＊ コンストラクタ */
 		Device();
+		/** コンストラクタ
+		 * @param device デバイス
+		 */
 		Device(ID3D12Device6* device);
-		/* デストラクタ */
+		/** デストラクタ */
 		~Device();
 	};
 }

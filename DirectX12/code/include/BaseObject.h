@@ -9,37 +9,43 @@ namespace Dx12
 	class BaseObject
 	{
 	public:
-		/* コンストラクタ */
+		/** コンストラクタ */
 		BaseObject() {}
-		/* デストラクタ */
+		/** デストラクタ */
 		virtual ~BaseObject() {
 			Release();
 		}
 
 	public:
-		/* オブジェクトの破棄 */
+		/** オブジェクトの破棄 */
 		void Release(void) {
 			if (obj != nullptr) {
 				obj->Release();
 				obj = nullptr;
 			}
 		}
-		/* オブジェクトの有効判定 */
+		/** オブジェクトの有効判定 
+		 * @return true:有効/false:無効
+		 */
 		bool IsValied(void) const {
 			return (obj != nullptr);
 		}
 
 	public:
-		/* オブジェクトの取得 */
+		/*＊ オブジェクトの取得
+		 * @return テンプレートオブジェクト
+		 */
 		T* Get(void) const {
 			return obj;
 		}
-		/* オブジェクトの参照を取得 */
+		/** オブジェクトの参照を取得 
+		 * @return テンプレートオブジェクトのポインタ
+		 */
 		T** GetAddressOf(void) {
 			return &obj;
 		}
 
-		/* 演算子オーバーロード */
+		/*----------オペレータオーバーロード関数----------*/
 	public:
 		void operator=(const BaseObject& base) {
 			Release();

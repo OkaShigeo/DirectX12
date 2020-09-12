@@ -19,7 +19,7 @@ static INT64 __stdcall WindowCallback(HWND__* handle, UINT32 message, UINT64 wpa
 	return DefWindowProc(handle, message, wparam, lparam);
 }
 
-HWND__ * Window::CreateWindowHandle(const Dx12::Vec2& size, const Dx12::Vec2& location)
+HWND__ * Window::CreateWindowHandle(const Math::Vec2& size, const Math::Vec2& location)
 {
 	WNDCLASSEX wnd{};
 	wnd.cbClsExtra    = 0;
@@ -77,7 +77,7 @@ Window::Window()
 {
 }
 
-Window::Window(const Dx12::Vec2& size, const Dx12::Vec2& location)
+Window::Window(const Math::Vec2& size, const Math::Vec2& location)
 {
 	handle = CreateWindowHandle(size, location);
 	assert(handle != nullptr);
@@ -106,9 +106,9 @@ HWND__ * Window::Get(void) const
 	return handle;
 }
 
-Dx12::Vec2 Window::GetSize(void) const
+Math::Vec2 Window::GetSize(void) const
 {
-	Dx12::Vec2 size = 0;
+	Math::Vec2 size = 0;
 	if (handle != nullptr) {
 		RECT rect{};
 		if (GetClientRect(handle, &rect) != 0) {
@@ -120,9 +120,9 @@ Dx12::Vec2 Window::GetSize(void) const
 	return size;
 }
 
-Dx12::Vec2 Window::GetLocation(void) const
+Math::Vec2 Window::GetLocation(void) const
 {
-	Dx12::Vec2 location = 0;
+	Math::Vec2 location = 0;
 	if (handle != nullptr) {
 		RECT rect{};
 		if (GetWindowRect(handle, &rect) != 0) {

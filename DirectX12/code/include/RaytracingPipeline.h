@@ -7,14 +7,19 @@ namespace Dx12
 		public BaseObject<ID3D12StateObject>
 	{
 	public:
-		/* ステータスオブジェクトの生成 */
+		/*＊ ステータスオブジェクトの生成 
+		 * @return ステートオブジェクト
+		 */
 		static ID3D12StateObject* CreateStateObject(void);
 
 	public:
-		/* コンストラクタ */
+		/** コンストラクタ */
 		RaytracingPipeline();
+		/** コンストラクタ
+		 * @param pipe ステートオブジェクト
+		 */
 		RaytracingPipeline(ID3D12StateObject* pipe);
-		/* デストラクタ */
+		/*＊ デストラクタ */
 		~RaytracingPipeline();
 	};
 }

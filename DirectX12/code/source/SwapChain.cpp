@@ -12,7 +12,7 @@ IDXGISwapChain4 * Dx12::SwapChain::CreateSwapChain(const Window * window, const 
 	auto hr = CreateDXGIFactory2(debug_flag, IID_PPV_ARGS(&factory));
 	assert(hr == S_OK);
 
-	Dx12::Vec2 size = window->GetSize();
+	Math::Vec2 size = window->GetSize();
 
 	DXGI_SWAP_CHAIN_DESC1 desc{};
 	desc.AlphaMode   = DXGI_ALPHA_MODE::DXGI_ALPHA_MODE_UNSPECIFIED;
@@ -67,13 +67,13 @@ void Dx12::SwapChain::Present(void) const
 	obj->Present(0, 0);
 }
 
-Dx12::Vec2 Dx12::SwapChain::GetSize(void) const
+Math::Vec2 Dx12::SwapChain::GetSize(void) const
 {
 	DXGI_SWAP_CHAIN_DESC1 desc{};
 	auto hr = obj->GetDesc1(&desc);
 	assert(hr == S_OK);
 
-	return Dx12::Vec2(desc.Width, desc.Height);
+	return Math::Vec2(desc.Width, desc.Height);
 }
 
 std::uint32_t Dx12::SwapChain::GetBufferNum(void) const

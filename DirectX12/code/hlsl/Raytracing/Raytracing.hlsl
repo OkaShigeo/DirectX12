@@ -19,7 +19,7 @@ void main(ComputeThreadID semantics)
     /* UV座標 */
     float2 uv = semantics.group_ID.xy / float2(size.x, size.y);
     /* カラー値 */
-    float3 color = PerlinNoise(uv, 10);
+    float3 color = SimplexNoise(uv, 10);
     tex[semantics.group_ID.xy] = float4(color, 1.0f);
     return;
     

@@ -37,7 +37,7 @@ void Dx12::CommandList::Close(void) const
 	assert(hr == S_OK);
 }
 
-void Dx12::CommandList::SetViewport(const Vec2 & size, const float& depth) const
+void Dx12::CommandList::SetViewport(const Math::Vec2 & size, const float& depth) const
 {
 	D3D12_VIEWPORT view{};
 	view.Height   = float(size.y);
@@ -50,7 +50,7 @@ void Dx12::CommandList::SetViewport(const Vec2 & size, const float& depth) const
 	obj->RSSetViewports(1, &view);
 }
 
-void Dx12::CommandList::SetScissors(const Vec2 & size) const
+void Dx12::CommandList::SetScissors(const Math::Vec2 & size) const
 {
 	RECT scissors{};
 	scissors.bottom = size.y;
@@ -179,6 +179,36 @@ void Dx12::CommandList::CopyResource(const Resource* dst, const Resource* src) c
 	}
 
 	obj->CopyResource(dst->Get(), src->Get());
+}
+
+void Dx12::CommandList::CopyBufferRegion(const Resource* dst, const Resource* src, const std::uint64_t& size, const std::uint32_t& dst_offset, const std::uint32_t& src_offset)
+{
+	obj->CopyBufferRegion(dst->Get(), dst_offset, src->Get(), src_offset, size);
+}
+
+void Dx12::CommandList::CopyTextureRegion(const Resource* dst, const Resource* src, const std::vector<D3D12_PLACED_SUBRESOURCE_FOOTPRINT>& information, const std::uint32_t& offset)
+{
+	for (std::uint32_t i = 0; i < information.size(); ++i) {
+		D3D12_BOX box{};
+		box.back   = 1;
+		box.bottom = information[i].Footprint.Height;
+		box.front  = 0;
+		box.left   = std::uint32_t(information[i].Offset);
+		box.right  = information[i].Footprint.Width;
+		box.top    = 0;
+
+		D3D12_TEXTURE_COPY_LOCATION dst_location{};
+		dst_location.pResource        = dst->Get();
+		dst_location.Type             = D3D12_TEXTURE_COPY_TYPE_SUBRESOURCE_INDEX;
+		dst_location.SubresourceIndex = i + offset;
+
+		D3D12_TEXTURE_COPY_LOCATION src_location{};
+		src_location.pResource       = src->Get();
+		src_location.Type            = D3D12_TEXTURE_COPY_TYPE_PLACED_FOOTPRINT;
+		src_location.PlacedFootprint = information[i];
+
+		obj->CopyTextureRegion(&dst_location, 0, 0, 0, &src_location, &box);
+	}
 }
 
 void Dx12::CommandList::Dispatch(const std::uint64_t& thread_x, const std::uint64_t& thread_y, const std::uint64_t& thread_z) const

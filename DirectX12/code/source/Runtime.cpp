@@ -22,7 +22,7 @@ namespace {
 	};
 }
 
-void Dx12::Runtime::Initialize(const Dx12::Vec2& size, const Dx12::Vec2& pos)
+void Dx12::Runtime::Initialize(const Math::Vec2& size, const Math::Vec2& pos)
 {
 #ifdef _DEBUG
 	Microsoft::WRL::ComPtr<ID3D12Debug3>debug = nullptr;
@@ -31,7 +31,7 @@ void Dx12::Runtime::Initialize(const Dx12::Vec2& size, const Dx12::Vec2& pos)
 #endif
 
 	if (SubObject::GetSubObjList().capacity() == 0) {
-		SubObject::Reserve(256);
+		SubObject::Reserve(UCHAR_MAX);
 	}
 
 	window    = new Window(size, pos);
@@ -111,9 +111,9 @@ void Dx12::Runtime::Execution(const std::vector<CommandList*>& lists)
 	fence->Wait();
 }
 
-void Dx12::Runtime::SetDescriptorHeap(const std::vector<DescriptorHeap*>& heap)
+void Dx12::Runtime::SetDescriptorHeap(const std::vector<DescriptorHeap*>& heaps)
 {
-	list->SetDescriptorHeap(heap);
+	list->SetDescriptorHeap(heaps);
 }
 
 void Dx12::Runtime::SetGraphicsRootSignature(const RootSignature * root)
@@ -146,12 +146,12 @@ void Dx12::Runtime::SetComputePipeline(const ComputePipeline * pipe)
 	list->SetComputePipeline(pipe);
 }
 
-void Dx12::Runtime::SetRscBarrier(const Resource* rsc, const D3D12_RESOURCE_STATES& befor, const D3D12_RESOURCE_STATES& after)
+void Dx12::Runtime::SetResourceBarrier(const Resource* rsc, const D3D12_RESOURCE_STATES& befor, const D3D12_RESOURCE_STATES& after)
 {
 	list->SetRscBarrier(rsc, befor, after);
 }
 
-void Dx12::Runtime::SetUavRscBarrier(const Resource* rsc)
+void Dx12::Runtime::SetUavResourceBarrier(const Resource* rsc)
 {
 	list->SetUavRscBarrier(rsc);
 }
@@ -170,6 +170,16 @@ void Dx12::Runtime::DrawIndexInstance(const Resource * vertex, const std::uint32
 void Dx12::Runtime::CopyResource(const Resource* dst, const Resource* src)
 {
 	list->CopyResource(dst, src);
+}
+
+void Dx12::Runtime::CopyBufferRegion(const Resource* dst, const Resource* src, const std::uint64_t& size, const std::uint32_t& dst_offset, const std::uint32_t& src_offset)
+{
+	list->CopyBufferRegion(dst, src, dst_offset, src_offset, size);
+}
+
+void Dx12::Runtime::CopyTextureRegion(const Resource* dst, const Resource* src, const std::vector<D3D12_PLACED_SUBRESOURCE_FOOTPRINT>& information, const std::uint32_t& offset)
+{
+	list->CopyTextureRegion(dst, src, information, offset);
 }
 
 void Dx12::Runtime::Dispatch(const std::uint64_t& thread_x, const std::uint64_t& thread_y, const std::uint64_t& thread_z)
