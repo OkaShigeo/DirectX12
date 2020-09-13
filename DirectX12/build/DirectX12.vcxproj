@@ -127,6 +127,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="..\code\include\AccelerationStructure.h" />
     <ClInclude Include="..\code\include\BaseObject.h" />
     <ClInclude Include="..\code\include\Bitmap.h" />
     <ClInclude Include="..\code\include\CommandAllocator.h" />
@@ -151,6 +152,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\code\main.cpp" />
+    <ClCompile Include="..\code\source\AccelerationStructure.cpp" />
     <ClCompile Include="..\code\source\CommandAllocator.cpp" />
     <ClCompile Include="..\code\source\CommandList.cpp" />
     <ClCompile Include="..\code\source\CommandQueue.cpp" />

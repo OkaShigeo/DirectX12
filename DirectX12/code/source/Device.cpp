@@ -30,7 +30,15 @@ ID3D12Device6* Dx12::Device::CreateDevice(void)
 		for (const D3D_FEATURE_LEVEL& level : levels) {
 			hr = D3D12CreateDevice(adaptor.Get(), level, IID_PPV_ARGS(&device));
 			if (SUCCEEDED(hr)) {
-				return device;
+				D3D12_FEATURE_DATA_D3D12_OPTIONS5 option{};
+				if (SUCCEEDED(device->CheckFeatureSupport(D3D12_FEATURE::D3D12_FEATURE_D3D12_OPTIONS5, &option, sizeof(option)))) {
+					if (option.RaytracingTier != D3D12_RAYTRACING_TIER::D3D12_RAYTRACING_TIER_NOT_SUPPORTED) {
+						return device;
+					}
+					else {
+						device->Release();
+					}
+				}
 			}
 		}
 	}

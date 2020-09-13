@@ -76,6 +76,9 @@
     <Filter Include="TextureLoader">
       <UniqueIdentifier>{2ef9ca7f-fd7a-4df2-8352-ecd43580e67d}</UniqueIdentifier>
     </Filter>
+    <Filter Include="AccelerationStructure">
+      <UniqueIdentifier>{6de24798-1d6a-49bb-9f2f-51ff9d076ddf}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\code\include\Window.h">
@@ -141,6 +144,9 @@
     <ClInclude Include="..\code\include\TextureLoader.h">
       <Filter>TextureLoader</Filter>
     </ClInclude>
+    <ClInclude Include="..\code\include\AccelerationStructure.h">
+      <Filter>AccelerationStructure</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\code\main.cpp">
@@ -196,6 +202,9 @@
     </ClCompile>
     <ClCompile Include="..\code\source\TextureLoader.cpp">
       <Filter>TextureLoader</Filter>
+    </ClCompile>
+    <ClCompile Include="..\code\source\AccelerationStructure.cpp">
+      <Filter>AccelerationStructure</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

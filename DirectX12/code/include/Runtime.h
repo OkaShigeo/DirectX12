@@ -12,6 +12,7 @@
 #include "RootSignature.h"
 #include "GraphicsPipeline.h"
 #include "ComputePipeline.h"
+#include "AccelerationStructure.h"
 
 namespace Dx12
 {

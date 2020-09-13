@@ -130,6 +130,7 @@ int main()
 	{
 		texture_heap->CreateShaderResourceView(texture);
 	}
+	//Dx12::AccelerationStructure a = Dx12::AccelerationStructure::CreateBottomLevel({ texture_vertex }, { 4 }, 0, { texture_index }, { 6 });
 
 	/*==========レイトレーシング関連==========*/
 	Dx12::Resource* camera                  = new Dx12::Resource(D3D12_RESOURCE_STATES::D3D12_RESOURCE_STATE_GENERIC_READ, Dx12::Resource::GetUploadProp(), (sizeof(Camera) + 0xff) & ~0xff);

@@ -174,7 +174,7 @@ void Dx12::Runtime::CopyResource(const Resource* dst, const Resource* src)
 
 void Dx12::Runtime::CopyBufferRegion(const Resource* dst, const Resource* src, const std::uint64_t& size, const std::uint32_t& dst_offset, const std::uint32_t& src_offset)
 {
-	list->CopyBufferRegion(dst, src, dst_offset, src_offset, size);
+	list->CopyBufferRegion(dst, src, dst_offset, src_offset, std::uint32_t(size));
 }
 
 void Dx12::Runtime::CopyTextureRegion(const Resource* dst, const Resource* src, const std::vector<D3D12_PLACED_SUBRESOURCE_FOOTPRINT>& information, const std::uint32_t& offset)

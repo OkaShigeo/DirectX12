@@ -81,11 +81,6 @@ ID3D12Resource2 * Dx12::Resource::CreateTextureResource(const D3D12_RESOURCE_STA
 	return rsc;
 }
 
-ID3D12Resource2* Dx12::Resource::CreateScratchResource()
-{
-	return nullptr;
-}
-
 Dx12::Resource::Resource()
 {
 }
@@ -102,7 +97,6 @@ Dx12::Resource::Resource(const D3D12_RESOURCE_STATES& state, const D3D12_HEAP_PR
 
 Dx12::Resource::Resource(ID3D12Resource2* rsc)
 {
-	Release();
 	obj = rsc;
 }
 
@@ -139,6 +133,11 @@ Dx12::DescriptorHeap * Dx12::Resource::GetHeap(void) const
 	return heap;
 }
 
+D3D12_GPU_VIRTUAL_ADDRESS Dx12::Resource::GetAddress(void) const
+{
+	return obj->GetGPUVirtualAddress();
+}
+
 D3D12_CPU_DESCRIPTOR_HANDLE Dx12::Resource::GetCpuHandle(void) const
 {
 	return { heap->Get()->GetCPUDescriptorHandleForHeapStart().ptr + (Runtime::GetDevice()->Get()->GetDescriptorHandleIncrementSize(heap->Get()->GetDesc().Type) * count) };
@@ -163,7 +162,7 @@ std::uint64_t Dx12::Resource::GetSize(D3D12_PLACED_SUBRESOURCE_FOOTPRINT* inform
 {
 	auto desc = obj->GetDesc();
 	std::uint64_t size = 0;
-	Dx12::Runtime::GetDevice()->Get()->GetCopyableFootprints(&desc, offset, num, 0, information, nullptr, nullptr, &size);
+	Dx12::Runtime::GetDevice()->Get()->GetCopyableFootprints(&desc, offset, std::uint32_t(num), 0, information, nullptr, nullptr, &size);
 
 	return size;
 }
