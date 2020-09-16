@@ -23,8 +23,7 @@ namespace Dx12
 		 * @param sampler サンプラー
 		 * @return ルートシグネチャ
 		 */
-		static ID3D12RootSignature* CreateRootSignature(const D3D12_ROOT_SIGNATURE_FLAGS& flag, const std::vector<D3D12_ROOT_PARAMETER1>& param,
-			const std::vector<D3D12_STATIC_SAMPLER_DESC>& sampler);
+		static ID3D12RootSignature* CreateRootSignature(const D3D12_ROOT_SIGNATURE_FLAGS& flag, const std::vector<D3D12_ROOT_PARAMETER1>& param, const std::vector<D3D12_STATIC_SAMPLER_DESC>& sampler);
 
 	public:
 		/** コンストラクタ */

@@ -15,9 +15,8 @@ Dx12::CommandList::CommandList(const D3D12_COMMAND_LIST_TYPE & type)
 	obj = CreateCommandList(type);
 }
 
-Dx12::CommandList::CommandList(ID3D12GraphicsCommandList5 * list)
+Dx12::CommandList::CommandList(ID3D12GraphicsCommandList5* list)
 {
-	Release();
 	obj = list;
 }
 
@@ -61,11 +60,11 @@ void Dx12::CommandList::SetScissors(const Math::Vec2 & size) const
 	obj->RSSetScissorRects(1, &scissors);
 }
 
-void Dx12::CommandList::SetRscBarrier(const Resource * rsc, const D3D12_RESOURCE_STATES & befor, const D3D12_RESOURCE_STATES & after) const
+void Dx12::CommandList::SetResourceBarrier(const Resource * resource, const D3D12_RESOURCE_STATES & befor, const D3D12_RESOURCE_STATES & after) const
 {
 	D3D12_RESOURCE_BARRIER barrier{};
 	barrier.Flags                  = D3D12_RESOURCE_BARRIER_FLAGS::D3D12_RESOURCE_BARRIER_FLAG_NONE;
-	barrier.Transition.pResource   = rsc->Get();
+	barrier.Transition.pResource   = resource->Get();
 	barrier.Transition.StateAfter  = after;
 	barrier.Transition.StateBefore = befor;
 	barrier.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
@@ -74,19 +73,19 @@ void Dx12::CommandList::SetRscBarrier(const Resource * rsc, const D3D12_RESOURCE
 	obj->ResourceBarrier(1, &barrier);
 }
 
-void Dx12::CommandList::SetUavRscBarrier(const Resource * rsc) const
+void Dx12::CommandList::SetUavResourceBarrier(const Resource * resource) const
 {
 	D3D12_RESOURCE_BARRIER barrier{};
 	barrier.Flags         = D3D12_RESOURCE_BARRIER_FLAGS::D3D12_RESOURCE_BARRIER_FLAG_NONE;
 	barrier.Type          = D3D12_RESOURCE_BARRIER_TYPE::D3D12_RESOURCE_BARRIER_TYPE_UAV;
-	barrier.UAV.pResource = rsc->Get();
+	barrier.UAV.pResource = resource->Get();
 
 	obj->ResourceBarrier(1, &barrier);
 }
 
-void Dx12::CommandList::ClearRenderTargetView(const Resource * rsc, const float color[4]) const
+void Dx12::CommandList::ClearRenderTargetView(const Resource * resource, const float color[4]) const
 {
-	D3D12_CPU_DESCRIPTOR_HANDLE handle = rsc->GetCpuHandle();
+	D3D12_CPU_DESCRIPTOR_HANDLE handle = resource->GetCpuHandle();
 	obj->OMSetRenderTargets(1, &handle, false, nullptr);
 	obj->ClearRenderTargetView(handle, color, 0, nullptr);
 }
@@ -111,14 +110,14 @@ void Dx12::CommandList::SetComputeRootSignature(const RootSignature * root) cons
 	obj->SetComputeRootSignature(root->Get());
 }
 
-void Dx12::CommandList::SetGraphicsResource(const Resource * rsc, const std::uint32_t & param_index) const
+void Dx12::CommandList::SetGraphicsResource(const Resource * resource, const std::uint32_t & param_index) const
 {
-	obj->SetGraphicsRootDescriptorTable(param_index, rsc->GetGpuHandle());
+	obj->SetGraphicsRootDescriptorTable(param_index, resource->GetGpuHandle());
 }
 
-void Dx12::CommandList::SetComputeResource(const Resource * rsc, const std::uint32_t & param_index) const
+void Dx12::CommandList::SetComputeResource(const Resource * resource, const std::uint32_t & param_index) const
 {
-	obj->SetComputeRootDescriptorTable(param_index, rsc->GetGpuHandle());
+	obj->SetComputeRootDescriptorTable(param_index, resource->GetGpuHandle());
 }
 
 void Dx12::CommandList::SetGraphicsPipeline(const GraphicsPipeline * pipe) const
@@ -131,11 +130,11 @@ void Dx12::CommandList::SetComputePipeline(const ComputePipeline * pipe) const
 	obj->SetPipelineState(pipe->Get());
 }
 
-void Dx12::CommandList::DrawVertexInstance(const Resource * rsc, const std::uint32_t & vertex_num, const std::uint32_t & instance_num, const D3D12_PRIMITIVE_TOPOLOGY & topology)
+void Dx12::CommandList::DrawVertexInstance(const Resource * vertex, const std::uint32_t & vertex_num, const std::uint32_t & instance_num, const D3D12_PRIMITIVE_TOPOLOGY & topology)
 {
 	D3D12_VERTEX_BUFFER_VIEW view{};
-	view.BufferLocation = rsc->Get()->GetGPUVirtualAddress();
-	view.SizeInBytes    = uint32_t(rsc->Get()->GetDesc1().Width);
+	view.BufferLocation = vertex->Get()->GetGPUVirtualAddress();
+	view.SizeInBytes    = uint32_t(vertex->Get()->GetDesc1().Width);
 	view.StrideInBytes  = uint32_t(view.SizeInBytes / vertex_num);
 
 	obj->IASetVertexBuffers(0, 1, &view);

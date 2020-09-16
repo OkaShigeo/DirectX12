@@ -22,8 +22,7 @@ namespace Dx12
 		 * @param depth 深度値セットのフラグ
 		 * @return パイプライン
 		 */
-		static ID3D12PipelineState* CreatePipeline(const std::vector<D3D12_INPUT_ELEMENT_DESC>& input, const RootSignature* root, const ShaderCompiler* vertex,
-			const ShaderCompiler* pixel, const ShaderCompiler* geometory, const D3D12_PRIMITIVE_TOPOLOGY_TYPE& topology, const bool& depth);
+		static ID3D12PipelineState* CreatePipeline(const std::vector<D3D12_INPUT_ELEMENT_DESC>& input, const RootSignature* root, const ShaderCompiler* vertex, const ShaderCompiler* pixel, const ShaderCompiler* geometory, const D3D12_PRIMITIVE_TOPOLOGY_TYPE& topology, const bool& depth);
 
 	public:
 		/*＊ コンストラクタ */
@@ -38,11 +37,9 @@ namespace Dx12
 		 * @param topology プリミティブのトポロジーの種別
 		 * @param depth 深度値セットのフラグ
 		 */
-		GraphicsPipeline(const std::vector<D3D12_INPUT_ELEMENT_DESC>& input, const RootSignature* root, const ShaderCompiler* vertex, const ShaderCompiler* pixel, 
-			const ShaderCompiler* geometory = nullptr, const D3D12_PRIMITIVE_TOPOLOGY_TYPE& topology = D3D12_PRIMITIVE_TOPOLOGY_TYPE::D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE, 
-			const bool& depth = false);
+		GraphicsPipeline(const std::vector<D3D12_INPUT_ELEMENT_DESC>& input, const RootSignature* root, const ShaderCompiler* vertex, const ShaderCompiler* pixel, const ShaderCompiler* geometory = nullptr, const D3D12_PRIMITIVE_TOPOLOGY_TYPE& topology = D3D12_PRIMITIVE_TOPOLOGY_TYPE::D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE, const bool& depth = false);
 		/** コンストラクタ
-		 * @param pipe パイプライン
+		 * @param パイプライン
 		 */
 		GraphicsPipeline(ID3D12PipelineState* pipe);
 		/*＊ デストラクタ */

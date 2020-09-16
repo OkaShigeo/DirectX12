@@ -95,9 +95,9 @@ Dx12::Resource::Resource(const D3D12_RESOURCE_STATES& state, const D3D12_HEAP_PR
 	obj = CreateTextureResource(state, prop, format, width, height, flag, clear);
 }
 
-Dx12::Resource::Resource(ID3D12Resource2* rsc)
+Dx12::Resource::Resource(ID3D12Resource2* resource)
 {
-	obj = rsc;
+	obj = resource;
 }
 
 Dx12::Resource::~Resource()

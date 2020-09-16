@@ -21,9 +21,8 @@ Dx12::CommandQueue::CommandQueue(const D3D12_COMMAND_LIST_TYPE & type)
 	obj = CreateCommandQueue(type);
 }
 
-Dx12::CommandQueue::CommandQueue(ID3D12CommandQueue * queue)
+Dx12::CommandQueue::CommandQueue(ID3D12CommandQueue* queue)
 {
-	Release();
 	obj = queue;
 }
 

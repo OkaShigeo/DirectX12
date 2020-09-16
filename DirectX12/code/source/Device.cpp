@@ -64,7 +64,6 @@ Dx12::Device::Device()
 
 Dx12::Device::Device(ID3D12Device6* device)
 {
-	Release();
 	obj = device;
 }
 

@@ -1,7 +1,7 @@
 #include "..\include\AccelerationStructure.h"
 #include "..\include\Runtime.h"
 
-std::tuple<ID3D12Resource2*, ID3D12Resource2*> Dx12::AccelerationStructure::CreateBottomLevel(const std::vector<Resource*>& vertex, const std::vector<std::uint64_t>& vertex_num, const std::uint64_t& transform_matrix_addr, const std::vector<Resource*>& index, const std::vector<std::uint64_t>& index_num)
+std::tuple<ID3D12Resource2*, ID3D12Resource2*, std::vector<D3D12_RAYTRACING_GEOMETRY_DESC>> Dx12::AccelerationStructure::CreateBottomLevel(const std::vector<Resource*>& vertex, const std::vector<std::uint64_t>& vertex_num, const std::uint64_t& transform_matrix_addr, const std::vector<Resource*>& index, const std::vector<std::uint64_t>& index_num)
 {
 	std::vector<D3D12_RAYTRACING_GEOMETRY_DESC> geo(vertex.size());
 	for (std::uint32_t i = 0; i < geo.size(); ++i) {
@@ -32,7 +32,27 @@ std::tuple<ID3D12Resource2*, ID3D12Resource2*> Dx12::AccelerationStructure::Crea
 	auto* scratch = Resource::CreateBufferResource(D3D12_RESOURCE_STATES::D3D12_RESOURCE_STATE_UNORDERED_ACCESS, Resource::GetDefaultProp(), info.ScratchDataSizeInBytes, D3D12_RESOURCE_FLAGS::D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS);
 	auto* result  = Resource::CreateBufferResource(D3D12_RESOURCE_STATES::D3D12_RESOURCE_STATE_RAYTRACING_ACCELERATION_STRUCTURE, Resource::GetDefaultProp(), info.ResultDataMaxSizeInBytes, D3D12_RESOURCE_FLAGS::D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS);
 
-	return std::tie(scratch, result);
+	return std::tie(scratch, result, geo);
+}
+
+std::tuple<ID3D12Resource2*, ID3D12Resource2*, ID3D12Resource2*> Dx12::AccelerationStructure::CreateTopLevel(const AccelerationStructure* bottom, const std::uint64_t& instance_num)
+{
+	auto* instance = Resource::CreateBufferResource(D3D12_RESOURCE_STATES::D3D12_RESOURCE_STATE_GENERIC_READ, Resource::GetUploadProp(), sizeof(D3D12_RAYTRACING_INSTANCE_DESC) * instance_num);
+
+	D3D12_BUILD_RAYTRACING_ACCELERATION_STRUCTURE_INPUTS input{};
+	input.DescsLayout   = D3D12_ELEMENTS_LAYOUT::D3D12_ELEMENTS_LAYOUT_ARRAY;
+	input.Flags         = D3D12_RAYTRACING_ACCELERATION_STRUCTURE_BUILD_FLAGS::D3D12_RAYTRACING_ACCELERATION_STRUCTURE_BUILD_FLAG_ALLOW_UPDATE;
+	input.NumDescs      = std::uint32_t(instance_num);
+	input.InstanceDescs = instance->GetGPUVirtualAddress();
+	input.Type          = D3D12_RAYTRACING_ACCELERATION_STRUCTURE_TYPE::D3D12_RAYTRACING_ACCELERATION_STRUCTURE_TYPE_TOP_LEVEL;
+
+	D3D12_RAYTRACING_ACCELERATION_STRUCTURE_PREBUILD_INFO info{};
+	Runtime::GetDevice()->Get()->GetRaytracingAccelerationStructurePrebuildInfo(&input, &info);
+
+	auto* scratch = Resource::CreateBufferResource(D3D12_RESOURCE_STATES::D3D12_RESOURCE_STATE_UNORDERED_ACCESS, Resource::GetDefaultProp(), info.ScratchDataSizeInBytes, D3D12_RESOURCE_FLAGS::D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS);
+	auto* result  = Resource::CreateBufferResource(D3D12_RESOURCE_STATES::D3D12_RESOURCE_STATE_RAYTRACING_ACCELERATION_STRUCTURE, Resource::GetDefaultProp(), info.ResultDataMaxSizeInBytes, D3D12_RESOURCE_FLAGS::D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS);
+
+	return std::tie(scratch, result, instance);
 }
 
 Dx12::AccelerationStructure::AccelerationStructure()
@@ -63,4 +83,19 @@ void Dx12::AccelerationStructure::Release(void)
 		scratch->Release();
 		scratch = nullptr;
 	}
+}
+
+ID3D12Resource2* Dx12::AccelerationStructure::GetScratch(void) const
+{
+	return scratch;
+}
+
+ID3D12Resource2* Dx12::AccelerationStructure::GetResult(void) const
+{
+	return result;
+}
+
+ID3D12Resource2* Dx12::AccelerationStructure::GetInstance(void) const
+{
+	return instance;
 }

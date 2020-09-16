@@ -28,7 +28,6 @@ Dx12::ComputePipeline::ComputePipeline(const RootSignature* root, const ShaderCo
 
 Dx12::ComputePipeline::ComputePipeline(ID3D12PipelineState* pipe)
 {
-	Release();
 	obj = pipe;
 }
 

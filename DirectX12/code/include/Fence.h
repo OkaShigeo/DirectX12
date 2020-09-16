@@ -23,7 +23,7 @@ namespace Dx12
 		 * @param queue コマンドキュー
 		 */
 		Fence(const CommandQueue* queue);
-		/** コンストラクタ
+		/** コンストラクタ 
 		 * @param fence フェンス
 		 */
 		Fence(ID3D12Fence1* fence);

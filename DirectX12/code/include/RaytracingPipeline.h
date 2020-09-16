@@ -16,7 +16,7 @@ namespace Dx12
 		/** コンストラクタ */
 		RaytracingPipeline();
 		/** コンストラクタ
-		 * @param pipe ステートオブジェクト
+		 * @param pipe パイプライン
 		 */
 		RaytracingPipeline(ID3D12StateObject* pipe);
 		/*＊ デストラクタ */

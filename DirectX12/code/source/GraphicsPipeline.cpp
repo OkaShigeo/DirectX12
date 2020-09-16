@@ -80,7 +80,6 @@ Dx12::GraphicsPipeline::GraphicsPipeline(const std::vector<D3D12_INPUT_ELEMENT_D
 
 Dx12::GraphicsPipeline::GraphicsPipeline(ID3D12PipelineState* pipe)
 {
-	Release();
 	obj = pipe;
 }
 

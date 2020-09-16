@@ -39,7 +39,7 @@ namespace Dx12
 		/** サブオブジェクトリストの取得
 		 * @return サブオブジェクト配列
 		 */
-		static std::vector<D3D12_STATE_SUBOBJECT> GetSubObjList(void)
+		static std::vector<D3D12_STATE_SUBOBJECT>& GetSubObjList(void)
 		{
 			return sub;
 		}

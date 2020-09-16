@@ -11,14 +11,23 @@ namespace Dx12
 	public:
 		/** コンストラクタ */
 		BaseObject() {}
+		/** コンストラクタ
+		 * @param obj オブジェクト
+		 */
+		BaseObject(T* obj)
+		{
+			this->obj = obj;
+		}
 		/** デストラクタ */
-		virtual ~BaseObject() {
+		virtual ~BaseObject() 
+		{
 			Release();
 		}
 
 	public:
 		/** オブジェクトの破棄 */
-		void Release(void) {
+		void Release(void)
+		{
 			if (obj != nullptr) {
 				obj->Release();
 				obj = nullptr;
@@ -27,7 +36,8 @@ namespace Dx12
 		/** オブジェクトの有効判定 
 		 * @return true:有効/false:無効
 		 */
-		bool IsValied(void) const {
+		bool IsValied(void) const 
+		{
 			return (obj != nullptr);
 		}
 
@@ -35,31 +45,37 @@ namespace Dx12
 		/*＊ オブジェクトの取得
 		 * @return テンプレートオブジェクト
 		 */
-		T* Get(void) const {
+		T* Get(void) const 
+		{
 			return obj;
 		}
 		/** オブジェクトの参照を取得 
 		 * @return テンプレートオブジェクトのポインタ
 		 */
-		T** GetAddressOf(void) {
+		T** GetAddressOf(void) 
+		{
 			return &obj;
 		}
 
 		/*----------オペレータオーバーロード関数----------*/
 	public:
-		void operator=(const BaseObject& base) {
+		void operator=(const BaseObject& base) 
+		{
 			Release();
 			obj = base.obj;
 		}
-		void operator=(const BaseObject* base) {
+		void operator=(const BaseObject* base) 
+		{
 			Release();
 			obj = base->obj;
 		}
-		void operator=(T* ptr) {
+		void operator=(T* ptr) 
+		{
 			Release();
 			obj = ptr;
 		}
-		T* operator->(void) {
+		T* operator->(void) 
+		{
 			return obj;
 		}
 

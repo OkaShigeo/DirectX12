@@ -25,9 +25,8 @@ Dx12::DescriptorHeap::DescriptorHeap(const D3D12_DESCRIPTOR_HEAP_TYPE & type, co
 	obj = CreateDescriptorHeap(type, rsc_num, flag);
 }
 
-Dx12::DescriptorHeap::DescriptorHeap(ID3D12DescriptorHeap * heap)
+Dx12::DescriptorHeap::DescriptorHeap(ID3D12DescriptorHeap* heap)
 {
-	Release();
 	obj = heap;
 }
 
@@ -35,18 +34,18 @@ Dx12::DescriptorHeap::~DescriptorHeap()
 {
 }
 
-bool Dx12::DescriptorHeap::CreateRenderTargetView(Resource * rsc)
+bool Dx12::DescriptorHeap::CreateRenderTargetView(Resource * resource)
 {
 	if (count < obj->GetDesc().NumDescriptors) {
-		rsc->heap  = this;
-		rsc->count = count++;
+		resource->heap  = this;
+		resource->count = count++;
 
 		D3D12_RENDER_TARGET_VIEW_DESC desc{};
-		desc.Format        = rsc->Get()->GetDesc().Format;
+		desc.Format        = resource->Get()->GetDesc().Format;
 		desc.Texture2D     = {};
 		desc.ViewDimension = D3D12_RTV_DIMENSION::D3D12_RTV_DIMENSION_TEXTURE2D;
 
-		Runtime::GetDevice()->Get()->CreateRenderTargetView(rsc->Get(), &desc, rsc->GetCpuHandle());
+		Runtime::GetDevice()->Get()->CreateRenderTargetView(resource->Get(), &desc, resource->GetCpuHandle());
 
 		return true;
 	}
@@ -54,17 +53,17 @@ bool Dx12::DescriptorHeap::CreateRenderTargetView(Resource * rsc)
 	return false;
 }
 
-bool Dx12::DescriptorHeap::CreateConstantBufferView(Resource* rsc)
+bool Dx12::DescriptorHeap::CreateConstantBufferView(Resource* resource)
 {
 	if (count < obj->GetDesc().NumDescriptors) {
-		rsc->heap  = this;
-		rsc->count = count++;
+		resource->heap  = this;
+		resource->count = count++;
 
 		D3D12_CONSTANT_BUFFER_VIEW_DESC desc{};
-		desc.BufferLocation = rsc->Get()->GetGPUVirtualAddress();
-		desc.SizeInBytes    = std::uint32_t(rsc->Get()->GetDesc().Width);
+		desc.BufferLocation = resource->Get()->GetGPUVirtualAddress();
+		desc.SizeInBytes    = std::uint32_t(resource->Get()->GetDesc().Width);
 
-		Runtime::GetDevice()->Get()->CreateConstantBufferView(&desc, rsc->GetCpuHandle());
+		Runtime::GetDevice()->Get()->CreateConstantBufferView(&desc, resource->GetCpuHandle());
 
 		return true;
 	}
@@ -72,19 +71,19 @@ bool Dx12::DescriptorHeap::CreateConstantBufferView(Resource* rsc)
 	return false;
 }
 
-bool Dx12::DescriptorHeap::CreateShaderResourceView(Resource * rsc)
+bool Dx12::DescriptorHeap::CreateShaderResourceView(Resource * resource)
 {
 	if (count < obj->GetDesc().NumDescriptors) {
-		rsc->heap  = this;
-		rsc->count = count++;
+		resource->heap  = this;
+		resource->count = count++;
 
 		D3D12_SHADER_RESOURCE_VIEW_DESC desc{};
-		desc.Format                  = rsc->Get()->GetDesc().Format;
+		desc.Format                  = resource->Get()->GetDesc().Format;
 		desc.ViewDimension           = D3D12_SRV_DIMENSION::D3D12_SRV_DIMENSION_TEXTURE2D;
-		desc.Texture2D.MipLevels     = rsc->Get()->GetDesc().MipLevels;
+		desc.Texture2D.MipLevels     = resource->Get()->GetDesc().MipLevels;
 		desc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
 
-		Runtime::GetDevice()->Get()->CreateShaderResourceView(rsc->Get(), &desc, rsc->GetCpuHandle());
+		Runtime::GetDevice()->Get()->CreateShaderResourceView(resource->Get(), &desc, resource->GetCpuHandle());
 
 		return true;
 	}
@@ -92,22 +91,22 @@ bool Dx12::DescriptorHeap::CreateShaderResourceView(Resource * rsc)
 	return false;
 }
 
-bool Dx12::DescriptorHeap::CreateUnorderAccessView(Resource* rsc, const std::uint64_t& element_num)
+bool Dx12::DescriptorHeap::CreateUnorderAccessView(Resource* resource, const std::uint64_t& element_num)
 {
 	if (count < obj->GetDesc().NumDescriptors) {
-		rsc->heap  = this;
-		rsc->count = count++;
+		resource->heap  = this;
+		resource->count = count++;
 
 		D3D12_UNORDERED_ACCESS_VIEW_DESC desc{};
 		desc.Buffer.CounterOffsetInBytes = 0;
 		desc.Buffer.FirstElement         = 0;
 		desc.Buffer.Flags                = D3D12_BUFFER_UAV_FLAGS::D3D12_BUFFER_UAV_FLAG_NONE;
 		desc.Buffer.NumElements          = std::uint32_t(element_num);
-		desc.Buffer.StructureByteStride  = std::uint32_t(rsc->Get()->GetDesc1().Width) / desc.Buffer.NumElements;
-		desc.Format                      = rsc->Get()->GetDesc().Format;
+		desc.Buffer.StructureByteStride  = std::uint32_t(resource->Get()->GetDesc1().Width) / desc.Buffer.NumElements;
+		desc.Format                      = resource->Get()->GetDesc().Format;
 		desc.ViewDimension               = D3D12_UAV_DIMENSION::D3D12_UAV_DIMENSION_BUFFER;
 
-		Runtime::GetDevice()->Get()->CreateUnorderedAccessView(rsc->Get(), nullptr, &desc, rsc->GetCpuHandle());
+		Runtime::GetDevice()->Get()->CreateUnorderedAccessView(resource->Get(), nullptr, &desc, resource->GetCpuHandle());
 
 		return true;
 	}
@@ -115,18 +114,18 @@ bool Dx12::DescriptorHeap::CreateUnorderAccessView(Resource* rsc, const std::uin
 	return false;
 }
 
-bool Dx12::DescriptorHeap::CreateUnorderAccessView(Resource * rsc)
+bool Dx12::DescriptorHeap::CreateUnorderAccessView(Resource * resource)
 {
 	if (count < obj->GetDesc().NumDescriptors) {
-		rsc->heap  = this;
-		rsc->count = count++;
+		resource->heap  = this;
+		resource->count = count++;
 
 		D3D12_UNORDERED_ACCESS_VIEW_DESC desc{};
-		desc.Format        = rsc->Get()->GetDesc().Format;
+		desc.Format        = resource->Get()->GetDesc().Format;
 		desc.Texture2D     = {};
 		desc.ViewDimension = D3D12_UAV_DIMENSION::D3D12_UAV_DIMENSION_TEXTURE2D;
 
-		Runtime::GetDevice()->Get()->CreateUnorderedAccessView(rsc->Get(), nullptr, &desc, rsc->GetCpuHandle());
+		Runtime::GetDevice()->Get()->CreateUnorderedAccessView(resource->Get(), nullptr, &desc, resource->GetCpuHandle());
 
 		return true;
 	}

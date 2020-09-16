@@ -62,7 +62,6 @@ Dx12::ShaderCompiler::ShaderCompiler(const std::wstring& file_path, const std::w
 
 Dx12::ShaderCompiler::ShaderCompiler(ID3DBlob* blob)
 {
-	Release();
 	obj = blob;
 }
 

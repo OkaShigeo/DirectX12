@@ -16,8 +16,7 @@ namespace Dx12
 		 * @param flag ディスクリプタヒープのフラグ
 		 * @return ディスクリプタヒープ
 		 */
-		static ID3D12DescriptorHeap* CreateDescriptorHeap(const D3D12_DESCRIPTOR_HEAP_TYPE& type,
-				const std::uint64_t& rsc_num, const D3D12_DESCRIPTOR_HEAP_FLAGS& flag);
+		static ID3D12DescriptorHeap* CreateDescriptorHeap(const D3D12_DESCRIPTOR_HEAP_TYPE& type, const std::uint64_t& rsc_num, const D3D12_DESCRIPTOR_HEAP_FLAGS& flag);
 
 	public:
 		/** コンストラクタ */
@@ -27,9 +26,8 @@ namespace Dx12
 		 * @param rsc_num リソース数
 		 * @param flag ディスクリプタヒープのフラグ
 		 */
-		DescriptorHeap(const D3D12_DESCRIPTOR_HEAP_TYPE& type, const std::uint64_t& rsc_num,
-			const D3D12_DESCRIPTOR_HEAP_FLAGS& flag = D3D12_DESCRIPTOR_HEAP_FLAGS::D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE);
-		/** コンストラクタ 
+		DescriptorHeap(const D3D12_DESCRIPTOR_HEAP_TYPE& type, const std::uint64_t& rsc_num, const D3D12_DESCRIPTOR_HEAP_FLAGS& flag = D3D12_DESCRIPTOR_HEAP_FLAGS::D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE);
+		/** コンストラクタ
 		 * @param heap ディスクリプタヒープ
 		 */
 		DescriptorHeap(ID3D12DescriptorHeap* heap);
@@ -40,24 +38,24 @@ namespace Dx12
 		/*＊ RTVの生成 
 		 * @param rsc リソース
 		 */
-		bool CreateRenderTargetView(Resource* rsc);
+		bool CreateRenderTargetView(Resource* resource);
 		/** CBVの生成 
 		 * @param rsc リソース
 		 */
-		bool CreateConstantBufferView(Resource* rsc);
+		bool CreateConstantBufferView(Resource* resource);
 		/** SRVの生成 
 		 * @param rsc リソース
 		 */
-		bool CreateShaderResourceView(Resource* rsc);
+		bool CreateShaderResourceView(Resource* resource);
 		/** UAVの生成(バッファー) 
 		 * @param rsc リソース
 		 * @param element_num 要素数
 		 */
-		bool CreateUnorderAccessView(Resource* rsc, const std::uint64_t& element_num);
+		bool CreateUnorderAccessView(Resource* resource, const std::uint64_t& element_num);
 		/** UAVの生成(テクスチャ) 
 		 * @param rsc リソース
 		 */
-		bool CreateUnorderAccessView(Resource* rsc);
+		bool CreateUnorderAccessView(Resource* resource);
 
 	private:
 		/* ビュー生成カウント */

@@ -20,9 +20,8 @@ Dx12::Fence::Fence(const CommandQueue * queue) :
 	obj = CreateFence(count);
 }
 
-Dx12::Fence::Fence(ID3D12Fence1 * fence)
+Dx12::Fence::Fence(ID3D12Fence1* fence)
 {
-	Release();
 	obj = fence;
 }
 

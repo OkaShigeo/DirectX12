@@ -47,7 +47,6 @@ Dx12::RootSignature::RootSignature(const D3D12_ROOT_SIGNATURE_FLAGS& flag, const
 
 Dx12::RootSignature::RootSignature(ID3D12RootSignature* root)
 {
-	Release();
 	obj = root;
 }
 

@@ -45,7 +45,6 @@ Dx12::SwapChain::SwapChain(const Window* window, const CommandQueue* queue, cons
 
 Dx12::SwapChain::SwapChain(IDXGISwapChain4* swap)
 {
-	Release();
 	obj = swap;
 }
 

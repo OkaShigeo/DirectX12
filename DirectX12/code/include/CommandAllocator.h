@@ -18,8 +18,8 @@ namespace Dx12
 		 * @param type コマンドリストの種別
 		 */
 		CommandAllocator(const D3D12_COMMAND_LIST_TYPE& type = D3D12_COMMAND_LIST_TYPE::D3D12_COMMAND_LIST_TYPE_DIRECT);
-		/*＊ コンストラクタ
-		 * @param allocator コマンドアロケータ
+		/** コンストラクタ
+		 * pparam allocator コマンドアロケータ
 		 */
 		CommandAllocator(ID3D12CommandAllocator* allocator);
 		/** デストラクタ */

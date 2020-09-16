@@ -66,9 +66,9 @@ namespace Dx12
 		 */
 		Resource(const D3D12_RESOURCE_STATES& state, const D3D12_HEAP_PROPERTIES& prop, const DXGI_FORMAT& format, const std::uint64_t& width, const std::uint32_t& height, const D3D12_RESOURCE_FLAGS& flag = D3D12_RESOURCE_FLAGS::D3D12_RESOURCE_FLAG_NONE, const D3D12_CLEAR_VALUE* clear = nullptr);
 		/** コンストラクタ
-		 * @param rsc リソース
+		 * @param resource リソース
 		 */
-		Resource(ID3D12Resource2* rsc);
+		Resource(ID3D12Resource2* resource);
 		/*＊ デストラクタ */
 		~Resource();
 

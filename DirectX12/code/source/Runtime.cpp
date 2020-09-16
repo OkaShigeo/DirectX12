@@ -91,13 +91,13 @@ void Dx12::Runtime::Clear(void)
 	list->SetViewport(swap->GetSize());
 	list->SetScissors(swap->GetSize());
 
-	list->SetRscBarrier(rsc[swap->GetBufferIndex()], D3D12_RESOURCE_STATES::D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATES::D3D12_RESOURCE_STATE_RENDER_TARGET);
+	list->SetResourceBarrier(rsc[swap->GetBufferIndex()], D3D12_RESOURCE_STATES::D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATES::D3D12_RESOURCE_STATE_RENDER_TARGET);
 	list->ClearRenderTargetView(rsc[swap->GetBufferIndex()], color);
 }
 
 void Dx12::Runtime::Execution(const std::vector<CommandList*>& lists)
 {
-	list->SetRscBarrier(rsc[swap->GetBufferIndex()], D3D12_RESOURCE_STATES::D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATES::D3D12_RESOURCE_STATE_PRESENT);
+	list->SetResourceBarrier(rsc[swap->GetBufferIndex()], D3D12_RESOURCE_STATES::D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATES::D3D12_RESOURCE_STATE_PRESENT);
 
 	std::vector<CommandList*>tmp = lists;
 	tmp.push_back(list);
@@ -148,12 +148,12 @@ void Dx12::Runtime::SetComputePipeline(const ComputePipeline * pipe)
 
 void Dx12::Runtime::SetResourceBarrier(const Resource* rsc, const D3D12_RESOURCE_STATES& befor, const D3D12_RESOURCE_STATES& after)
 {
-	list->SetRscBarrier(rsc, befor, after);
+	list->SetResourceBarrier(rsc, befor, after);
 }
 
 void Dx12::Runtime::SetUavResourceBarrier(const Resource* rsc)
 {
-	list->SetUavRscBarrier(rsc);
+	list->SetUavResourceBarrier(rsc);
 }
 
 void Dx12::Runtime::DrawVertexInstance(const Resource * rsc, const std::uint32_t & vertex_num, const std::uint32_t & instance_num, const D3D12_PRIMITIVE_TOPOLOGY & topology)

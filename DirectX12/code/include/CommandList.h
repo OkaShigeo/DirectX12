@@ -55,16 +55,16 @@ namespace Dx12
 		 * @param befor 遷移前のリソース状態
 		 * @param after 遷移後のリソース状態
 		 */
-		void SetRscBarrier(const Resource* rsc, const D3D12_RESOURCE_STATES& befor, const D3D12_RESOURCE_STATES& after) const;
+		void SetResourceBarrier(const Resource* resource, const D3D12_RESOURCE_STATES& befor, const D3D12_RESOURCE_STATES& after) const;
 		/** UAVリソースバリアのセット 
 		 * @param リソース
 		 */
-		void SetUavRscBarrier(const Resource* rsc) const;
+		void SetUavResourceBarrier(const Resource* resource) const;
 		/** レンダーターゲットビューのクリア 
 		 * @param rsc リソース
 		 * @param color クリアカラー
 		 */
-		void ClearRenderTargetView(const Resource* rsc, const float color[4]) const;
+		void ClearRenderTargetView(const Resource* resource, const float color[4]) const;
 		/** ディスクリプタヒープのセット
 		 * @param heap ディスクリプタヒープ
 		 */
@@ -81,12 +81,12 @@ namespace Dx12
 		 * @param rsc リソース
 		 * @param param_index ルートシグネチャのパラメータ番号
 		 */
-		void SetGraphicsResource(const Resource* rsc, const std::uint32_t& param_index) const;
+		void SetGraphicsResource(const Resource* resource, const std::uint32_t& param_index) const;
 		/** プログラマブル用にリソースをセット
 		 * @param rsc リソース
 		 * @param param_index ルートシグネチャのパラメータ番号
 		 */
-		void SetComputeResource(const Resource* rsc, const std::uint32_t& param_index) const;
+		void SetComputeResource(const Resource* resource, const std::uint32_t& param_index) const;
 		/** グラフィックス用パイプラインのセット 
 		 * @param pipe パイプライン
 		 */
@@ -101,7 +101,7 @@ namespace Dx12
 		 * @param instance_num インスタンス数
 		 * @param topology プリミティブのトポロジー
 		 */
-		void DrawVertexInstance(const Resource* rsc, const std::uint32_t& vertex_num, const std::uint32_t& instance_num = 1, const D3D12_PRIMITIVE_TOPOLOGY& topology = D3D12_PRIMITIVE_TOPOLOGY::D3D_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
+		void DrawVertexInstance(const Resource* vertex, const std::uint32_t& vertex_num, const std::uint32_t& instance_num = 1, const D3D12_PRIMITIVE_TOPOLOGY& topology = D3D12_PRIMITIVE_TOPOLOGY::D3D_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
 		/*＊ インデックスリソースによるプリミティブの描画
 		 * @param vertex 頂点リソース
 		 * @param vertex_num 頂点数

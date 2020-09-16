@@ -15,9 +15,8 @@ Dx12::CommandAllocator::CommandAllocator(const D3D12_COMMAND_LIST_TYPE & type)
 	obj = CreateCommandAllocator(type);
 }
 
-Dx12::CommandAllocator::CommandAllocator(ID3D12CommandAllocator * allocator)
+Dx12::CommandAllocator::CommandAllocator(ID3D12CommandAllocator* allocator)
 {
-	Release();
 	obj = allocator;
 }
 
