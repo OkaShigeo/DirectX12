@@ -26,8 +26,7 @@ std::tuple<ID3D12Resource2*, ID3D12Resource2*, std::vector<D3D12_RAYTRACING_GEOM
 	input.pGeometryDescs = geo.data();
 	input.Type           = D3D12_RAYTRACING_ACCELERATION_STRUCTURE_TYPE::D3D12_RAYTRACING_ACCELERATION_STRUCTURE_TYPE_BOTTOM_LEVEL;
 	
-	D3D12_RAYTRACING_ACCELERATION_STRUCTURE_PREBUILD_INFO info{};
-	Runtime::GetDevice()->Get()->GetRaytracingAccelerationStructurePrebuildInfo(&input, &info);
+	D3D12_RAYTRACING_ACCELERATION_STRUCTURE_PREBUILD_INFO info = Runtime::GetDevice()->GetAccelerationStructurePrebuildInfo(input);
 
 	auto* scratch = Resource::CreateBufferResource(D3D12_RESOURCE_STATES::D3D12_RESOURCE_STATE_UNORDERED_ACCESS, Resource::GetDefaultProp(), info.ScratchDataSizeInBytes, D3D12_RESOURCE_FLAGS::D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS);
 	auto* result  = Resource::CreateBufferResource(D3D12_RESOURCE_STATES::D3D12_RESOURCE_STATE_RAYTRACING_ACCELERATION_STRUCTURE, Resource::GetDefaultProp(), info.ResultDataMaxSizeInBytes, D3D12_RESOURCE_FLAGS::D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS);
@@ -35,7 +34,7 @@ std::tuple<ID3D12Resource2*, ID3D12Resource2*, std::vector<D3D12_RAYTRACING_GEOM
 	return std::tie(scratch, result, geo);
 }
 
-std::tuple<ID3D12Resource2*, ID3D12Resource2*, ID3D12Resource2*> Dx12::AccelerationStructure::CreateTopLevel(const AccelerationStructure* bottom, const std::uint64_t& instance_num)
+std::tuple<ID3D12Resource2*, ID3D12Resource2*, ID3D12Resource2*> Dx12::AccelerationStructure::CreateTopLevel(const std::uint64_t& instance_num)
 {
 	auto* instance = Resource::CreateBufferResource(D3D12_RESOURCE_STATES::D3D12_RESOURCE_STATE_GENERIC_READ, Resource::GetUploadProp(), sizeof(D3D12_RAYTRACING_INSTANCE_DESC) * instance_num);
 
@@ -46,8 +45,7 @@ std::tuple<ID3D12Resource2*, ID3D12Resource2*, ID3D12Resource2*> Dx12::Accelerat
 	input.InstanceDescs = instance->GetGPUVirtualAddress();
 	input.Type          = D3D12_RAYTRACING_ACCELERATION_STRUCTURE_TYPE::D3D12_RAYTRACING_ACCELERATION_STRUCTURE_TYPE_TOP_LEVEL;
 
-	D3D12_RAYTRACING_ACCELERATION_STRUCTURE_PREBUILD_INFO info{};
-	Runtime::GetDevice()->Get()->GetRaytracingAccelerationStructurePrebuildInfo(&input, &info);
+	D3D12_RAYTRACING_ACCELERATION_STRUCTURE_PREBUILD_INFO info = Runtime::GetDevice()->GetAccelerationStructurePrebuildInfo(input);
 
 	auto* scratch = Resource::CreateBufferResource(D3D12_RESOURCE_STATES::D3D12_RESOURCE_STATE_UNORDERED_ACCESS, Resource::GetDefaultProp(), info.ScratchDataSizeInBytes, D3D12_RESOURCE_FLAGS::D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS);
 	auto* result  = Resource::CreateBufferResource(D3D12_RESOURCE_STATES::D3D12_RESOURCE_STATE_RAYTRACING_ACCELERATION_STRUCTURE, Resource::GetDefaultProp(), info.ResultDataMaxSizeInBytes, D3D12_RESOURCE_FLAGS::D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS);
@@ -59,9 +57,9 @@ Dx12::AccelerationStructure::AccelerationStructure()
 {
 }
 
-Dx12::AccelerationStructure::AccelerationStructure(const std::tuple<ID3D12Resource2*, ID3D12Resource2*>& rsc)
+Dx12::AccelerationStructure::AccelerationStructure(const std::tuple<ID3D12Resource2*, ID3D12Resource2*, std::vector<D3D12_RAYTRACING_GEOMETRY_DESC>>& value)
 {
-	(*this) = rsc;
+	(*this) = value;
 }
 
 Dx12::AccelerationStructure::~AccelerationStructure()
@@ -85,6 +83,16 @@ void Dx12::AccelerationStructure::Release(void)
 	}
 }
 
+bool Dx12::AccelerationStructure::IsBottomLevel(void) const
+{
+	return geometory.size() > 0;
+}
+
+bool Dx12::AccelerationStructure::IsTopLevel(void) const
+{
+	return geometory.size() <= 0;
+}
+
 ID3D12Resource2* Dx12::AccelerationStructure::GetScratch(void) const
 {
 	return scratch;
@@ -98,4 +106,9 @@ ID3D12Resource2* Dx12::AccelerationStructure::GetResult(void) const
 ID3D12Resource2* Dx12::AccelerationStructure::GetInstance(void) const
 {
 	return instance;
+}
+
+D3D12_BUILD_RAYTRACING_ACCELERATION_STRUCTURE_INPUTS Dx12::AccelerationStructure::GetBuildInfo(void) const
+{
+	return build;;
 }

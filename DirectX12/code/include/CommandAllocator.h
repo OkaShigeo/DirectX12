@@ -8,14 +8,14 @@ namespace Dx12
 	{
 	public:
 		/** コマンドアロケータの生成 
-		 * @param type コマンドリストの種別
+		 * @param type コマンドタイプ
 		 * @return コマンドアロケータ
 		 */
-		static ID3D12CommandAllocator* CreateCommandAllocator(const D3D12_COMMAND_LIST_TYPE& type);
+		static ID3D12CommandAllocator* CreateCommandAllocator(const D3D12_COMMAND_LIST_TYPE& type = D3D12_COMMAND_LIST_TYPE::D3D12_COMMAND_LIST_TYPE_DIRECT);
 
 	public:
 		/*＊ コンストラクタ
-		 * @param type コマンドリストの種別
+		 * @param type コマンドタイプ
 		 */
 		CommandAllocator(const D3D12_COMMAND_LIST_TYPE& type = D3D12_COMMAND_LIST_TYPE::D3D12_COMMAND_LIST_TYPE_DIRECT);
 		/** コンストラクタ

@@ -3,11 +3,7 @@
 
 ID3D12Fence1* Dx12::Fence::CreateFence(const std::uint64_t& count)
 {
-	ID3D12Fence1* fence = nullptr;
-	auto hr = Runtime::GetDevice()->Get()->CreateFence(count, D3D12_FENCE_FLAGS::D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&fence));
-	assert(hr == S_OK);
-
-	return fence;
+	return Runtime::GetDevice()->CreateFence(count);
 }
 
 Dx12::Fence::Fence()
