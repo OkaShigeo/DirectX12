@@ -4,11 +4,7 @@
 
 ID3D12RootSignature* Dx12::RootSignature::CreateRootSignature(const ShaderCompiler * shader)
 {
-	ID3D12RootSignature* root = nullptr;
-	auto hr = Runtime::GetDevice()->Get()->CreateRootSignature(0, shader->Get()->GetBufferPointer(), shader->Get()->GetBufferSize(), IID_PPV_ARGS(&root));
-	assert(hr == S_OK);
-	
-	return root;
+	return Runtime::GetDevice()->CreateRootSignature(shader);
 }
 
 ID3D12RootSignature * Dx12::RootSignature::CreateRootSignature(const D3D12_ROOT_SIGNATURE_FLAGS & flag, const std::vector<D3D12_ROOT_PARAMETER1>& param, 

@@ -57,7 +57,7 @@ namespace Dx12
 		/** ビルド情報の取得
 		 * @return ビルド情報
 		 */
-		D3D12_BUILD_RAYTRACING_ACCELERATION_STRUCTURE_INPUTS GetBuildInfo(void) const;
+		D3D12_BUILD_RAYTRACING_ACCELERATION_STRUCTURE_INPUTS GetBuildInput(void) const;
 
 		/*----------オペレータオーバーロード関数----------*/
 	public:

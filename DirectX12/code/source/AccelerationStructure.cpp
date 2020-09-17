@@ -108,7 +108,7 @@ ID3D12Resource2* Dx12::AccelerationStructure::GetInstance(void) const
 	return instance;
 }
 
-D3D12_BUILD_RAYTRACING_ACCELERATION_STRUCTURE_INPUTS Dx12::AccelerationStructure::GetBuildInfo(void) const
+D3D12_BUILD_RAYTRACING_ACCELERATION_STRUCTURE_INPUTS Dx12::AccelerationStructure::GetBuildInput(void) const
 {
-	return build;;
+	return input;
 }

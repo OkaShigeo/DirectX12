@@ -99,3 +99,12 @@ bool Dx12::DescriptorHeap::CreateUnorderAccessView(Resource * resource)
 
 	return false;
 }
+
+D3D12_DESCRIPTOR_HEAP_TYPE Dx12::DescriptorHeap::GetType(void) const
+{
+	if (obj != nullptr) {
+		return obj->GetDesc().Type;
+	}
+
+	return D3D12_DESCRIPTOR_HEAP_TYPE();
+}

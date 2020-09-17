@@ -42,7 +42,7 @@ namespace Dx12
 		 * @param clear クリア情報
 		 * @return テクスチャリソース
 		 */
-		static ID3D12Resource2* CreateTextureResource(const D3D12_RESOURCE_STATES& state, const D3D12_HEAP_PROPERTIES& prop, const DXGI_FORMAT& format, const std::uint64_t& width, const std::uint32_t& height, const D3D12_RESOURCE_FLAGS& flag, const D3D12_CLEAR_VALUE* clear = nullptr);
+		static ID3D12Resource2* CreateTextureResource(const D3D12_RESOURCE_STATES& state, const D3D12_HEAP_PROPERTIES& prop, const DXGI_FORMAT& format, const std::uint64_t& width, const std::uint32_t& height, const D3D12_RESOURCE_FLAGS& flag = D3D12_RESOURCE_FLAGS::D3D12_RESOURCE_FLAG_NONE, const D3D12_CLEAR_VALUE* clear = nullptr);
 
 	public:
 		/*＊ コンストラクタ */
@@ -105,13 +105,6 @@ namespace Dx12
 		 * @return 確保したバッファーのポインタ
 		 */
 		std::uint8_t* GetBuffer(void) const;
-		/** データサイズの取得 
-		 * @param information サブリソース情報
-		 * @param num サブリソース数
-		 * @param offset サブリソース番号のオフセット
-		 * @return データサイズ
-		 */
-		std::uint64_t GetSize(D3D12_PLACED_SUBRESOURCE_FOOTPRINT* information = nullptr, const std::uint64_t& num = 1, const std::uint32_t& offset = 0) const;
 	
 	private:
 		/* 参照しているディスクリプタヒープ */

@@ -57,6 +57,12 @@ namespace Dx12
 		 */
 		bool CreateUnorderAccessView(Resource* resource);
 
+	public:
+		/** ヒープタイプの取得
+		 * @return ヒープタイプ
+		*/
+		D3D12_DESCRIPTOR_HEAP_TYPE GetType(void) const;
+
 	private:
 		/* ビュー生成カウント */
 		std::uint32_t count{ 0 };

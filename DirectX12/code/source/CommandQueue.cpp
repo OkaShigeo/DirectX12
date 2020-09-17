@@ -20,7 +20,7 @@ Dx12::CommandQueue::~CommandQueue()
 {
 }
 
-void Dx12::CommandQueue::Execution(const std::vector<CommandList*>& lists)
+void Dx12::CommandQueue::Execution(const std::vector<CommandList*>& lists) const
 {
 	std::vector<ID3D12CommandList*>tmp;
 	for (auto& i : lists) {
@@ -28,4 +28,14 @@ void Dx12::CommandQueue::Execution(const std::vector<CommandList*>& lists)
 	}
 
 	obj->ExecuteCommandLists(std::uint32_t(tmp.size()), tmp.data());
+}
+
+std::uint64_t Dx12::CommandQueue::AddSignal(Fence* fence) const
+{
+	auto count = fence->GetCount();
+
+	auto hr = obj->Signal(fence->Get(), ++count);
+	assert(hr == S_OK);
+
+	return count;
 }

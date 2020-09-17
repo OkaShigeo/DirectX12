@@ -1,9 +1,6 @@
-#include "..\include\Device.h"
-#include "..\include\ShaderCompiler.h"
-#include "..\include\RootSignature.h"
-#include "..\include\Resource.h"
+#include "..\include/Runtime.h"
+#include "..\include\SubObject.h"
 #include <wrl.h>
-#include <cstdint>
 
 namespace {
 	/* ‹@”\ƒŒƒxƒ‹ˆê—— */
@@ -116,7 +113,7 @@ ID3D12Fence1* Dx12::Device::CreateFence(const std::uint64_t& count) const
 	return fence;
 }
 
-ID3D12DescriptorHeap* Dx12::Device::CreateDescriptorHeap(const D3D12_DESCRIPTOR_HEAP_TYPE& type, const std::uint64_t& rsc_num, const D3D12_DESCRIPTOR_HEAP_FLAGS& flag)
+ID3D12DescriptorHeap* Dx12::Device::CreateDescriptorHeap(const D3D12_DESCRIPTOR_HEAP_TYPE& type, const std::uint64_t& rsc_num, const D3D12_DESCRIPTOR_HEAP_FLAGS& flag) const
 {
 	D3D12_DESCRIPTOR_HEAP_DESC desc{};
 	desc.Flags          = flag;
@@ -131,7 +128,124 @@ ID3D12DescriptorHeap* Dx12::Device::CreateDescriptorHeap(const D3D12_DESCRIPTOR_
 	return heap;
 }
 
-ID3D12PipelineState* Dx12::Device::CreateComputePipeline(const RootSignature* root, const ShaderCompiler* shader)
+ID3D12Resource2* Dx12::Device::CreateBufferResource(const D3D12_RESOURCE_STATES& state, const D3D12_HEAP_PROPERTIES& prop, const std::uint64_t& size, const D3D12_RESOURCE_FLAGS& flag, const D3D12_CLEAR_VALUE* clear) const
+{
+	D3D12_RESOURCE_DESC1 desc{};
+	desc.Dimension                = D3D12_RESOURCE_DIMENSION::D3D12_RESOURCE_DIMENSION_BUFFER;
+	desc.DepthOrArraySize         = 1;
+	desc.Flags                    = flag;
+	desc.Format                   = DXGI_FORMAT::DXGI_FORMAT_UNKNOWN;
+	desc.Height                   = 1;
+	desc.Layout                   = D3D12_TEXTURE_LAYOUT::D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
+	desc.MipLevels                = 1;
+	desc.SampleDesc               = { 1, 0 };
+	desc.SamplerFeedbackMipRegion = {};
+	desc.Width                    = size;
+
+	ID3D12Resource2* rsc = nullptr;
+	auto hr = obj->CreateCommittedResource1(&prop, D3D12_HEAP_FLAGS::D3D12_HEAP_FLAG_NONE, (D3D12_RESOURCE_DESC*)&desc, state, clear, nullptr, IID_PPV_ARGS(&rsc));
+	assert(hr == S_OK);
+
+	return rsc;
+}
+
+ID3D12Resource2* Dx12::Device::CreateTextureResource(const D3D12_RESOURCE_STATES& state, const D3D12_HEAP_PROPERTIES& prop, const DXGI_FORMAT& format, const std::uint64_t& width, const std::uint32_t& height, const D3D12_RESOURCE_FLAGS& flag, const D3D12_CLEAR_VALUE* clear) const
+{
+	D3D12_RESOURCE_DESC1 desc{};
+	desc.DepthOrArraySize         = 1;
+	desc.Dimension                = D3D12_RESOURCE_DIMENSION::D3D12_RESOURCE_DIMENSION_TEXTURE2D;
+	desc.Flags                    = flag;
+	desc.Format                   = format;
+	desc.Height                   = height;
+	desc.Layout                   = D3D12_TEXTURE_LAYOUT::D3D12_TEXTURE_LAYOUT_UNKNOWN;
+	desc.MipLevels                = 1;
+	desc.SampleDesc               = { 1, 0 };
+	desc.SamplerFeedbackMipRegion = {};
+	desc.Width                    = width;
+
+	ID3D12Resource2* rsc = nullptr;
+	auto hr = obj->CreateCommittedResource1(&prop, D3D12_HEAP_FLAGS::D3D12_HEAP_FLAG_NONE, (D3D12_RESOURCE_DESC*)&desc, state, clear, nullptr, IID_PPV_ARGS(&rsc));
+	assert(hr == S_OK);
+
+	return rsc;
+}
+
+ID3D12RootSignature* Dx12::Device::CreateRootSignature(const ShaderCompiler* shader) const
+{
+	ID3D12RootSignature* root = nullptr;
+	auto hr = obj->CreateRootSignature(0, shader->Get()->GetBufferPointer(), shader->Get()->GetBufferSize(), IID_PPV_ARGS(&root));
+	assert(hr == S_OK);
+
+	return root;
+}
+
+ID3D12PipelineState* Dx12::Device::CreateGraphicsPipeline(const std::vector<D3D12_INPUT_ELEMENT_DESC>& input, const RootSignature* root, const ShaderCompiler* vertex, const ShaderCompiler* pixel, const ShaderCompiler* geometory, const D3D12_PRIMITIVE_TOPOLOGY_TYPE& topology, const bool& depth) const
+{
+	D3D12_RASTERIZER_DESC rasterizer{};
+	rasterizer.CullMode        = D3D12_CULL_MODE::D3D12_CULL_MODE_NONE;
+	rasterizer.DepthClipEnable = true;
+	rasterizer.FillMode        = D3D12_FILL_MODE::D3D12_FILL_MODE_SOLID;
+
+	D3D12_RENDER_TARGET_BLEND_DESC renderBlend{};
+	renderBlend.BlendEnable           = true;
+	renderBlend.BlendOp               = D3D12_BLEND_OP::D3D12_BLEND_OP_ADD;
+	renderBlend.BlendOpAlpha          = D3D12_BLEND_OP::D3D12_BLEND_OP_ADD;
+	renderBlend.DestBlend             = D3D12_BLEND::D3D12_BLEND_INV_SRC_ALPHA;
+	renderBlend.DestBlendAlpha        = D3D12_BLEND::D3D12_BLEND_ZERO;
+	renderBlend.LogicOp               = D3D12_LOGIC_OP::D3D12_LOGIC_OP_NOOP;
+	renderBlend.RenderTargetWriteMask = D3D12_COLOR_WRITE_ENABLE::D3D12_COLOR_WRITE_ENABLE_ALL;
+	renderBlend.SrcBlend              = D3D12_BLEND::D3D12_BLEND_SRC_ALPHA;
+	renderBlend.SrcBlendAlpha         = D3D12_BLEND::D3D12_BLEND_ONE;
+
+	D3D12_BLEND_DESC blend{};
+	for (int i = 0; i < 2; ++i)
+	{
+		blend.RenderTarget[i] = renderBlend;
+	}
+
+	D3D12_GRAPHICS_PIPELINE_STATE_DESC desc{};
+	desc.BlendState                                     = blend;
+	desc.DepthStencilState.DepthEnable                  = depth;
+	desc.DepthStencilState.DepthWriteMask               = D3D12_DEPTH_WRITE_MASK::D3D12_DEPTH_WRITE_MASK_ALL;
+	desc.DepthStencilState.DepthFunc                    = D3D12_COMPARISON_FUNC::D3D12_COMPARISON_FUNC_LESS;
+	desc.DepthStencilState.StencilEnable                = depth;
+	desc.DepthStencilState.StencilReadMask              = UCHAR_MAX;
+	desc.DepthStencilState.StencilWriteMask             = UCHAR_MAX;
+	desc.DepthStencilState.FrontFace.StencilFailOp      = D3D12_STENCIL_OP::D3D12_STENCIL_OP_KEEP;
+	desc.DepthStencilState.FrontFace.StencilDepthFailOp = D3D12_STENCIL_OP::D3D12_STENCIL_OP_KEEP;
+	desc.DepthStencilState.FrontFace.StencilFunc        = D3D12_COMPARISON_FUNC::D3D12_COMPARISON_FUNC_ALWAYS;
+	desc.DepthStencilState.FrontFace.StencilPassOp      = D3D12_STENCIL_OP::D3D12_STENCIL_OP_INCR;
+	desc.DepthStencilState.BackFace.StencilFailOp       = D3D12_STENCIL_OP::D3D12_STENCIL_OP_KEEP;
+	desc.DepthStencilState.BackFace.StencilDepthFailOp  = D3D12_STENCIL_OP::D3D12_STENCIL_OP_KEEP;
+	desc.DepthStencilState.BackFace.StencilPassOp       = D3D12_STENCIL_OP::D3D12_STENCIL_OP_DECR;
+	desc.DepthStencilState.BackFace.StencilFunc         = D3D12_COMPARISON_FUNC::D3D12_COMPARISON_FUNC_ALWAYS;
+	desc.DSVFormat                                      = DXGI_FORMAT::DXGI_FORMAT_D32_FLOAT;
+	if (geometory != nullptr)
+	{
+		desc.GS.pShaderBytecode = geometory->Get()->GetBufferPointer();
+		desc.GS.BytecodeLength  = geometory->Get()->GetBufferSize();
+	}
+	desc.InputLayout           = { input.data(), std::uint32_t(input.size()) };
+	desc.NumRenderTargets      = 1;
+	desc.PrimitiveTopologyType = topology;
+	desc.pRootSignature        = root->Get();
+	desc.PS.pShaderBytecode    = pixel->Get()->GetBufferPointer();
+	desc.PS.BytecodeLength     = pixel->Get()->GetBufferSize();
+	desc.RasterizerState       = rasterizer;
+	desc.RTVFormats[0]         = DXGI_FORMAT::DXGI_FORMAT_R8G8B8A8_UNORM;
+	desc.SampleMask            = UINT_MAX;
+	desc.SampleDesc            = { 1, 0 };
+	desc.VS.pShaderBytecode    = vertex->Get()->GetBufferPointer();
+	desc.VS.BytecodeLength     = vertex->Get()->GetBufferSize();
+
+	ID3D12PipelineState* pipe = nullptr;
+	auto hr = obj->CreateGraphicsPipelineState(&desc, IID_PPV_ARGS(&pipe));
+	assert(hr == S_OK);
+
+	return pipe;
+}
+
+ID3D12PipelineState* Dx12::Device::CreateComputePipeline(const RootSignature* root, const ShaderCompiler* shader) const
 {
 	D3D12_COMPUTE_PIPELINE_STATE_DESC desc{};
 	desc.CS.BytecodeLength  = shader->Get()->GetBufferSize();
@@ -143,6 +257,26 @@ ID3D12PipelineState* Dx12::Device::CreateComputePipeline(const RootSignature* ro
 	ID3D12PipelineState* pipe = nullptr;
 	auto hr = obj->CreateComputePipelineState(&desc, IID_PPV_ARGS(&pipe));
 	assert(hr == S_OK);
+
+	return pipe;
+}
+
+ID3D12StateObject* Dx12::Device::CreateRaytracingPipeline(void) const
+{
+	auto& sub = SubObject::GetSubObjList();
+
+	D3D12_STATE_OBJECT_DESC desc{};
+	desc.NumSubobjects = std::uint32_t(sub.size());
+	desc.pSubobjects   = sub.data();
+	desc.Type          = D3D12_STATE_OBJECT_TYPE::D3D12_STATE_OBJECT_TYPE_RAYTRACING_PIPELINE;
+
+	ID3D12StateObject* pipe = nullptr;
+	auto hr = obj->CreateStateObject(&desc, IID_PPV_ARGS(&pipe));
+	assert(hr == S_OK);
+
+	auto size = sub.capacity();
+	sub.clear();
+	sub.reserve(size);
 
 	return pipe;
 }
@@ -199,6 +333,25 @@ void Dx12::Device::CreateUnorderAccessView(Resource* resource) const
 	desc.ViewDimension = D3D12_UAV_DIMENSION::D3D12_UAV_DIMENSION_TEXTURE2D;
 
 	obj->CreateUnorderedAccessView(resource->Get(), nullptr, &desc, resource->GetCpuHandle());
+}
+
+std::uint64_t Dx12::Device::GetHeapSize(const DescriptorHeap* heap) const
+{
+	return obj->GetDescriptorHandleIncrementSize(heap->GetType());
+}
+
+std::uint64_t Dx12::Device::CopySubResourceInfo(const Resource* resource, D3D12_PLACED_SUBRESOURCE_FOOTPRINT* information, const std::uint32_t& offset) const
+{
+	std::uint32_t num = 1;
+	if (information != nullptr) {
+		num = std::uint32_t(_msize(information) / sizeof(D3D12_PLACED_SUBRESOURCE_FOOTPRINT));
+	}
+
+	auto desc = resource->Get()->GetDesc();
+	std::uint64_t size = 0;
+	obj->GetCopyableFootprints(&desc, offset, num, 0, information, nullptr, nullptr, &size);
+
+	return size;
 }
 
 D3D12_RAYTRACING_ACCELERATION_STRUCTURE_PREBUILD_INFO Dx12::Device::GetAccelerationStructurePrebuildInfo(D3D12_BUILD_RAYTRACING_ACCELERATION_STRUCTURE_INPUTS& input) const

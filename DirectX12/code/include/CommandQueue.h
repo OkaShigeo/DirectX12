@@ -5,6 +5,7 @@
 namespace Dx12
 {
 	class CommandList;
+	class Fence;
 
 	class CommandQueue :
 		public BaseObject<ID3D12CommandQueue>
@@ -32,6 +33,11 @@ namespace Dx12
 		/** コマンド実行 
 		 * @param lists コマンドリストクラスの配列
 		 */
-		void Execution(const std::vector<CommandList*>& lists);
+		void Execution(const std::vector<CommandList*>& lists) const;
+		/** シグナルの追加
+		 * @param fence フェンス
+		 * @return フェンスカウント
+		 */
+		std::uint64_t AddSignal(Fence* fence) const;
 	};
 }

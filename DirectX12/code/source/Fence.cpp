@@ -27,17 +27,14 @@ Dx12::Fence::~Fence()
 
 void Dx12::Fence::Wait(void)
 {
-	assert(obj != nullptr);
-
-	auto hr = queue->Get()->Signal(obj, ++count);
-	assert(hr == S_OK);
+	count = queue->AddSignal(this);
 
 	if (obj->GetCompletedValue() != count) {
 		void* handle = CreateEventEx(nullptr, nullptr, 0, EVENT_ALL_ACCESS);
-		hr = obj->SetEventOnCompletion(count, handle);
-		assert(hr == S_OK);
 		assert(handle != nullptr);
-
+		auto hr = obj->SetEventOnCompletion(count, handle);
+		assert(hr == S_OK);
+		
 		WaitForSingleObjectEx(handle, INFINITE, false);
 
 		assert(CloseHandle(handle) != 0);
