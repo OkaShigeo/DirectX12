@@ -1,42 +1,38 @@
-#include "..\include\HitGroup.h"
+#include "..\include\Runtime.h"
 
 Dx12::HitGroup::HitGroup()
 {
 }
 
-Dx12::HitGroup::HitGroup(const std::wstring& hit_name, const std::vector<std::wstring>& func_name)
+Dx12::HitGroup::HitGroup(SubObject* sub, const Str::String& hit_group_name, const char* closetshit_name, const char* anyhit_name, const char* intersect_name)
 {
-	AddSubObj(hit_name, func_name);
+	AddSubObject(sub, hit_group_name, closetshit_name, anyhit_name, intersect_name);
 }
 
 Dx12::HitGroup::~HitGroup()
 {
 }
 
-void Dx12::HitGroup::AddSubObj(const std::wstring & hit_name, const std::vector<std::wstring> & func_name)
+void Dx12::HitGroup::AddSubObject(SubObject* sub, const Str::String& hit_group_name, const char* closetshit_name, const char* anyhit_name, const char* intersect_name)
 {
-	D3D12_HIT_GROUP_DESC desc{};
-	desc.HitGroupExport = hit_name.c_str();
+	auto group = hit_group_name.GetUniCode();
 
-	std::uint32_t index = 0;
-	for (auto& i : func_name) {
-		switch (index)
-		{
-		case 0:
-			desc.ClosestHitShaderImport = i.c_str();
-			break;
-		case 1:
-			desc.AnyHitShaderImport = i.c_str();
-			break;
-		case 2:
-			desc.IntersectionShaderImport = i.c_str();
-			break;
-		default:
-			break;
-		}
+	hit.HitGroupExport = group.c_str();
 
-		++index;
+	if (closetshit_name != nullptr) {
+		auto closesthit = Str::String(closetshit_name).GetUniCode();
+		hit.ClosestHitShaderImport = closesthit.c_str();
 	}
 
-	sub.push_back({ D3D12_STATE_SUBOBJECT_TYPE::D3D12_STATE_SUBOBJECT_TYPE_HIT_GROUP, &desc });
+	if (anyhit_name != nullptr) {
+		auto anyhit = Str::String(anyhit_name).GetUniCode();
+		hit.AnyHitShaderImport = anyhit.c_str();
+	}
+
+	if (intersect_name != nullptr) {
+		auto intersect = Str::String(intersect_name).GetUniCode();
+		hit.IntersectionShaderImport = intersect.c_str();
+	}
+
+	sub->AddSubObject(D3D12_STATE_SUBOBJECT_TYPE::D3D12_STATE_SUBOBJECT_TYPE_HIT_GROUP, &hit);
 }

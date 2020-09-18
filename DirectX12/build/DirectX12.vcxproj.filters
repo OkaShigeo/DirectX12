@@ -79,6 +79,12 @@
     <Filter Include="AccelerationStructure">
       <UniqueIdentifier>{6de24798-1d6a-49bb-9f2f-51ff9d076ddf}</UniqueIdentifier>
     </Filter>
+    <Filter Include="SubObject">
+      <UniqueIdentifier>{c1396c9f-7b30-49f1-8170-4c8086e80380}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="リソース ファイル\HLSL\DirectXRaytracing">
+      <UniqueIdentifier>{fe44f163-48b4-4d86-bab0-474816b7df8c}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\code\include\Window.h">
@@ -129,9 +135,6 @@
     <ClInclude Include="..\code\include\HitGroup.h">
       <Filter>HitGroup</Filter>
     </ClInclude>
-    <ClInclude Include="..\code\include\SubObject.h">
-      <Filter>ヘッダー ファイル</Filter>
-    </ClInclude>
     <ClInclude Include="..\code\include\RaytracingPipeline.h">
       <Filter>RaytracingPipeline</Filter>
     </ClInclude>
@@ -146,6 +149,12 @@
     </ClInclude>
     <ClInclude Include="..\code\include\AccelerationStructure.h">
       <Filter>AccelerationStructure</Filter>
+    </ClInclude>
+    <ClInclude Include="..\code\include\SubObject.h">
+      <Filter>SubObject</Filter>
+    </ClInclude>
+    <ClInclude Include="..\code\include\String.h">
+      <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -206,6 +215,9 @@
     <ClCompile Include="..\code\source\AccelerationStructure.cpp">
       <Filter>AccelerationStructure</Filter>
     </ClCompile>
+    <ClCompile Include="..\code\source\SubObject.cpp">
+      <Filter>SubObject</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\code\hlsl\Raytracing\Sphere.hlsli">
@@ -223,6 +235,9 @@
     <None Include="..\code\hlsl\Raytracing\BoundingVolumeHierarchy.hlsli">
       <Filter>リソース ファイル\HLSL\Raytracing</Filter>
     </None>
+    <None Include="..\code\hlsl\DirectXRaytracing\DirectXRaytracing.hlsli">
+      <Filter>リソース ファイル\HLSL\DirectXRaytracing</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="..\code\hlsl\Raytracing\Sphere.hlsl">
@@ -236,6 +251,15 @@
     </FxCompile>
     <FxCompile Include="..\code\hlsl\Raytracing\Raytracing.hlsl">
       <Filter>リソース ファイル\HLSL\Raytracing</Filter>
+    </FxCompile>
+    <FxCompile Include="..\code\hlsl\DirectXRaytracing\RayGeneration.hlsl">
+      <Filter>リソース ファイル\HLSL\DirectXRaytracing</Filter>
+    </FxCompile>
+    <FxCompile Include="..\code\hlsl\DirectXRaytracing\ClosestHit.hlsl">
+      <Filter>リソース ファイル\HLSL\DirectXRaytracing</Filter>
+    </FxCompile>
+    <FxCompile Include="..\code\hlsl\DirectXRaytracing\Miss.hlsl">
+      <Filter>リソース ファイル\HLSL\DirectXRaytracing</Filter>
     </FxCompile>
   </ItemGroup>
 </Project>

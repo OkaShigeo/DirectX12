@@ -1,4 +1,3 @@
-#include "..\include\DescriptorHeap.h"
 #include "..\include\Runtime.h"
 
 ID3D12DescriptorHeap* Dx12::DescriptorHeap::CreateDescriptorHeap(const D3D12_DESCRIPTOR_HEAP_TYPE& type, const std::uint64_t& rsc_num, const D3D12_DESCRIPTOR_HEAP_FLAGS& flag)

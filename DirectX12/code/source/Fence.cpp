@@ -1,4 +1,3 @@
-#include "..\include\Fence.h"
 #include "..\include\Runtime.h"
 
 ID3D12Fence1* Dx12::Fence::CreateFence(const std::uint64_t& count)

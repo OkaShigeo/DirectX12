@@ -1,4 +1,3 @@
-#include "..\include\CommandList.h"
 #include "..\include\Runtime.h"
 
 ID3D12GraphicsCommandList5* Dx12::CommandList::CreateCommandList(const D3D12_COMMAND_LIST_TYPE& type)
@@ -86,10 +85,10 @@ void Dx12::CommandList::ClearRenderTargetView(const Resource * resource, const f
 	obj->ClearRenderTargetView(handle, color, 0, nullptr);
 }
 
-void Dx12::CommandList::SetDescriptorHeap(const std::vector<DescriptorHeap*>& heap)
+void Dx12::CommandList::SetDescriptorHeap(const std::vector<DescriptorHeap*>& heaps)
 {
 	std::vector<ID3D12DescriptorHeap*>tmp;
-	for (auto& i : heap) {
+	for (auto& i : heaps) {
 		tmp.push_back(i->Get());
 	}
 

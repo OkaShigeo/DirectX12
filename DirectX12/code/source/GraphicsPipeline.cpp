@@ -1,4 +1,3 @@
-#include "..\include\GraphicsPipeline.h"
 #include "..\include\Runtime.h"
 
 ID3D12PipelineState * Dx12::GraphicsPipeline::CreatePipeline(const std::vector<D3D12_INPUT_ELEMENT_DESC>& input, const RootSignature* root, const ShaderCompiler* vertex,

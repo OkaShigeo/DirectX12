@@ -1,33 +1,39 @@
 #pragma once
-#include "SubObject.h"
-#include <string>
-#include <vector>
+#include "BaseObject.h"
+#include "String.h"
 
 namespace Dx12
 {
-	class HitGroup :
-		public SubObject
+	class SubObject;
+
+	class HitGroup
 	{
 	public:
 		/*＊ コンストラクタ */
 		HitGroup();
 		/** コンストラクタ
-		 * @param hit_name ヒット名
-		 * @param func_name 関数名
+		 * @param sub サブオブジェクトの追加先
+		 * @param hit_name ヒットグループ名
+		 * @param closesthit_name 最短ヒット関数名
+		 * @param その他ヒット関数名
+		 * @param ヒット定義関数名
 		 */
-		HitGroup(const std::wstring& hit_name, const std::vector<std::wstring>& func_name);
+		HitGroup(SubObject* sub, const Str::String& hit_group_name, const char* closetshit_name, const char* anyhit_name = nullptr, const char* intersect_name = nullptr);
 		/** デストラクタ */
 		~HitGroup();
 
 	public:
 		/** サブオブジェクトの追加 
-		 * @param hit_name ヒット名
-		 * @param func_name 関数名
+		 * @param sub サブオブジェクトの追加先
+		 * @param hit_name ヒットグループ名
+		 * @param closesthit_name 最短ヒット関数名
+		 * @param その他ヒット関数名
+		 * @param ヒット定義関数名
 		 */
-		void AddSubObj(const std::wstring& hit_name, const std::vector<std::wstring>& func_name);
+		void AddSubObject(SubObject* sub, const Str::String& hit_group_name, const char* closetshit_name, const char* anyhit_name = nullptr, const char* intersect_name = nullptr);
 
 	private:
-		/** コピーコンストラクタ */
-		HitGroup(const HitGroup&) = delete;
+		/* ヒットグループ情報 */
+		D3D12_HIT_GROUP_DESC hit{};
 	};
 }

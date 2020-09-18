@@ -1,4 +1,3 @@
-#include "..\include\Resource.h"
 #include "..\include\Runtime.h"
 
 D3D12_HEAP_PROPERTIES Dx12::Resource::GetDefaultProp(void)

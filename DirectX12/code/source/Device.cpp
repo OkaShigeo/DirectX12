@@ -1,5 +1,4 @@
 #include "..\include/Runtime.h"
-#include "..\include\SubObject.h"
 #include <wrl.h>
 
 namespace {
@@ -261,22 +260,16 @@ ID3D12PipelineState* Dx12::Device::CreateComputePipeline(const RootSignature* ro
 	return pipe;
 }
 
-ID3D12StateObject* Dx12::Device::CreateRaytracingPipeline(void) const
+ID3D12StateObject* Dx12::Device::CreateStateObject(const SubObject* sub, const D3D12_STATE_OBJECT_TYPE& type) const
 {
-	auto& sub = SubObject::GetSubObjList();
-
 	D3D12_STATE_OBJECT_DESC desc{};
-	desc.NumSubobjects = std::uint32_t(sub.size());
-	desc.pSubobjects   = sub.data();
-	desc.Type          = D3D12_STATE_OBJECT_TYPE::D3D12_STATE_OBJECT_TYPE_RAYTRACING_PIPELINE;
+	desc.NumSubobjects = std::uint32_t(sub->GetSubObjNum());
+	desc.pSubobjects   = sub->GetSubObjects().data();
+	desc.Type          = type;
 
 	ID3D12StateObject* pipe = nullptr;
 	auto hr = obj->CreateStateObject(&desc, IID_PPV_ARGS(&pipe));
 	assert(hr == S_OK);
-
-	auto size = sub.capacity();
-	sub.clear();
-	sub.reserve(size);
 
 	return pipe;
 }

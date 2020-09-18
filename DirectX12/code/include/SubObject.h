@@ -1,5 +1,5 @@
 #pragma once
-#include <d3d12.h>
+#include "BaseObject.h"
 #include <vector>
 
 namespace Dx12
@@ -7,52 +7,39 @@ namespace Dx12
 	class SubObject
 	{
 	public:
-		/** コンストラクタ */
-		SubObject() {}
-		/** デストラクタ */
-		virtual ~SubObject() {}
-
-	public:
-		/** サブオブジェクトの最大数更新
-		 @param num メモリ確保数
+		/** コンストラクタ
+		 * @param capacity 最大格納数
 		 */
-		static void Reserve(const std::uint32_t& num)
-		{
-			if (sub.size() <= 0) {
-				sub.reserve(num);
-			}
-		}
+		SubObject(const std::uint64_t& capacity = 1);
+		/** デストラクタ */
+		~SubObject();
 
 	public:
-		/** サブオブジェトの取得 
-		 * @param index サブオブジェクト配列のインデックス
+		/** サブオブジェクトの追加 
+		 * @param type サブオブジェクトタイプ
+		 * @param data サブオブジェクトデータ
+		 * @return ture:追加成功 / false:追加失敗
+		 */
+		bool AddSubObject(const D3D12_STATE_SUBOBJECT_TYPE& type, const void* data);
+
+	public:
+		/** サブオブジェクトの取得 
 		 * @return サブオブジェクト
 		 */
-		static D3D12_STATE_SUBOBJECT* GetSubObj(const std::uint32_t& index)
-		{
-			if (index < sub.size()) {
-				return &sub[index];
-			}
-
-			return nullptr;
-		}
-		/** サブオブジェクトリストの取得
-		 * @return サブオブジェクト配列
+		const std::vector<D3D12_STATE_SUBOBJECT>& GetSubObjects(void) const;
+		/** 格納サブオブジェクト数の取得
+		 * @return 現在の格納数
 		 */
-		static std::vector<D3D12_STATE_SUBOBJECT>& GetSubObjList(void)
-		{
-			return sub;
-		}
-		/** サブオブジェクトリストのポインタの取得
-		 * @return サブオブジェクト配列の先頭ポインタ
+		std::uint64_t GetSubObjNum(void) const;
+		/** 最大格納サブオブジェクト数の取得
+		 * @return 最大格納数
 		 */
-		static D3D12_STATE_SUBOBJECT* GetSubObjListPtr(void)
-		{
-			return sub.data();
-		}
+		std::uint64_t GetMaxSubObjNum(void) const;
 
-	protected:
-		/* サブオブジェクトリスト */
-		static std::vector<D3D12_STATE_SUBOBJECT>sub;
+	private:
+		/* 格納数 */
+		std::uint32_t index{ 0 };
+		/* サブオブジェクト */
+		std::vector<D3D12_STATE_SUBOBJECT>subs;
 	};
 }

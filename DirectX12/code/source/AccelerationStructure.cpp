@@ -1,4 +1,3 @@
-#include "..\include\AccelerationStructure.h"
 #include "..\include\Runtime.h"
 
 std::tuple<ID3D12Resource2*, ID3D12Resource2*, std::vector<D3D12_RAYTRACING_GEOMETRY_DESC>> Dx12::AccelerationStructure::CreateBottomLevel(const std::vector<Resource*>& vertex, const std::vector<std::uint64_t>& vertex_num, const std::uint64_t& transform_matrix_addr, const std::vector<Resource*>& index, const std::vector<std::uint64_t>& index_num)

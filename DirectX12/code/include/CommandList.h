@@ -68,7 +68,7 @@ namespace Dx12
 		/** ディスクリプタヒープのセット
 		 * @param heap ディスクリプタヒープ
 		 */
-		void SetDescriptorHeap(const std::vector<DescriptorHeap*>& heap);
+		void SetDescriptorHeap(const std::vector<DescriptorHeap*>& heaps);
 		/** グラフィックス用ルートシグネチャのセット 
 		 * @param root ルートシグネチャ
 		 */

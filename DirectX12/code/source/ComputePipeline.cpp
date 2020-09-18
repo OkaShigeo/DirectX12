@@ -1,4 +1,3 @@
-#include "..\include\ComputePipeline.h"
 #include "..\include\Runtime.h"
 
 ID3D12PipelineState * Dx12::ComputePipeline::CreatePipeline(const RootSignature * root, const ShaderCompiler * shader)

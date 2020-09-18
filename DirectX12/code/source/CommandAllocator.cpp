@@ -1,4 +1,3 @@
-#include "..\include\CommandAllocator.h"
 #include "..\include\Runtime.h"
 
 ID3D12CommandAllocator* Dx12::CommandAllocator::CreateCommandAllocator(const D3D12_COMMAND_LIST_TYPE& type)

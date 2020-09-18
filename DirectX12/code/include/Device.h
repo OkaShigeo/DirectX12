@@ -8,6 +8,7 @@ namespace Dx12
 	class RootSignature;
 	class DescriptorHeap;
 	class Resource;
+	class SubObject;
 
 	class Device :
 		public BaseObject<ID3D12Device6>
@@ -100,9 +101,10 @@ namespace Dx12
 		 */
 		ID3D12PipelineState* CreateComputePipeline(const RootSignature* root, const ShaderCompiler* shader) const;
 		/** レイトレーシングパイプラインの生成
+		 * @param sub サブオブジェクト
 		 * @return パイプライン
 		 */
-		ID3D12StateObject* CreateRaytracingPipeline(void) const;
+		ID3D12StateObject* CreateStateObject(const SubObject* sub, const D3D12_STATE_OBJECT_TYPE& type) const;
 		/** レンダーターゲットの生成
 		 * @param resource リソース
 		 */

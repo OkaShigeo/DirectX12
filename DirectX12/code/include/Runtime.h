@@ -8,17 +8,32 @@
 #include "SwapChain.h"
 #include "DescriptorHeap.h"
 #include "Resource.h"
+#include "SubObject.h"
 #include "ShaderCompiler.h"
 #include "RootSignature.h"
 #include "GraphicsPipeline.h"
 #include "ComputePipeline.h"
+#include "RaytracingPipeline.h"
 #include "AccelerationStructure.h"
+#include "HitGroup.h"
 
 namespace Dx12
 {
 	class Runtime
 	{
+	private:
+		/** コンストラクタ */
+		Runtime();
+		/** デストラクタ */
+		~Runtime();
+		/** コピーコンストラクタ */
+		Runtime(const Runtime&) = delete;
+
 	public:
+		/** 初期化済みか確認
+		 * @return true:初期化済み / false:未初期化
+		 */
+		static bool IsInitialized(void);
 		/** 初期化 
 		 * @param size ウィンドウサイズ
 		 * @param pos ウィンドウ座標
@@ -117,26 +132,23 @@ namespace Dx12
 		static void Dispatch(const std::uint64_t& thread_x, const std::uint64_t& thread_y = 1, const std::uint64_t& thread_z = 1);
 
 	public:
-		/** ウィンドウの取得 
+		/** ウィンドウの取得
 		 * @return ウィンドウ
 		 */
 		static Window* GetWindow(void);
-		/** デバイスの取得 
+		/** デバイスの取得
 		 * @return デバイス
 		 */
 		static Device* GetDevice(void);
-
-	private:
-		/** コンストラクタ */
-		Runtime();
-		/** デストラクタ */
-		~Runtime();
-		/** コピーコンストラクタ */
-		Runtime(const Runtime&) = delete;
+		/** ビューポートサイズの取得
+		 * @return ビューポートサイズ
+		 */
+		static Math::Vec2 GetViewportSize(void);
 
 		/*----------オペレータオーバーロード関数----------*/
 	private:
 		void operator=(const Runtime&) = delete;
+
 
 	private:
 		/* ウィンドウ */
@@ -156,6 +168,6 @@ namespace Dx12
 		/* ディスクリプタヒープ */
 		static DescriptorHeap* heap;
 		/* リソース */
-		static std::vector<Resource*>rsc;
+		static std::vector<Resource*>render_resource;
 	};
 }

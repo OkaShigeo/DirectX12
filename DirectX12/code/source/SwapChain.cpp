@@ -1,4 +1,3 @@
-#include "..\include\SwapChain.h"
 #include "..\include\Runtime.h"
 #include <wrl.h>
 

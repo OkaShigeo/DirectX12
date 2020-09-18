@@ -1,6 +1,50 @@
-#include "..\include\RootSignature.h"
 #include "..\include\Runtime.h"
 #include <wrl.h>
+
+D3D12_DESCRIPTOR_RANGE1 Dx12::RootSignature::GetRange(const D3D12_DESCRIPTOR_RANGE_TYPE& type, const std::uint32_t& index, const std::uint32_t& descriptor_num, const std::uint32_t& space)
+{
+	D3D12_DESCRIPTOR_RANGE1 range{};
+	range.BaseShaderRegister                = index;
+	range.Flags                             = D3D12_DESCRIPTOR_RANGE_FLAGS::D3D12_DESCRIPTOR_RANGE_FLAG_NONE;
+	range.NumDescriptors                    = 1;
+	range.OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
+	range.RangeType                         = type;
+	range.RegisterSpace                     = space;
+
+	return range;
+}
+
+D3D12_ROOT_PARAMETER1 Dx12::RootSignature::GetParam(const D3D12_ROOT_PARAMETER_TYPE& type, const std::uint32_t& index, const std::vector<D3D12_DESCRIPTOR_RANGE1>& ranges, const std::uint32_t& value, const std::uint32_t& space)
+{
+	D3D12_ROOT_PARAMETER1 param{};
+	param.ParameterType    = type;
+	param.ShaderVisibility = D3D12_SHADER_VISIBILITY::D3D12_SHADER_VISIBILITY_ALL;
+
+	switch (param.ParameterType)
+	{
+	case D3D12_ROOT_PARAMETER_TYPE::D3D12_ROOT_PARAMETER_TYPE_32BIT_CONSTANTS:
+		param.Constants.Num32BitValues = value;
+		param.Constants.RegisterSpace  = index;
+		param.Constants.ShaderRegister = space;
+		break;
+	case D3D12_ROOT_PARAMETER_TYPE::D3D12_ROOT_PARAMETER_TYPE_CBV:
+	case D3D12_ROOT_PARAMETER_TYPE::D3D12_ROOT_PARAMETER_TYPE_SRV:
+	case D3D12_ROOT_PARAMETER_TYPE::D3D12_ROOT_PARAMETER_TYPE_UAV:
+		param.Descriptor.Flags          = D3D12_ROOT_DESCRIPTOR_FLAGS::D3D12_ROOT_DESCRIPTOR_FLAG_NONE;
+		param.Descriptor.RegisterSpace  = index;
+		param.Descriptor.ShaderRegister = space;
+		break;
+	case D3D12_ROOT_PARAMETER_TYPE::D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE:
+		param.DescriptorTable.NumDescriptorRanges = std::uint32_t(ranges.size());
+		param.DescriptorTable.pDescriptorRanges   = ranges.data();
+		break;
+	default:
+		return D3D12_ROOT_PARAMETER1();
+		break;
+	}
+
+	return param;
+}
 
 ID3D12RootSignature* Dx12::RootSignature::CreateRootSignature(const ShaderCompiler * shader)
 {
@@ -18,7 +62,7 @@ ID3D12RootSignature * Dx12::RootSignature::CreateRootSignature(const D3D12_ROOT_
 	desc.Desc_1_1.pStaticSamplers   = sampler.data();
 	desc.Version                    = D3D_ROOT_SIGNATURE_VERSION::D3D_ROOT_SIGNATURE_VERSION_1_1;
 
-	Microsoft::WRL::ComPtr<ID3DBlob>sig = nullptr;
+	Microsoft::WRL::ComPtr<ID3DBlob>sig   = nullptr;
 	Microsoft::WRL::ComPtr<ID3DBlob>error = nullptr;
 
 	auto hr = D3D12SerializeVersionedRootSignature(&desc, &sig, &error);
@@ -50,16 +94,16 @@ Dx12::RootSignature::~RootSignature()
 {
 }
 
-void Dx12::RootSignature::AddSubObj(const D3D12_STATE_SUBOBJECT_TYPE & type, const std::vector<std::wstring> & func_name)
+void Dx12::RootSignature::AddSubObject(SubObject* sub, const D3D12_STATE_SUBOBJECT_TYPE& type, const std::vector<std::wstring>& func_name)
 {
-	sub.push_back({ type, &obj });
+	sub->AddSubObject(type, &obj);
 
-	std::vector<const wchar_t*>func;
+	std::vector<const wchar_t*>name;
 	for (auto& i : func_name) {
-		func.push_back(i.c_str());
+		name.push_back(i.c_str());
 	}
-	association.NumExports            = std::uint32_t(func_name.size());
-	association.pExports              = func.data();
-	association.pSubobjectToAssociate = &(*sub.rbegin());
-	sub.push_back({ D3D12_STATE_SUBOBJECT_TYPE::D3D12_STATE_SUBOBJECT_TYPE_SUBOBJECT_TO_EXPORTS_ASSOCIATION, &association });
+	association.NumExports            = std::uint32_t(name.size());
+	association.pExports              = name.data();
+	association.pSubobjectToAssociate = &(*sub->GetSubObjects().rbegin());
+	sub->AddSubObject(D3D12_STATE_SUBOBJECT_TYPE::D3D12_STATE_SUBOBJECT_TYPE_SUBOBJECT_TO_EXPORTS_ASSOCIATION, &association);
 }
