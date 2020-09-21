@@ -148,19 +148,19 @@ ID3D12Resource2* Dx12::Device::CreateBufferResource(const D3D12_RESOURCE_STATES&
 	return rsc;
 }
 
-ID3D12Resource2* Dx12::Device::CreateTextureResource(const D3D12_RESOURCE_STATES& state, const D3D12_HEAP_PROPERTIES& prop, const DXGI_FORMAT& format, const std::uint64_t& width, const std::uint32_t& height, const D3D12_RESOURCE_FLAGS& flag, const D3D12_CLEAR_VALUE* clear) const
+ID3D12Resource2* Dx12::Device::CreateTextureResource(const D3D12_RESOURCE_STATES& state, const D3D12_HEAP_PROPERTIES& prop, const DXGI_FORMAT& format, const Math::Vec2& size, const D3D12_RESOURCE_FLAGS& flag, const D3D12_CLEAR_VALUE* clear) const
 {
 	D3D12_RESOURCE_DESC1 desc{};
 	desc.DepthOrArraySize         = 1;
 	desc.Dimension                = D3D12_RESOURCE_DIMENSION::D3D12_RESOURCE_DIMENSION_TEXTURE2D;
 	desc.Flags                    = flag;
 	desc.Format                   = format;
-	desc.Height                   = height;
+	desc.Height                   = size.y;
 	desc.Layout                   = D3D12_TEXTURE_LAYOUT::D3D12_TEXTURE_LAYOUT_UNKNOWN;
 	desc.MipLevels                = 1;
 	desc.SampleDesc               = { 1, 0 };
 	desc.SamplerFeedbackMipRegion = {};
-	desc.Width                    = width;
+	desc.Width                    = size.x;
 
 	ID3D12Resource2* rsc = nullptr;
 	auto hr = obj->CreateCommittedResource1(&prop, D3D12_HEAP_FLAGS::D3D12_HEAP_FLAG_NONE, (D3D12_RESOURCE_DESC*)&desc, state, clear, nullptr, IID_PPV_ARGS(&rsc));
@@ -260,7 +260,7 @@ ID3D12PipelineState* Dx12::Device::CreateComputePipeline(const RootSignature* ro
 	return pipe;
 }
 
-ID3D12StateObject* Dx12::Device::CreateStateObject(const SubObject* sub, const D3D12_STATE_OBJECT_TYPE& type) const
+ID3D12StateObject* Dx12::Device::CreateStateObject(const D3D12_STATE_OBJECT_TYPE& type, const SubObject* sub) const
 {
 	D3D12_STATE_OBJECT_DESC desc{};
 	desc.NumSubobjects = std::uint32_t(sub->GetSubObjNum());
@@ -302,6 +302,16 @@ void Dx12::Device::CreateShaderResourceView(const Resource* resource) const
 	desc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
 
 	obj->CreateShaderResourceView(resource->Get(), &desc, resource->GetCpuHandle());
+}
+
+void Dx12::Device::CreateShaderResourceView(const AccelerationStructure* acceleration) const
+{
+	D3D12_SHADER_RESOURCE_VIEW_DESC desc{};
+	desc.RaytracingAccelerationStructure.Location = acceleration->GetAddress();
+	desc.Shader4ComponentMapping                  = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+	desc.ViewDimension                            = D3D12_SRV_DIMENSION::D3D12_SRV_DIMENSION_RAYTRACING_ACCELERATION_STRUCTURE;
+	
+	obj->CreateShaderResourceView(nullptr, &desc, acceleration->GetCpuHandle());
 }
 
 void Dx12::Device::CreateUnorderAccessView(Resource* resource, const std::uint64_t& element_num) const

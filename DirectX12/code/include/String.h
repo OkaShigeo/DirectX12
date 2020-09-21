@@ -108,6 +108,50 @@ namespace Str
 
 			return std::wstring();
 		}
+		/** マルチバイト文字列ポインタの取得
+		 * @return マルチバイト文字列のポインタ
+		 */
+		const char* GetMultibyteCodePtr(void) const
+		{
+			if (buffer != nullptr) {
+				if (unicode == false) {
+					char* tmp = new char[num + 1];
+					std::memcpy(tmp, buffer, sizeof(buffer[0]) * (num + 1));
+					return tmp;
+				}
+				else {
+					char* tmp = new char[num + 1];
+					size_t convert_num = 0;
+					if (wcstombs_s(&convert_num, tmp, num + 1, (const wchar_t*)buffer, _TRUNCATE) == 0) {
+						return tmp;
+					}
+				}
+			}
+
+			return nullptr;
+		}
+		/** ユニコード文字列ポインタの取得
+		 * @return ユニコード文字列ポインタ
+		 */
+		const wchar_t* GetUniCodePtr(void) const
+		{
+			if (buffer != nullptr) {
+				if (unicode == true) {
+					wchar_t* tmp = new wchar_t[num + 1];
+					std::memcpy(tmp, buffer, sizeof(buffer[0]) * (num + 1));
+					return tmp;
+				}
+				else {
+					wchar_t* tmp = new wchar_t[num + 1];
+					size_t convert_num = 0;
+					if (mbstowcs_s(&convert_num, tmp, num + 1, (const char*)buffer, _TRUNCATE) == 0) {
+						return tmp;
+					}
+				}
+			}
+
+			return nullptr;
+		}
 		/** 文字数の取得
 		 * @return 文字数(終端文字含めない)
 		 */

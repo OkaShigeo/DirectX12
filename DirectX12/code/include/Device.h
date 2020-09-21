@@ -1,5 +1,6 @@
 #pragma once
 #include "BaseObject.h"
+#include "Vector.h"
 #include <vector>
 
 namespace Dx12
@@ -8,6 +9,7 @@ namespace Dx12
 	class RootSignature;
 	class DescriptorHeap;
 	class Resource;
+	class AccelerationStructure;
 	class SubObject;
 
 	class Device :
@@ -70,13 +72,12 @@ namespace Dx12
 		 * @param state リソース状態
 		 * @param prop ヒーププロパティ
 		 * @param format テクスチャフォーマット
-		 * @param width テクスチャの横幅
-		 * @param height テクスチャの立幅
+		 * @param size テクスチャサイズ
 		 * @param flag リソースフラグ
 		 * @param clear クリア情報
 		 * @return テクスチャリソース
 		 */
-		ID3D12Resource2* CreateTextureResource(const D3D12_RESOURCE_STATES& state, const D3D12_HEAP_PROPERTIES& prop, const DXGI_FORMAT& format, const std::uint64_t& width, const std::uint32_t& height, const D3D12_RESOURCE_FLAGS& flag = D3D12_RESOURCE_FLAGS::D3D12_RESOURCE_FLAG_NONE, const D3D12_CLEAR_VALUE* clear = nullptr) const;
+		ID3D12Resource2* CreateTextureResource(const D3D12_RESOURCE_STATES& state, const D3D12_HEAP_PROPERTIES& prop, const DXGI_FORMAT& format, const Math::Vec2& size, const D3D12_RESOURCE_FLAGS& flag = D3D12_RESOURCE_FLAGS::D3D12_RESOURCE_FLAG_NONE, const D3D12_CLEAR_VALUE* clear = nullptr) const;
 		/** ルートシグネチャの生成
 		 * @param shader シェーダ情報
 		 * @return ルートシグネチャ
@@ -101,10 +102,11 @@ namespace Dx12
 		 */
 		ID3D12PipelineState* CreateComputePipeline(const RootSignature* root, const ShaderCompiler* shader) const;
 		/** レイトレーシングパイプラインの生成
+		 * @param type 状態オブジェクトタイプ
 		 * @param sub サブオブジェクト
 		 * @return パイプライン
 		 */
-		ID3D12StateObject* CreateStateObject(const SubObject* sub, const D3D12_STATE_OBJECT_TYPE& type) const;
+		ID3D12StateObject* CreateStateObject(const D3D12_STATE_OBJECT_TYPE& type, const SubObject* sub) const;
 		/** レンダーターゲットの生成
 		 * @param resource リソース
 		 */
@@ -117,6 +119,10 @@ namespace Dx12
 		 * @param resource リソース
 		 */
 		void CreateShaderResourceView(const Resource* resource) const;
+		/** シェーダリソースビューの生成(加速構造)
+		 * @param acceleration 加速構造
+		 */
+		void CreateShaderResourceView(const AccelerationStructure* acceleration) const;
 		/** アンオーダーアクセスビューの生成(バッファ)
 		 * @param resource リソース
 		 * @param element_num 要素数

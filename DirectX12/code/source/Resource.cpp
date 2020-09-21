@@ -41,9 +41,9 @@ ID3D12Resource2 * Dx12::Resource::CreateBufferResource(const D3D12_RESOURCE_STAT
 	return Runtime::GetDevice()->CreateBufferResource(state, prop, size, flag, clear);
 }
 
-ID3D12Resource2 * Dx12::Resource::CreateTextureResource(const D3D12_RESOURCE_STATES & state, const D3D12_HEAP_PROPERTIES & prop, const DXGI_FORMAT & format, const std::uint64_t & width, const std::uint32_t & height, const D3D12_RESOURCE_FLAGS & flag, const D3D12_CLEAR_VALUE * clear)
+ID3D12Resource2 * Dx12::Resource::CreateTextureResource(const D3D12_RESOURCE_STATES & state, const D3D12_HEAP_PROPERTIES & prop, const DXGI_FORMAT & format, const Math::Vec2 & size, const D3D12_RESOURCE_FLAGS & flag, const D3D12_CLEAR_VALUE * clear)
 {
-	return Runtime::GetDevice()->CreateTextureResource(state, prop, format, width, height, flag, clear);
+	return Runtime::GetDevice()->CreateTextureResource(state, prop, format, size, flag, clear);
 }
 
 Dx12::Resource::Resource()
@@ -55,9 +55,9 @@ Dx12::Resource::Resource(const D3D12_RESOURCE_STATES& state, const D3D12_HEAP_PR
 	obj = CreateBufferResource(state, prop, size, flag, clear);
 }
 
-Dx12::Resource::Resource(const D3D12_RESOURCE_STATES& state, const D3D12_HEAP_PROPERTIES& prop, const DXGI_FORMAT& format, const std::uint64_t& width, const std::uint32_t& height, const D3D12_RESOURCE_FLAGS& flag, const D3D12_CLEAR_VALUE* clear)
+Dx12::Resource::Resource(const D3D12_RESOURCE_STATES& state, const D3D12_HEAP_PROPERTIES& prop, const DXGI_FORMAT& format, const Math::Vec2 & size, const D3D12_RESOURCE_FLAGS& flag, const D3D12_CLEAR_VALUE* clear)
 {
-	obj = CreateTextureResource(state, prop, format, width, height, flag, clear);
+	obj = CreateTextureResource(state, prop, format, size, flag, clear);
 }
 
 Dx12::Resource::Resource(ID3D12Resource2* resource)
@@ -121,4 +121,9 @@ std::uint8_t * Dx12::Resource::GetBuffer(void) const
 	assert(hr == S_OK);
 	
 	return buffer;
+}
+
+std::uint64_t Dx12::Resource::GetSize(void) const
+{
+	return Runtime::GetDevice()->CopySubResourceInfo(this);
 }

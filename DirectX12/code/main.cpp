@@ -12,47 +12,326 @@ namespace
 	/* シェーダーモデル */
 	const std::string shader_model = "_6_4";
 
+	/* ペイロード */
+	struct Payload
+	{
+		/* 出力カラー */
+		float color[4];
+	};
+
+	/* レイトレーシングの情報 */
 	struct RaytracingInfo
 	{
 		/* 視点 */
-		Math::Vec3f pos;
+		Math::Vec3f eye_pos{ 0.0f, 0.0f, -2.0f };
 		/* レイの方向 */
-		Math::Vec3f direction;
+		Math::Vec3f direction{ 0.0f, 0.0f, 1.0f };
+		/* ヒット判定開始距離 */
+		float tmin{ 0.01f };
+		/* ヒット判定終了処理 */
+		float tmax{ 10000.0f };
 	};
 
+	/* 頂点リソース */
+	Dx12::VertexBuffer* vertex = nullptr;
+	
+	/* インデックスリソース */
+	Dx12::IndexBuffer* index = nullptr;
+
+	/* ボトムレベル加速構造 */
+	Dx12::AccelerationStructure* bottom = nullptr;
+	/* トップレベル加速構造 */
+	Dx12::AccelerationStructure* top = nullptr;
+
+	/* レイ生成シェーダ関数名 */
+	Str::String ray_gen_name = "RayGen";
 	/* レイ生成シェーダ */
 	Dx12::ShaderCompiler* ray_gen = nullptr;
+	/* レイ生成コレクション */
+	Dx12::RaytracingPipeline* ray_gen_collection = nullptr;
 	/* レイ生成シェーダの定数リソース */
 	Dx12::Resource* ray_gen_constant = nullptr;
+	/* レイ生成シェーダのシェーダテーブル */
+	Dx12::ShaderTable* ray_gen_table = nullptr;
+
+	/* 最も近いヒットシェーダ関数名 */
+	Str::String closesthit_name = "ClosestHit";
+	/* ヒットグループ名 */
+	Str::String group_name = "Triangle";
 	/* 最も近いヒットシェーダ */
 	Dx12::ShaderCompiler* closest_hit = nullptr;
+	/* 最も近いヒットコレクション */
+	Dx12::RaytracingPipeline* closesthit_collection = nullptr;
+	/* 最も近いヒットシェーダテーブル */
+	Dx12::ShaderTable* closesthit_table = nullptr;
+
+	/* ミスシェーダ名 */
+	Str::String miss_name = "Miss";
 	/* ミスシェーダ */
 	Dx12::ShaderCompiler* miss = nullptr;
+	/* ミスコレクション */
+	Dx12::RaytracingPipeline* miss_collection = nullptr;
+	/* ミスシェーダテーブル */
+	Dx12::ShaderTable* miss_table = nullptr;
+
 	/* グローバルルートシグネチャ */
 	Dx12::RootSignature* global = nullptr;
+	/* パイプライン */
+	Dx12::RaytracingPipeline* pipe = nullptr;
+
+	/* ヒープ */
+	Dx12::DescriptorHeap* heap = nullptr;
+	/* 出力データ */
+	Dx12::Resource* output = nullptr;
+}
+
+/* 頂点の初期化 */
+void InitializeVertex(void)
+{
+	std::vector<Math::Vec3f>vertex_info =
+	{
+		/* 左から右 */
+		/* 上から下 */
+		{ Math::Vec3f(-1.0f, -1.0f, 0.0f) },
+		{ Math::Vec3f( 1.0f, -1.0f, 0.0f) },
+		{ Math::Vec3f(-1.0f,  1.0f, 0.0f) },
+		{ Math::Vec3f( 1.0f,  1.0f, 0.0f) },
+	};
+
+	vertex = new Dx12::VertexBuffer(vertex_info.data(), vertex_info.size());
+}
+
+/* インデックスの初期化 */
+void InitializeIndex(void)
+{
+	/* インデックス情報 */
+	std::vector<std::uint16_t>index_info =
+	{
+		0, 1, 2,
+		1, 2, 3,
+	};
+
+	index = new Dx12::IndexBuffer(index_info.data(), index_info.size());
+}
+
+/* 加速構造の初期化 */
+void InitializeAccelerationStructure(void)
+{
+	Dx12::Runtime::Clear();
+	bottom = new Dx12::AccelerationStructure({ vertex }, { index });
+	Dx12::Runtime::BuildAccelerationStructure(bottom);
+	Dx12::Runtime::SetUavResourceBarrier(bottom);
+
+	top    = new Dx12::AccelerationStructure(1);
+	auto* buffer = top->GetBuffer();
+	auto a = top->GetInstance()->GetDesc().Width;
+	auto w = sizeof(D3D12_RAYTRACING_INSTANCE_DESC);
+	buffer[0].AccelerationStructure = bottom->GetAddress();
+	buffer[0].Flags = D3D12_RAYTRACING_INSTANCE_FLAGS::D3D12_RAYTRACING_INSTANCE_FLAG_NONE;
+	buffer[0].InstanceContributionToHitGroupIndex = 0;
+	buffer[0].InstanceID = 0;
+	buffer[0].InstanceMask = UCHAR_MAX;
+	float mat[3][4] = {
+		{ 1.0f, 0.0f, 0.0f, 0.0f },
+		{ 0.0f, 1.0f, 0.0f, 0.0f },
+		{ 0.0f, 0.0f, 1.0f, 0.0f },
+	};
+	buffer[0].Transform[0][0] = 1.0f;
+	buffer[0].Transform[1][1] = 1.0f;
+	buffer[0].Transform[2][2] = 1.0f;
+	top->ReleaseBuffer();
+	Dx12::Runtime::BuildAccelerationStructure(top);
+	Dx12::Runtime::SetUavResourceBarrier(top);
+	Dx12::Runtime::Execution();
+}
+
+/* レイ生成のサブオブジェクトの初期化 */
+Str::String InitializeRayGenSubObject(void)
+{
+	Dx12::SubObject sub(10);
+
+	ray_gen = new Dx12::ShaderCompiler(shader_dir + "DirectXRaytracing/RayGeneration.hlsl", "", "lib" + shader_model);
+	ray_gen->AddSubObject(&sub, { ray_gen_name });
+
+	static Dx12::RootSignature local(D3D12_ROOT_SIGNATURE_FLAGS::D3D12_ROOT_SIGNATURE_FLAG_LOCAL_ROOT_SIGNATURE, {
+		Dx12::RootSignature::GetParam(D3D12_ROOT_PARAMETER_TYPE::D3D12_ROOT_PARAMETER_TYPE_CBV, 0) });
+	local.AddSubObject(&sub, D3D12_STATE_SUBOBJECT_TYPE::D3D12_STATE_SUBOBJECT_TYPE_LOCAL_ROOT_SIGNATURE, { ray_gen_name });
+
+	Dx12::ObjectConfig obj_config(&sub, D3D12_STATE_OBJECT_FLAGS::D3D12_STATE_OBJECT_FLAG_ALLOW_LOCAL_DEPENDENCIES_ON_EXTERNAL_DEFINITIONS);
+
+	ray_gen_collection = new Dx12::RaytracingPipeline(D3D12_STATE_OBJECT_TYPE::D3D12_STATE_OBJECT_TYPE_COLLECTION, &sub);
+
+	return ray_gen_name;
+}
+
+/* 最も近いヒットのサブオブジェクトの初期化 */
+Str::String InitializeClosestHitSubObject(void)
+{
+	Dx12::SubObject sub(10);
+
+	closest_hit = new Dx12::ShaderCompiler(shader_dir + "DirectXRaytracing/ClosestHit.hlsl", "", "lib" + shader_model);
+	closest_hit->AddSubObject(&sub, { closesthit_name });
+
+	Dx12::RootSignature local(D3D12_ROOT_SIGNATURE_FLAGS::D3D12_ROOT_SIGNATURE_FLAG_LOCAL_ROOT_SIGNATURE, { });
+	local.AddSubObject(&sub, D3D12_STATE_SUBOBJECT_TYPE::D3D12_STATE_SUBOBJECT_TYPE_LOCAL_ROOT_SIGNATURE, { closesthit_name });
+
+	Dx12::HitGroup hit(&sub, group_name, closesthit_name.GetMultibyteCodePtr());
+	Dx12::ObjectConfig obj_config(&sub, D3D12_STATE_OBJECT_FLAGS::D3D12_STATE_OBJECT_FLAG_ALLOW_LOCAL_DEPENDENCIES_ON_EXTERNAL_DEFINITIONS);
+
+	closesthit_collection = new Dx12::RaytracingPipeline(D3D12_STATE_OBJECT_TYPE::D3D12_STATE_OBJECT_TYPE_COLLECTION, &sub);
+
+	return closesthit_name;
+}
+
+/* ミスのサブオブジェクトの初期化 */
+Str::String InitializeMissSubObject(void)
+{
+	Dx12::SubObject sub(10);
+
+	miss = new Dx12::ShaderCompiler(shader_dir + "DirectXRaytracing/Miss.hlsl", "", "lib" + shader_model);
+	miss->AddSubObject(&sub, { miss_name });
+
+	Dx12::RootSignature local(D3D12_ROOT_SIGNATURE_FLAGS::D3D12_ROOT_SIGNATURE_FLAG_LOCAL_ROOT_SIGNATURE, { });
+	local.AddSubObject(&sub, D3D12_STATE_SUBOBJECT_TYPE::D3D12_STATE_SUBOBJECT_TYPE_LOCAL_ROOT_SIGNATURE, { miss_name });
+
+	Dx12::ObjectConfig obj_config(&sub, D3D12_STATE_OBJECT_FLAGS::D3D12_STATE_OBJECT_FLAG_ALLOW_LOCAL_DEPENDENCIES_ON_EXTERNAL_DEFINITIONS);
+	miss_collection = new Dx12::RaytracingPipeline(D3D12_STATE_OBJECT_TYPE::D3D12_STATE_OBJECT_TYPE_COLLECTION, &sub);
+
+	return miss_name;
+}
+
+/* サブオブジェクトの初期化 */
+void InitializeSubObject(void)
+{
+	std::vector<Str::String>func_names =
+	{
+		InitializeRayGenSubObject(),
+		InitializeClosestHitSubObject(),
+		InitializeMissSubObject(),
+	};
+
+	Dx12::SubObject sub(10);
+
+	global = new Dx12::RootSignature(D3D12_ROOT_SIGNATURE_FLAGS::D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT, { 
+		Dx12::RootSignature::GetParam(D3D12_ROOT_PARAMETER_TYPE::D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE , 0, 
+			{ Dx12::RootSignature::GetRange(D3D12_DESCRIPTOR_RANGE_TYPE::D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 0)}),
+		Dx12::RootSignature::GetParam(D3D12_ROOT_PARAMETER_TYPE::D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE, 0, 
+			{Dx12::RootSignature::GetRange(D3D12_DESCRIPTOR_RANGE_TYPE::D3D12_DESCRIPTOR_RANGE_TYPE_UAV, 0)})
+		});
+	global->AddSubObject(&sub, D3D12_STATE_SUBOBJECT_TYPE::D3D12_STATE_SUBOBJECT_TYPE_GLOBAL_ROOT_SIGNATURE);
+
+	ray_gen_collection->AddSubObject(&sub);
+	closesthit_collection->AddSubObject(&sub);
+	miss->AddSubObject(&sub);
+
+
+	Dx12::ShaderConfig shader_config(&sub, sizeof(Payload), func_names);
+	Dx12::PipelineConfig pipe_config(&sub, 1);
+	Dx12::ObjectConfig obj_config(&sub, D3D12_STATE_OBJECT_FLAGS::D3D12_STATE_OBJECT_FLAG_ALLOW_EXTERNAL_DEPENDENCIES_ON_LOCAL_DEFINITIONS);
+
+	pipe = new Dx12::RaytracingPipeline(D3D12_STATE_OBJECT_TYPE::D3D12_STATE_OBJECT_TYPE_RAYTRACING_PIPELINE, &sub);
+}
+
+/* レイ生成シェーダテーブルの初期化 */
+void InitializeRayGenShaderTable(void)
+{
+	ray_gen_constant = new Dx12::Resource(D3D12_RESOURCE_STATES::D3D12_RESOURCE_STATE_GENERIC_READ, Dx12::Resource::GetUploadProp(), sizeof(RaytracingInfo));
+	RaytracingInfo info{};
+	auto* buffer = ray_gen_constant->GetBuffer();
+	std::memcpy(buffer, &info, sizeof(RaytracingInfo));
+	ray_gen_constant->ReleaseBuffer();
+
+
+	ray_gen_table = new Dx12::ShaderTable(1);
+	buffer = ray_gen_table->GetBuffer();
+	std::memcpy(buffer, pipe->GetShaderIdentifier(ray_gen_name), D3D12_SHADER_IDENTIFIER_SIZE_IN_BYTES);
+	*(D3D12_GPU_VIRTUAL_ADDRESS*)(buffer + D3D12_SHADER_IDENTIFIER_SIZE_IN_BYTES) = ray_gen_constant->GetAddress();
+	ray_gen_table->ReleaseBuffer();
+}
+
+/* 最も近いヒットシェーダテーブルの初期化 */
+void InitializeClosestHitShaderTable(void)
+{
+	closesthit_table = new Dx12::ShaderTable(1);
+	auto* buffer = closesthit_table->GetBuffer();
+	std::memcpy(buffer, pipe->GetShaderIdentifier(group_name), D3D12_SHADER_IDENTIFIER_SIZE_IN_BYTES);
+	closesthit_table->ReleaseBuffer();
+}
+
+/* ミス関連 */
+void InitializeMissShaderTable(void)
+{
+	miss_table = new Dx12::ShaderTable(1);
+	auto* buffer = miss_table->GetBuffer();
+	std::memcpy(buffer, pipe->GetShaderIdentifier(miss_name), D3D12_SHADER_IDENTIFIER_SIZE_IN_BYTES);
+	miss_table->ReleaseBuffer();
+}
+
+/* シェーダテーブルの初期化 */
+void InitializeShaderTable(void)
+{
+	InitializeRayGenShaderTable();
+	InitializeClosestHitShaderTable();
+	InitializeMissShaderTable();
 }
 
 /* 初期化 */
 void Constructor(void)
 {
-	ray_gen     = new Dx12::ShaderCompiler(shader_dir + "DirectXRaytracing/RayGeneration.hlsl", "", "lib" + shader_model);
-	ray_gen_constant = new Dx12::Resource(D3D12_RESOURCE_STATES::D3D12_RESOURCE_STATE_GENERIC_READ, Dx12::Resource::GetUploadProp(), 10);
-	closest_hit = new Dx12::ShaderCompiler(shader_dir + "DirectXRaytracing/ClosestHit.hlsl", "", "lib" + shader_model);
-	miss        = new Dx12::ShaderCompiler(shader_dir + "DirectXRaytracing/Miss.hlsl", "", "lib" + shader_model);
+	InitializeVertex();
+	InitializeIndex();
+	InitializeAccelerationStructure();
+	InitializeSubObject();
+	InitializeShaderTable();
 
-	global = new Dx12::RootSignature(D3D12_ROOT_SIGNATURE_FLAGS::D3D12_ROOT_SIGNATURE_FLAG_NONE, {
-		Dx12::RootSignature::GetParam(D3D12_ROOT_PARAMETER_TYPE::D3D12_ROOT_PARAMETER_TYPE_CBV, 0),
-		Dx12::RootSignature::GetParam(D3D12_ROOT_PARAMETER_TYPE::D3D12_ROOT_PARAMETER_TYPE_SRV, 0),
-		Dx12::RootSignature::GetParam(D3D12_ROOT_PARAMETER_TYPE::D3D12_ROOT_PARAMETER_TYPE_UAV, 0), });
+	heap = new Dx12::DescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE::D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, 2);
+	heap->CreateShaderResourceView(top);
+	output = new Dx12::Resource(D3D12_RESOURCE_STATES::D3D12_RESOURCE_STATE_COPY_SOURCE, Dx12::Resource::GetDefaultProp(), DXGI_FORMAT::DXGI_FORMAT_R8G8B8A8_UNORM, Dx12::Runtime::GetViewportSize(), D3D12_RESOURCE_FLAGS::D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS);
+	heap->CreateUnorderAccessView(output);
+}
+
+/* 加速構造の更新 */
+void UpdateAccelerationStructure(void)
+{
+	auto* buffer = top->GetBuffer();
+	buffer[0].AccelerationStructure               = bottom->GetAddress();
+	buffer[0].Flags                               = D3D12_RAYTRACING_INSTANCE_FLAGS::D3D12_RAYTRACING_INSTANCE_FLAG_NONE;
+	buffer[0].InstanceContributionToHitGroupIndex = 0;
+	buffer[0].InstanceID                          = 0;
+	buffer[0].InstanceMask                        = UCHAR_MAX;
+	float mat[3][4] = {
+		{ 1.0f, 0.0f, 0.0f, 0.0f },
+		{ 0.0f, 1.0f, 0.0f, 0.0f },
+		{ 0.0f, 0.0f, 1.0f, 0.0f },
+	};
+	std::memcpy(buffer[0].Transform, mat, sizeof(mat));
+	top->ReleaseBuffer();
+
+	Dx12::Runtime::BuildAccelerationStructure(top, D3D12_RAYTRACING_ACCELERATION_STRUCTURE_BUILD_FLAGS::D3D12_RAYTRACING_ACCELERATION_STRUCTURE_BUILD_FLAG_PERFORM_UPDATE);
+	Dx12::Runtime::SetUavResourceBarrier(top);
 }
 
 /* 終了 */
 void Destructor(void)
 {
+	delete output;
+	delete heap;
+	delete pipe;
 	delete global;
+	delete miss_table;
+	delete miss_collection;
 	delete miss;
+	delete closesthit_table;
+	delete closesthit_collection;
 	delete closest_hit;
+	delete ray_gen_table;
+	delete ray_gen_constant;
+	delete ray_gen_collection;
 	delete ray_gen;
+	delete top;
+	delete bottom;
+	delete index;
+	delete vertex;
 }
 
 /* エントリーポイント */
@@ -64,7 +343,13 @@ int main()
 	while (Window::CheckMsg() == true)
 	{
 		Dx12::Runtime::Clear();
-
+		UpdateAccelerationStructure();
+		Dx12::Runtime::SetComputeRootSignature(global);
+		Dx12::Runtime::SetRaytracingPipeline(pipe);
+		Dx12::Runtime::SetDescriptorHeap({ heap });
+		Dx12::Runtime::SetComputeResource(top, 0);
+		Dx12::Runtime::SetComputeResource(output, 1);
+		Dx12::Runtime::DispatchRays(ray_gen_table, closesthit_table, miss_table);
 		Dx12::Runtime::Execution();
 	}
 

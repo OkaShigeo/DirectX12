@@ -94,16 +94,28 @@ Dx12::RootSignature::~RootSignature()
 {
 }
 
-void Dx12::RootSignature::AddSubObject(SubObject* sub, const D3D12_STATE_SUBOBJECT_TYPE& type, const std::vector<std::wstring>& func_name)
+void Dx12::RootSignature::SetConfig(const D3D12_STATE_SUBOBJECT_TYPE& type)
 {
-	sub->AddSubObject(type, &obj);
+	config.pDesc = &obj;
+	config.Type  = type;
+}
 
-	std::vector<const wchar_t*>name;
-	for (auto& i : func_name) {
-		name.push_back(i.c_str());
-	}
-	association.NumExports            = std::uint32_t(name.size());
-	association.pExports              = name.data();
+void Dx12::RootSignature::AddSubObject(SubObject* sub)
+{
+	sub->AddSubObject(config);
+}
+
+void Dx12::RootSignature::AddSubObject(SubObject* sub, const D3D12_STATE_SUBOBJECT_TYPE& type)
+{
+	SetConfig(type);
+	AddSubObject(sub);
+}
+
+void Dx12::RootSignature::AddSubObject(SubObject* sub, const D3D12_STATE_SUBOBJECT_TYPE& type, const std::vector<Str::String>& func_name)
+{
+	AddSubObject(sub, type);
+	SetAssociation(func_name);
+
 	association.pSubobjectToAssociate = &(*sub->GetSubObjects().rbegin());
 	sub->AddSubObject(D3D12_STATE_SUBOBJECT_TYPE::D3D12_STATE_SUBOBJECT_TYPE_SUBOBJECT_TO_EXPORTS_ASSOCIATION, &association);
 }

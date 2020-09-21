@@ -125,42 +125,46 @@ void Dx12::CommandList::SetComputePipeline(const ComputePipeline * pipe) const
 	obj->SetPipelineState(pipe->Get());
 }
 
-void Dx12::CommandList::DrawVertexInstance(const Resource * vertex, const std::uint32_t & vertex_num, const std::uint32_t & instance_num, const D3D12_PRIMITIVE_TOPOLOGY & topology)
+void Dx12::CommandList::SetRaytracingPipeline(const RaytracingPipeline* pipe) const
+{
+	obj->SetPipelineState1(pipe->Get());
+}
+
+void Dx12::CommandList::DrawVertexInstance(const VertexBuffer* vertex, const std::uint32_t & instance_num, const D3D12_PRIMITIVE_TOPOLOGY & topology)
 {
 	D3D12_VERTEX_BUFFER_VIEW view{};
-	view.BufferLocation = vertex->Get()->GetGPUVirtualAddress();
-	view.SizeInBytes    = uint32_t(vertex->Get()->GetDesc1().Width);
-	view.StrideInBytes  = uint32_t(view.SizeInBytes / vertex_num);
+	view.BufferLocation = vertex->GetAddress();
+	view.SizeInBytes    = uint32_t(vertex->GetSize());
+	view.StrideInBytes  = uint32_t(view.SizeInBytes / vertex->GetNum());
 
 	obj->IASetVertexBuffers(0, 1, &view);
 	obj->IASetPrimitiveTopology(topology);
-	obj->DrawInstanced(uint32_t(vertex_num), instance_num, 0, 0);
+	obj->DrawInstanced(uint32_t(vertex->GetNum()), instance_num, 0, 0);
 }
 
-void Dx12::CommandList::DrawIndexInstance(const Resource * vertex, const std::uint32_t & vertex_num, const Resource * index, const std::uint32_t & index_num,
-	const std::uint32_t & offset, const std::uint32_t & instance_num, const D3D12_PRIMITIVE_TOPOLOGY & topology)
+void Dx12::CommandList::DrawIndexInstance(const VertexBuffer* vertex, const IndexBuffer* index, const std::uint32_t & instance_num, const std::uint32_t & offset, const D3D12_PRIMITIVE_TOPOLOGY & topology)
 {
 	/* 頂点バッファのセット */
 	{
 		D3D12_VERTEX_BUFFER_VIEW view{};
-		view.BufferLocation = vertex->Get()->GetGPUVirtualAddress();
-		view.SizeInBytes    = uint32_t(vertex->Get()->GetDesc1().Width);
-		view.StrideInBytes  = uint32_t(view.SizeInBytes / vertex_num);
+		view.BufferLocation = vertex->GetAddress();
+		view.SizeInBytes    = uint32_t(vertex->GetSize());
+		view.StrideInBytes  = uint32_t(view.SizeInBytes / vertex->GetNum());
 
 		obj->IASetVertexBuffers(0, 1, &view);
 	}
 	/* インデックスバッファのセット */
 	{
 		D3D12_INDEX_BUFFER_VIEW view{};
-		view.BufferLocation = index->Get()->GetGPUVirtualAddress();
+		view.BufferLocation = index->GetAddress();;
 		view.Format         = DXGI_FORMAT::DXGI_FORMAT_R16_UINT;
-		view.SizeInBytes    = std::uint32_t(index->Get()->GetDesc1().Width);
+		view.SizeInBytes    = std::uint32_t(index->GetSize());
 
 		obj->IASetIndexBuffer(&view);
 	}
 
 	obj->IASetPrimitiveTopology(topology);
-	obj->DrawIndexedInstanced(index_num, instance_num, offset, 0, 0);
+	obj->DrawIndexedInstanced(std::uint32_t(index->GetNum()), instance_num, offset, 0, 0);
 }
 
 void Dx12::CommandList::CopyResource(const Resource* dst, const Resource* src) const
@@ -205,6 +209,19 @@ void Dx12::CommandList::CopyTextureRegion(const Resource* dst, const Resource* s
 	}
 }
 
+void Dx12::CommandList::BuildAccelerationStructure(const AccelerationStructure* acceleration, const D3D12_RAYTRACING_ACCELERATION_STRUCTURE_BUILD_FLAGS &option)
+{
+	D3D12_BUILD_RAYTRACING_ACCELERATION_STRUCTURE_DESC desc{};
+	desc.DestAccelerationStructureData    = acceleration->GetAddress();
+	desc.Inputs                           = acceleration->GetBuildInput();
+	desc.Inputs.Flags                    |= option;
+	desc.ScratchAccelerationStructureData = acceleration->GetScratch()->GetGPUVirtualAddress();
+	if (option == D3D12_RAYTRACING_ACCELERATION_STRUCTURE_BUILD_FLAGS::D3D12_RAYTRACING_ACCELERATION_STRUCTURE_BUILD_FLAG_PERFORM_UPDATE) {
+		desc.SourceAccelerationStructureData = acceleration->GetAddress();
+	}
+	obj->BuildRaytracingAccelerationStructure(&desc, 0, nullptr);
+}
+
 void Dx12::CommandList::Dispatch(const std::uint64_t& thread_x, const std::uint64_t& thread_y, const std::uint64_t& thread_z) const
 {
 	auto type = obj->GetType();
@@ -214,4 +231,21 @@ void Dx12::CommandList::Dispatch(const std::uint64_t& thread_x, const std::uint6
 	}
 
 	obj->Dispatch(std::uint32_t(thread_x), std::uint32_t(thread_y), std::uint32_t(thread_z));
+}
+
+void Dx12::CommandList::DispatchRays(const Math::Vec2& viewport, const ShaderTable* ray_gen, const ShaderTable* closesthit, const ShaderTable* miss) const
+{
+	D3D12_DISPATCH_RAYS_DESC desc{};
+	desc.Depth                                  = 1;
+	desc.Height                                 = viewport.y;
+	desc.Width                                  = viewport.x;
+	desc.RayGenerationShaderRecord.SizeInBytes  = ray_gen->GetSize();
+	desc.RayGenerationShaderRecord.StartAddress = ray_gen->GetAddress();
+	desc.HitGroupTable.SizeInBytes              = closesthit->GetSize();
+	desc.HitGroupTable.StrideInBytes            = ShaderTable::GetShaderRecodeSize();
+	desc.MissShaderTable.SizeInBytes            = miss->GetSize();
+	desc.MissShaderTable.StartAddress           = miss->GetAddress();
+	desc.MissShaderTable.StrideInBytes          = ShaderTable::GetShaderRecodeSize();
+
+	obj->DispatchRays(&desc);
 }

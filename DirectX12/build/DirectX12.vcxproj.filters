@@ -85,6 +85,24 @@
     <Filter Include="リソース ファイル\HLSL\DirectXRaytracing">
       <UniqueIdentifier>{fe44f163-48b4-4d86-bab0-474816b7df8c}</UniqueIdentifier>
     </Filter>
+    <Filter Include="ShaderConfig">
+      <UniqueIdentifier>{6cd27402-4e31-4dbd-b6db-9d97e59e5415}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ObjectConfig">
+      <UniqueIdentifier>{8e75f1b8-b19a-45d7-96ea-cad69bd5ca05}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="PipelineConfig">
+      <UniqueIdentifier>{ed8785db-356f-4287-ba24-5f3e84bd718e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ShaderTable">
+      <UniqueIdentifier>{6a2cda7b-72dd-4f81-8551-0bf11a03ef83}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="VertexBuffer">
+      <UniqueIdentifier>{b8af10e6-0fad-47c3-b1f9-39c8087ea780}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="IndexBuffer">
+      <UniqueIdentifier>{34af885d-2b2f-4492-8582-2743e346e930}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\code\include\Window.h">
@@ -156,6 +174,27 @@
     <ClInclude Include="..\code\include\String.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
+    <ClInclude Include="..\code\include\ShaderConfig.h">
+      <Filter>ShaderConfig</Filter>
+    </ClInclude>
+    <ClInclude Include="..\code\include\ObjectConfig.h">
+      <Filter>ObjectConfig</Filter>
+    </ClInclude>
+    <ClInclude Include="..\code\include\PipelineConfig.h">
+      <Filter>PipelineConfig</Filter>
+    </ClInclude>
+    <ClInclude Include="..\code\include\BaseSubObject.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="..\code\include\ShaderTable.h">
+      <Filter>ShaderTable</Filter>
+    </ClInclude>
+    <ClInclude Include="..\code\include\VertexBuffer.h">
+      <Filter>VertexBuffer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\code\include\IndexBuffer.h">
+      <Filter>IndexBuffer</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\code\main.cpp">
@@ -217,6 +256,24 @@
     </ClCompile>
     <ClCompile Include="..\code\source\SubObject.cpp">
       <Filter>SubObject</Filter>
+    </ClCompile>
+    <ClCompile Include="..\code\source\ShaderConfig.cpp">
+      <Filter>ShaderConfig</Filter>
+    </ClCompile>
+    <ClCompile Include="..\code\source\ObjectConfig.cpp">
+      <Filter>ObjectConfig</Filter>
+    </ClCompile>
+    <ClCompile Include="..\code\source\PipelineConfig.cpp">
+      <Filter>PipelineConfig</Filter>
+    </ClCompile>
+    <ClCompile Include="..\code\source\ShaderTable.cpp">
+      <Filter>ShaderTable</Filter>
+    </ClCompile>
+    <ClCompile Include="..\code\source\VertexBuffer.cpp">
+      <Filter>VertexBuffer</Filter>
+    </ClCompile>
+    <ClCompile Include="..\code\source\IndexBuffer.cpp">
+      <Filter>IndexBuffer</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

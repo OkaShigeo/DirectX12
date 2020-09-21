@@ -1,13 +1,12 @@
 #pragma once
-#include "BaseObject.h"
-#include "String.h"
+#include "BaseSubObject.h"
 
 namespace Dx12
 {
 	class SubObject;
 
 	class ShaderCompiler :
-		public BaseObject<ID3DBlob>
+		public BaseObject<ID3DBlob>, BaseSubObject<D3D12_DXIL_LIBRARY_DESC>
 	{
 	public:
 		/*＊ シェーダのコンパイル
@@ -16,7 +15,7 @@ namespace Dx12
 		 * @param shader_model シェーダモデル
 		 * @return シェーダ情報
 		 */
-		static ID3DBlob* CompileFromFile(const std::string& file_path, const std::string& entry_name, const std::string& shader_model);
+		static ID3DBlob* CompileFromFile(const Str::String& file_path, const Str::String& entry_name, const Str::String& shader_model);
 
 	public:
 		/** コンストラクタ */
@@ -26,7 +25,7 @@ namespace Dx12
 		 * @param function エントリー関数名
 		 * @param shader_model シェーダモデル
 		 */
-		ShaderCompiler(const std::string& file_path, const std::string& entry_name, const std::string& shader_model);
+		ShaderCompiler(const Str::String& file_path, const Str::String& entry_name, const Str::String& shader_model);
 		/** コンストラクタ
 		 * @param blob シェーダ情報
 		 */
@@ -35,16 +34,22 @@ namespace Dx12
 		~ShaderCompiler();
 
 	public:
-		/** サブオブジェクトの追加 
-		 * @param sub サブオブジェクトの追加先
-		 * @param 関数名
+		/** サブオブジェクト情報のセット  
+		 * @param func_name エクスポート関数名
 		 */
-		void AddSubObject(SubObject* sub, const std::vector<std::string>& func_name);
+		void SetConfig(const std::vector<Str::String>& func_name);
+		/** サブオブジェクトに追加
+		 * @param sub 追加先サブオブジェクト
+		 */
+		virtual void AddSubObject(SubObject* sub) override;
+		/** サブオブジェクトに追加
+		 * @param sub 追加先サブオブジェクト
+		 * @param func_name エクスポート関数名
+		 */
+		void AddSubObject(SubObject* sub, const std::vector<Str::String>& func_name);
 
 	private:
 		/* エクスポート名 */
 		std::vector<D3D12_EXPORT_DESC>export_name;
-		/* シェーダ情報 */
-		D3D12_DXIL_LIBRARY_DESC dxil_info{};
 	};
 }

@@ -1,15 +1,13 @@
 #pragma once
 #include "BaseObject.h"
-#include <string>
-#include <vector>
+#include "BaseSubObject.h"
 
 namespace Dx12
 {
 	class ShaderCompiler;
-	class SubObject;
 
 	class RootSignature :
-		public BaseObject<ID3D12RootSignature>
+		public BaseObject<ID3D12RootSignature>, BaseSubObject<D3D12_STATE_SUBOBJECT>
 	{
 	public:
 		/** ディスクリプタ範囲の取得
@@ -63,15 +61,24 @@ namespace Dx12
 		~RootSignature();
 
 	public:
-		/** サブオブジェクトの追加
-		 * @param sub サブオブジェクトの追加先
-		 * @param type サブオブジェクトの種別
-		 * @param func_name 関数名
+		/** サブオブジェクト情報のセット
+		 * @param type サブオブジェクトタイプ
 		 */
-		void AddSubObject(SubObject* sub, const D3D12_STATE_SUBOBJECT_TYPE& type, const std::vector<std::wstring>& func_name);
-
-	private:
-		/* サブオブジェクトの関連付け */
-		D3D12_SUBOBJECT_TO_EXPORTS_ASSOCIATION association{};
+		void SetConfig(const D3D12_STATE_SUBOBJECT_TYPE& type);
+		/** サブオブジェクトに追加
+		 * @param sub 追加先サブオブジェクト
+		 */
+		virtual void AddSubObject(SubObject* sub) override;
+		/** サブオブジェクトに追加
+		 * @param sub 追加先サブオブジェクト
+		 * @param type サブオブジェクトタイプ
+		 */
+		void AddSubObject(SubObject* sub, const D3D12_STATE_SUBOBJECT_TYPE& type);
+		/** サブオブジェクトに追加
+		 * @param sub 追加先サブオブジェクト
+		 * @param type サブオブジェクトタイプ
+		 * @param func_name 関連付け関数名
+		 */
+		void AddSubObject(SubObject* sub, const D3D12_STATE_SUBOBJECT_TYPE& type, const std::vector<Str::String>& func_name);
 	};
 }

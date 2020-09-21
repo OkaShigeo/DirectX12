@@ -5,6 +5,7 @@
 namespace Dx12
 {
 	class Resource;
+	class AccelerationStructure;
 
 	class DescriptorHeap :
 		public BaseObject<ID3D12DescriptorHeap>
@@ -35,24 +36,33 @@ namespace Dx12
 		~DescriptorHeap();
 
 	public:
-		/*＊ RTVの生成 
+		/*＊ レンダーターゲットの生成 
 		 * @param resource リソース
+		 * @return true:生成の成功 / false:生成の失敗
 		 */
 		bool CreateRenderTargetView(Resource* resource);
-		/** CBVの生成 
+		/** コンスタントバッファビューの生成 
 		 * @param resource リソース
+		 * @return true:生成の成功 / false:生成の失敗
 		 */
 		bool CreateConstantBufferView(Resource* resource);
-		/** SRVの生成 
+		/** シェーダリソースビューの生成 
 		 * @param resource リソース
+		 * @return true:生成の成功 / false:生成の失敗
 		 */
 		bool CreateShaderResourceView(Resource* resource);
-		/** UAVの生成(バッファ) 
+		/** シェーダリソースビューの生成(加速構造)
+		 * @param acceleration 加速構造
+		 * @return true:生成の成功 / false:生成の失敗
+		 */
+		bool CreateShaderResourceView(AccelerationStructure* acceleration);
+		/** アンオーダーアクセスビューの生成(バッファ) 
 		 * @param resource リソース
 		 * @param element_num 要素数
+		 * @return true:生成の成功 / false:生成の失敗
 		 */
 		bool CreateUnorderAccessView(Resource* resource, const std::uint64_t& element_num);
-		/** UAVの生成(テクスチャ) 
+		/** アンオーダーアクセスビューの生成(テクスチャ) 
 		 * @param resource リソース
 		 */
 		bool CreateUnorderAccessView(Resource* resource);

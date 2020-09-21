@@ -14,8 +14,14 @@
 #include "GraphicsPipeline.h"
 #include "ComputePipeline.h"
 #include "RaytracingPipeline.h"
+#include "VertexBuffer.h"
+#include "IndexBuffer.h"
 #include "AccelerationStructure.h"
 #include "HitGroup.h"
+#include "ShaderConfig.h"
+#include "PipelineConfig.h"
+#include "ObjectConfig.h"
+#include "ShaderTable.h"
 
 namespace Dx12
 {
@@ -77,6 +83,10 @@ namespace Dx12
 		 * @param pipe コンピュート用パイプライン
 		 */
 		static void SetComputePipeline(const ComputePipeline* pipe);
+		/** レイトレーシング用パイプラインのセット 
+		 * @param pipe パイプライン
+		 */
+		static void SetRaytracingPipeline(const RaytracingPipeline* pipe);
 		/*＊ リソースバリアのセット 
 		 * @param rsc リソース
 		 * @param befor 遷移前のリソース状態
@@ -88,22 +98,19 @@ namespace Dx12
 		 */
 		static void SetUavResourceBarrier(const Resource* rsc);
 		/** 頂点リソースによるプリミティブの描画 
-		 * @param rsc 頂点リソース
-		 * @param vertex_num 頂点数
+		 * @param rsc 頂点バッファ
 		 * @param instance_num インスタンス数
 		 * @param topology トポロジー
 		 */
-		static void DrawVertexInstance(const Resource* rsc, const std::uint32_t& vertex_num, const std::uint32_t& instance_num = 1, const D3D12_PRIMITIVE_TOPOLOGY& topology = D3D12_PRIMITIVE_TOPOLOGY::D3D_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
+		static void DrawVertexInstance(const VertexBuffer* vertex, const std::uint32_t& instance_num = 1, const D3D12_PRIMITIVE_TOPOLOGY& topology = D3D12_PRIMITIVE_TOPOLOGY::D3D_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
 		/** インデックスリソースのよるプリミティブの描画 
-		 * @param vertex 頂点リソース
-		 * @param vertex_num 頂点数
-		 * @param index インデックスリソース
-		 * @param index_num インデックス数
-		 * @param offset 頂点のオフセット
+		 * @param vertex 頂点バッファ
+		 * @param index インデックスバッファ
 		 * @param instance_num インスタンス数
+		 * @param offset インデックスのオフセット
 		 * @param topology トポロジー
 		 */
-		static void DrawIndexInstance(const Resource* vertex, const std::uint32_t& vertex_num, const Resource* index, const std::uint32_t& index_num, const std::uint32_t& offset = 0, const std::uint32_t& instance_num = 1, const D3D12_PRIMITIVE_TOPOLOGY& topology = D3D12_PRIMITIVE_TOPOLOGY::D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+		static void DrawIndexInstance(const VertexBuffer* vertex, const IndexBuffer* index, const std::uint32_t& instance_num = 1, const std::uint32_t& offset = 0, const D3D12_PRIMITIVE_TOPOLOGY& topology = D3D12_PRIMITIVE_TOPOLOGY::D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 		/*＊ リソースデータのコピー
 		 * @param dst コピー先のリソース
 		 * @param src コピー元のリソース
@@ -124,12 +131,23 @@ namespace Dx12
 		 * @param offset サブリソース番号のオフセット
 		 */
 		static void CopyTextureRegion(const Resource* dst, const Resource* src, const std::vector<D3D12_PLACED_SUBRESOURCE_FOOTPRINT>& information, const std::uint32_t& offset = 0);
+		/** 加速構造のビルド
+		 * @param acceleration 加速構造
+		 * @param option ビルドオプション
+		 */
+		static void BuildAccelerationStructure(const AccelerationStructure* acceleraion, const D3D12_RAYTRACING_ACCELERATION_STRUCTURE_BUILD_FLAGS& option = D3D12_RAYTRACING_ACCELERATION_STRUCTURE_BUILD_FLAGS::D3D12_RAYTRACING_ACCELERATION_STRUCTURE_BUILD_FLAG_NONE);
 		/*＊ プログラマブルシェーダの実行
 		 * @param thread_x スレッドグループX
 		 * @param thread_x スレッドグループY
 		 * @param thread_x スレッドグループZ
 		 */
 		static void Dispatch(const std::uint64_t& thread_x, const std::uint64_t& thread_y = 1, const std::uint64_t& thread_z = 1);
+		/**
+		 * @param ray_gen レイ生成シェーダテーブル
+		 * @param closesthit 最も近いヒットシェーダテーブル
+		 * @param miss ミスシェーダテーブル
+		 */
+		static void DispatchRays(const ShaderTable* ray_gen, const ShaderTable* closesthit, const ShaderTable* miss, const Resource* output = nullptr);
 
 	public:
 		/** ウィンドウの取得

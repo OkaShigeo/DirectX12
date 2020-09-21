@@ -1,5 +1,6 @@
 #pragma once
 #include "BaseObject.h"
+#include "Vector.h"
 #include <vector>
 
 namespace Dx12
@@ -36,13 +37,12 @@ namespace Dx12
 		 * @param state リソース状態
 		 * @param prop ヒーププロパティ
 		 * @param format テクスチャフォーマット
-		 * @param width テクスチャの横幅
-		 * @param height テクスチャの立幅
+		 * @param size テクスチャサイズ
 		 * @param flag リソースフラグ
 		 * @param clear クリア情報
 		 * @return テクスチャリソース
 		 */
-		static ID3D12Resource2* CreateTextureResource(const D3D12_RESOURCE_STATES& state, const D3D12_HEAP_PROPERTIES& prop, const DXGI_FORMAT& format, const std::uint64_t& width, const std::uint32_t& height, const D3D12_RESOURCE_FLAGS& flag = D3D12_RESOURCE_FLAGS::D3D12_RESOURCE_FLAG_NONE, const D3D12_CLEAR_VALUE* clear = nullptr);
+		static ID3D12Resource2* CreateTextureResource(const D3D12_RESOURCE_STATES& state, const D3D12_HEAP_PROPERTIES& prop, const DXGI_FORMAT& format, const Math::Vec2& size, const D3D12_RESOURCE_FLAGS& flag = D3D12_RESOURCE_FLAGS::D3D12_RESOURCE_FLAG_NONE, const D3D12_CLEAR_VALUE* clear = nullptr);
 
 	public:
 		/*＊ コンストラクタ */
@@ -59,12 +59,11 @@ namespace Dx12
 		 * @param state リソース状態
 		 * @param prop ヒーププロパティ
 		 * @param format テクスチャフォーマット
-		 * @param width テクスチャの横幅
-		 * @param height テクスチャの立幅
+		 * @param size テクスチャサイズ
 		 * @param flag リソースフラグ
 		 * @param clear クリア情報
 		 */
-		Resource(const D3D12_RESOURCE_STATES& state, const D3D12_HEAP_PROPERTIES& prop, const DXGI_FORMAT& format, const std::uint64_t& width, const std::uint32_t& height, const D3D12_RESOURCE_FLAGS& flag = D3D12_RESOURCE_FLAGS::D3D12_RESOURCE_FLAG_NONE, const D3D12_CLEAR_VALUE* clear = nullptr);
+		Resource(const D3D12_RESOURCE_STATES& state, const D3D12_HEAP_PROPERTIES& prop, const DXGI_FORMAT& format, const Math::Vec2& size, const D3D12_RESOURCE_FLAGS& flag = D3D12_RESOURCE_FLAGS::D3D12_RESOURCE_FLAG_NONE, const D3D12_CLEAR_VALUE* clear = nullptr);
 		/** コンストラクタ
 		 * @param resource リソース
 		 */
@@ -105,6 +104,10 @@ namespace Dx12
 		 * @return 確保したバッファーのポインタ
 		 */
 		std::uint8_t* GetBuffer(void) const;
+		/** リソースサイズの取得
+		 * @return リソースサイズ
+		 */
+		std::uint64_t GetSize(void) const;
 	
 	private:
 		/* 参照しているディスクリプタヒープ */

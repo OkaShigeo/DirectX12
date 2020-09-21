@@ -1,29 +1,28 @@
 #pragma once
-#include "BaseObject.h"
+#include "BaseSubObject.h"
+#include "String.h"
 
 namespace Dx12
 {
-	class SubObject;
-
 	class RaytracingPipeline :
-		public BaseObject<ID3D12StateObject>
+		public BaseObject<ID3D12StateObject>, BaseSubObject<D3D12_EXISTING_COLLECTION_DESC>
 	{
 	public:
 		/*＊ ステータスオブジェクトの生成 
-		 * @param sub サブオブジェクト
 		 * @param type 状態オブジェクトタイプ
+		 * @param sub サブオブジェクト
 		 * @return ステートオブジェクト
 		 */
-		static ID3D12StateObject* CreateStateObject(const SubObject* sub, const D3D12_STATE_OBJECT_TYPE& type);
+		static ID3D12StateObject* CreateStateObject(const D3D12_STATE_OBJECT_TYPE& type, const SubObject* sub);
 
 	public:
 		/** コンストラクタ */
 		RaytracingPipeline();
 		/** コンストラクタ 
-		 * @param sub サブオブジェクト
 		 * @param type 状態オブジェクトタイプ
+		 * @param sub サブオブジェクト
 		 */
-		RaytracingPipeline(const SubObject* sub, const D3D12_STATE_OBJECT_TYPE& type);
+		RaytracingPipeline(const D3D12_STATE_OBJECT_TYPE& type, const SubObject* sub);
 		/** コンストラクタ
 		 * @param pipe パイプライン
 		 */
@@ -35,10 +34,21 @@ namespace Dx12
 		/** サブオブジェクトの追加 
 		 * @param sub サブオブジェクト
 		 */
-		void AddSubObject(SubObject* sub);
+		virtual void AddSubObject(SubObject* sub) override;
+		/** エントリーシェーダレコードの取得 
+		 * @param entry_name エントリーシェーダ名
+		 * 
+		 */
+		void* GetShaderIdentifier(const Str::String& entry_name);
+
+	public:
+		/** ステータスオブジェクトプロパティの取得
+		 * @return ステータスオブジェクトプロパティ
+		 */
+		ID3D12StateObjectProperties* GetStateProp(void);
 
 	private:
-		/* コレクション情報 */
-		D3D12_EXISTING_COLLECTION_DESC collection{};
+		/* ステータスオブジェクトプロパティ */
+		ID3D12StateObjectProperties* prop;
 	};
 }

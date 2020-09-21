@@ -147,6 +147,11 @@ void Dx12::Runtime::SetComputePipeline(const ComputePipeline * pipe)
 	list->SetComputePipeline(pipe);
 }
 
+void Dx12::Runtime::SetRaytracingPipeline(const RaytracingPipeline* pipe)
+{
+	list->SetRaytracingPipeline(pipe);
+}
+
 void Dx12::Runtime::SetResourceBarrier(const Resource* rsc, const D3D12_RESOURCE_STATES& befor, const D3D12_RESOURCE_STATES& after)
 {
 	list->SetResourceBarrier(rsc, befor, after);
@@ -157,15 +162,14 @@ void Dx12::Runtime::SetUavResourceBarrier(const Resource* rsc)
 	list->SetUavResourceBarrier(rsc);
 }
 
-void Dx12::Runtime::DrawVertexInstance(const Resource * rsc, const std::uint32_t & vertex_num, const std::uint32_t & instance_num, const D3D12_PRIMITIVE_TOPOLOGY & topology)
+void Dx12::Runtime::DrawVertexInstance(const VertexBuffer* vertex, const std::uint32_t & instance_num, const D3D12_PRIMITIVE_TOPOLOGY & topology)
 {
-	list->DrawVertexInstance(rsc, vertex_num, instance_num, topology);
+	list->DrawVertexInstance(vertex, instance_num, topology);
 }
 
-void Dx12::Runtime::DrawIndexInstance(const Resource * vertex, const std::uint32_t & vertex_num, const Resource * index, 
-	const std::uint32_t & index_num, const std::uint32_t & offset, const std::uint32_t& instance_num, const D3D12_PRIMITIVE_TOPOLOGY & topology)
+void Dx12::Runtime::DrawIndexInstance(const VertexBuffer* vertex, const IndexBuffer* index, const std::uint32_t & offset, const std::uint32_t& instance_num, const D3D12_PRIMITIVE_TOPOLOGY & topology)
 {
-	list->DrawIndexInstance(vertex, vertex_num, index, index_num, offset, instance_num, topology);
+	list->DrawIndexInstance(vertex, index, instance_num, offset, topology);
 }
 
 void Dx12::Runtime::CopyResource(const Resource* dst, const Resource* src)
@@ -183,9 +187,26 @@ void Dx12::Runtime::CopyTextureRegion(const Resource* dst, const Resource* src, 
 	list->CopyTextureRegion(dst, src, information, offset);
 }
 
+void Dx12::Runtime::BuildAccelerationStructure(const AccelerationStructure* acceleraion, const D3D12_RAYTRACING_ACCELERATION_STRUCTURE_BUILD_FLAGS& option)
+{
+	list->BuildAccelerationStructure(acceleraion, option);
+}
+
 void Dx12::Runtime::Dispatch(const std::uint64_t& thread_x, const std::uint64_t& thread_y, const std::uint64_t& thread_z)
 {
 	list->Dispatch(thread_x, thread_y, thread_z);
+}
+
+void Dx12::Runtime::DispatchRays(const ShaderTable* ray_gen, const ShaderTable* closesthit, const ShaderTable* miss, const Resource* output)
+{
+	list->DispatchRays(swap->GetSize(), ray_gen, closesthit, miss);
+
+	if (output != nullptr) {
+		auto* resource = render_resource[swap->GetBufferIndex()];
+		list->SetResourceBarrier(resource, D3D12_RESOURCE_STATES::D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATES::D3D12_RESOURCE_STATE_COPY_DEST);
+		list->CopyResource(resource, output);
+		list->SetResourceBarrier(resource, D3D12_RESOURCE_STATES::D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATES::D3D12_RESOURCE_STATE_RENDER_TARGET);
+	}
 }
 
 Window * Dx12::Runtime::GetWindow(void)

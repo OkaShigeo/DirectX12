@@ -9,14 +9,20 @@ Dx12::SubObject::~SubObject()
 {
 }
 
-bool Dx12::SubObject::AddSubObject(const D3D12_STATE_SUBOBJECT_TYPE& type, const void* data)
+bool Dx12::SubObject::AddSubObject(const D3D12_STATE_SUBOBJECT& sub)
 {
-	if (index >= subs.capacity()) {
-		subs.push_back({ type, data });
+	if (index <= subs.capacity()) {
+		subs.push_back(sub);
+		++index;
 		return true;
 	}
 
 	return false;
+}
+
+bool Dx12::SubObject::AddSubObject(const D3D12_STATE_SUBOBJECT_TYPE& type, const void* data)
+{
+	return AddSubObject({ type, data });
 }
 
 const std::vector<D3D12_STATE_SUBOBJECT>& Dx12::SubObject::GetSubObjects(void) const

@@ -57,13 +57,21 @@ bool Dx12::DescriptorHeap::CreateShaderResourceView(Resource * resource)
 		resource->heap  = this;
 		resource->count = count++;
 
-		D3D12_SHADER_RESOURCE_VIEW_DESC desc{};
-		desc.Format                  = resource->Get()->GetDesc().Format;
-		desc.ViewDimension           = D3D12_SRV_DIMENSION::D3D12_SRV_DIMENSION_TEXTURE2D;
-		desc.Texture2D.MipLevels     = resource->Get()->GetDesc().MipLevels;
-		desc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+		Runtime::GetDevice()->CreateShaderResourceView(resource);
 
-		Runtime::GetDevice()->Get()->CreateShaderResourceView(resource->Get(), &desc, resource->GetCpuHandle());
+		return true;
+	}
+
+	return false;
+}
+
+bool Dx12::DescriptorHeap::CreateShaderResourceView(AccelerationStructure* acceleration)
+{
+	if (count < obj->GetDesc().NumDescriptors) {
+		acceleration->heap  = this;
+		acceleration->count = count++;
+
+		Runtime::GetDevice()->CreateShaderResourceView(acceleration);
 
 		return true;
 	}

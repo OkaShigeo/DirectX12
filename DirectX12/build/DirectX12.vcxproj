@@ -129,6 +129,7 @@
   <ItemGroup>
     <ClInclude Include="..\code\include\AccelerationStructure.h" />
     <ClInclude Include="..\code\include\BaseObject.h" />
+    <ClInclude Include="..\code\include\BaseSubObject.h" />
     <ClInclude Include="..\code\include\Bitmap.h" />
     <ClInclude Include="..\code\include\CommandAllocator.h" />
     <ClInclude Include="..\code\include\CommandList.h" />
@@ -139,16 +140,22 @@
     <ClInclude Include="..\code\include\Fence.h" />
     <ClInclude Include="..\code\include\GraphicsPipeline.h" />
     <ClInclude Include="..\code\include\HitGroup.h" />
+    <ClInclude Include="..\code\include\IndexBuffer.h" />
+    <ClInclude Include="..\code\include\ObjectConfig.h" />
+    <ClInclude Include="..\code\include\PipelineConfig.h" />
     <ClInclude Include="..\code\include\RaytracingPipeline.h" />
     <ClInclude Include="..\code\include\Resource.h" />
     <ClInclude Include="..\code\include\RootSignature.h" />
     <ClInclude Include="..\code\include\Runtime.h" />
     <ClInclude Include="..\code\include\ShaderCompiler.h" />
+    <ClInclude Include="..\code\include\ShaderConfig.h" />
+    <ClInclude Include="..\code\include\ShaderTable.h" />
     <ClInclude Include="..\code\include\String.h" />
     <ClInclude Include="..\code\include\SubObject.h" />
     <ClInclude Include="..\code\include\SwapChain.h" />
     <ClInclude Include="..\code\include\TextureLoader.h" />
     <ClInclude Include="..\code\include\Vector.h" />
+    <ClInclude Include="..\code\include\VertexBuffer.h" />
     <ClInclude Include="..\code\include\Window.h" />
   </ItemGroup>
   <ItemGroup>
@@ -163,14 +170,20 @@
     <ClCompile Include="..\code\source\Fence.cpp" />
     <ClCompile Include="..\code\source\GraphicsPipeline.cpp" />
     <ClCompile Include="..\code\source\HitGroup.cpp" />
+    <ClCompile Include="..\code\source\IndexBuffer.cpp" />
+    <ClCompile Include="..\code\source\ObjectConfig.cpp" />
+    <ClCompile Include="..\code\source\PipelineConfig.cpp" />
     <ClCompile Include="..\code\source\RaytracingPipeline.cpp" />
     <ClCompile Include="..\code\source\Resource.cpp" />
     <ClCompile Include="..\code\source\RootSignature.cpp" />
     <ClCompile Include="..\code\source\Runtime.cpp" />
     <ClCompile Include="..\code\source\ShaderCompiler.cpp" />
+    <ClCompile Include="..\code\source\ShaderConfig.cpp" />
+    <ClCompile Include="..\code\source\ShaderTable.cpp" />
     <ClCompile Include="..\code\source\SubObject.cpp" />
     <ClCompile Include="..\code\source\SwapChain.cpp" />
     <ClCompile Include="..\code\source\TextureLoader.cpp" />
+    <ClCompile Include="..\code\source\VertexBuffer.cpp" />
     <ClCompile Include="..\code\source\Window.cpp" />
   </ItemGroup>
   <ItemGroup>

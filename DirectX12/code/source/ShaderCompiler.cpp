@@ -4,11 +4,11 @@
 
 #pragma comment(lib, "dxcompiler.lib")
 
-ID3DBlob* Dx12::ShaderCompiler::CompileFromFile(const std::string& file_path, const std::string& entry_name, const std::string& shader_model)
+ID3DBlob* Dx12::ShaderCompiler::CompileFromFile(const Str::String& file_path, const Str::String& entry_name, const Str::String& shader_model)
 {
-	auto path  = Str::String(file_path).GetUniCode();
-	auto name  = Str::String(entry_name).GetUniCode();
-	auto model = Str::String(shader_model).GetUniCode();
+	auto path  = file_path.GetUniCode();
+	auto name  = entry_name.GetUniCode();
+	auto model = shader_model.GetUniCode();
 
 	Microsoft::WRL::ComPtr<IDxcLibrary>library = nullptr;
 	auto hr = DxcCreateInstance(CLSID_DxcLibrary, IID_PPV_ARGS(&library));
@@ -28,8 +28,8 @@ ID3DBlob* Dx12::ShaderCompiler::CompileFromFile(const std::string& file_path, co
 
 	ID3DBlob* blob = nullptr;
 
-	std::string fmt = file_path.substr(file_path.find_last_of(".") + 1, std::string::npos);
-	if (fmt == "hlsl") {
+	std::wstring fmt = path.substr(path.find_last_of(L".") + 1, std::string::npos);
+	if (fmt == L"hlsl") {
 		/* ƒRƒ“ƒpƒCƒ‹ */
 		Microsoft::WRL::ComPtr<IDxcOperationResult>result = nullptr;
 		hr = compile->Compile(encode.Get(), path.c_str(), name.c_str(), model.c_str(), nullptr, 0, nullptr, 0, handle.Get(), &result);
@@ -58,7 +58,7 @@ Dx12::ShaderCompiler::ShaderCompiler()
 {
 }
 
-Dx12::ShaderCompiler::ShaderCompiler(const std::string& file_path, const std::string& entry_name, const std::string& shader_model)
+Dx12::ShaderCompiler::ShaderCompiler(const Str::String& file_path, const Str::String& entry_name, const Str::String& shader_model)
 {
 	obj = CompileFromFile(file_path, entry_name, shader_model);
 }
@@ -72,19 +72,26 @@ Dx12::ShaderCompiler::~ShaderCompiler()
 {
 }
 
-void Dx12::ShaderCompiler::AddSubObject(SubObject* sub, const std::vector<std::string>& func_name)
+void Dx12::ShaderCompiler::SetConfig(const std::vector<Str::String>& func_name)
 {
 	export_name.clear();
-
 	for (auto& i : func_name) {
-		auto name = Str::String(i).GetUniCode();
-		export_name.push_back({ name.c_str(), nullptr, D3D12_EXPORT_FLAGS::D3D12_EXPORT_FLAG_NONE });
+		export_name.push_back({ i.GetUniCodePtr(), nullptr, D3D12_EXPORT_FLAGS::D3D12_EXPORT_FLAG_NONE });
 	}
 
-	dxil_info.DXILLibrary.BytecodeLength  = obj->GetBufferSize();
-	dxil_info.DXILLibrary.pShaderBytecode = obj->GetBufferPointer();
-	dxil_info.NumExports                  = std::uint32_t(export_name.size());
-	dxil_info.pExports                    = export_name.data();
+	config.DXILLibrary.BytecodeLength  = obj->GetBufferSize();
+	config.DXILLibrary.pShaderBytecode = obj->GetBufferPointer();
+	config.NumExports                  = std::uint32_t(export_name.size());
+	config.pExports                    = export_name.data();
+}
 
-	sub->AddSubObject(D3D12_STATE_SUBOBJECT_TYPE::D3D12_STATE_SUBOBJECT_TYPE_DXIL_LIBRARY, &dxil_info);
+void Dx12::ShaderCompiler::AddSubObject(SubObject* sub)
+{
+	sub->AddSubObject(D3D12_STATE_SUBOBJECT_TYPE::D3D12_STATE_SUBOBJECT_TYPE_DXIL_LIBRARY, &config);
+}
+
+void Dx12::ShaderCompiler::AddSubObject(SubObject* sub, const std::vector<Str::String>& func_name)
+{
+	SetConfig(func_name);
+	AddSubObject(sub);
 }
